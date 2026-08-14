@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-new.md` and follow its instructions.

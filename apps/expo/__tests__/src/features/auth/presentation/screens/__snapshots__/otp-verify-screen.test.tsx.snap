@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OtpVerifyScreen — snapshots > matches the default tree 1`] = `
+<View
+  className="w-full max-w-auth-form"
+>
+  <Pressable
+    accessibilityRole="link"
+    className="flex-row items-center gap-xs mb-lg"
+    onPress={[Function]}
+    testID="otp-verify-back-button"
+  >
+    <Text
+      className="text-text-muted"
+      variant="body-sm"
+    >
+      otp.backButton
+    </Text>
+  </Pressable>
+  <Text
+    className="mb-xs"
+    variant="h1"
+  >
+    otp.title
+  </Text>
+  <Text
+    className="mb-xl text-text-secondary"
+    variant="body-sm"
+  >
+    otp.subtitle
+  </Text>
+  <View
+    className="mb-xl"
+  >
+    <Text
+      className="text-text-secondary mb-sm"
+      variant="body-sm"
+    >
+      otp.codeLabel
+    </Text>
+    <TextInput
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
+      testID="otp-verify-code-input"
+      value=""
+    />
+  </View>
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="otp-verify-submit-button"
+  >
+    <Text>
+      otp.submitButton
+    </Text>
+  </Pressable>
+</View>
+`;
+
+exports[`OtpVerifyScreen — snapshots > matches the tree with a verification error 1`] = `
+<View
+  className="w-full max-w-auth-form"
+>
+  <Pressable
+    accessibilityRole="link"
+    className="flex-row items-center gap-xs mb-lg"
+    onPress={[Function]}
+    testID="otp-verify-back-button"
+  >
+    <Text
+      className="text-text-muted"
+      variant="body-sm"
+    >
+      otp.backButton
+    </Text>
+  </Pressable>
+  <Text
+    className="mb-xs"
+    variant="h1"
+  >
+    otp.title
+  </Text>
+  <Text
+    className="mb-xl text-text-secondary"
+    variant="body-sm"
+  >
+    otp.subtitle
+  </Text>
+  <Pressable
+    testID="alert-error"
+  >
+    <Text>
+      Wrong code
+    </Text>
+  </Pressable>
+  <View
+    className="mb-xl"
+  >
+    <Text
+      className="text-text-secondary mb-sm"
+      variant="body-sm"
+    >
+      otp.codeLabel
+    </Text>
+    <TextInput
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
+      testID="otp-verify-code-input"
+      value=""
+    />
+  </View>
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="otp-verify-submit-button"
+  >
+    <Text>
+      otp.submitButton
+    </Text>
+  </Pressable>
+</View>
+`;

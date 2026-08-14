@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ExternalLink > matches the default snapshot 1`] = `
+<Link
+  href="https://example.com/terms"
+  onPress={[Function]}
+  target="_blank"
+/>
+`;

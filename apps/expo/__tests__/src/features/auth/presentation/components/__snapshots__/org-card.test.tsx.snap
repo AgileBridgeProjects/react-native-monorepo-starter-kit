@@ -1,0 +1,70 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OrgCard — snapshots > matches the initial-fallback tree 1`] = `
+<Pressable
+  accessibilityLabel="Open globex"
+  accessibilityRole="button"
+  className="min-h-18 w-full max-w-auth-form flex-row items-center rounded-2xl border border-border bg-surface-elevated px-lg py-md"
+  onPress={[MockFunction spy]}
+  testID="select-org-item-c2"
+>
+  <View
+    className="h-12 w-12 items-center justify-center rounded-xl bg-primary"
+  >
+    <Text
+      className="text-primary-foreground"
+      variant="h3"
+    >
+      G
+    </Text>
+  </View>
+  <View
+    className="ml-md flex-1"
+  >
+    <Text
+      className="text-text"
+      variant="h4"
+    >
+      globex
+    </Text>
+  </View>
+  <View
+    testID="icon-chevron.right"
+  />
+</Pressable>
+`;
+
+exports[`OrgCard — snapshots > matches the logo-variant tree 1`] = `
+<Pressable
+  accessibilityLabel="Open Acme Corp"
+  accessibilityRole="button"
+  className="min-h-18 w-full max-w-auth-form flex-row items-center rounded-2xl border border-border bg-surface-elevated px-lg py-md"
+  onPress={[MockFunction spy]}
+  testID="select-org-item-c1"
+>
+  <Image
+    accessibilityIgnoresInvertColors={true}
+    cachePolicy="memory-disk"
+    className="h-12 w-12"
+    contentFit="contain"
+    source={
+      {
+        "uri": "https://cdn.example.com/acme.png",
+      }
+    }
+  />
+  <View
+    className="ml-md flex-1"
+  >
+    <Text
+      className="text-text"
+      variant="h4"
+    >
+      Acme Corp
+    </Text>
+  </View>
+  <View
+    testID="icon-chevron.right"
+  />
+</Pressable>
+`;

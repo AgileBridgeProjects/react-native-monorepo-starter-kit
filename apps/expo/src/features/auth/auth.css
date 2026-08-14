@@ -1,0 +1,18 @@
+/**
+ * Auth-feature-scoped Tailwind utilities — imported once from apps/expo/global.css.
+ * Kept here rather than in global.css since these are only used by
+ * AuthScreenLayout's Sign-In hero, not shared across the app.
+ */
+
+/* Sign-In hero volleyball mesh (Figma "Sign In" frame) — reserves the
+ * bottom 12% of the hero for the card to overlap, so the mesh image sits
+ * above the card's rounded top edge instead of behind it. */
+@utility bottom-hero-mesh {
+  bottom: 12%;
+}
+
+/* Sign-In hero volleyball mesh image size (Figma "Sign In" frame). */
+@utility size-hero-mesh {
+  height: 72%;
+  width: 96%;
+}

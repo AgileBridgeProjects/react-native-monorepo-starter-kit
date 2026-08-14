@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
+    <title>StarterKit</title>
+    <style>
+      /* Small-screen tightening. Honoured by clients that support embedded styles
+         (Apple Mail, iOS Mail, Gmail app); others fall back to the inline styles. */
+      @media only screen and (max-width: 480px) {
+        .vq-outer { padding: 16px 10px !important; }
+        .vq-card { border-radius: 12px !important; }
+        .vq-header { padding: 28px 20px !important; }
+        .vq-body { padding: 28px 22px 4px 22px !important; }
+        .vq-cta a { display: block !important; padding: 14px 20px !important; }
+      }
+    </style>
+  </head>
+  <body
+    style="margin: 0; padding: 0; background-color: #f1f3f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;"
+  >
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f3f5;">
+      <tr>
+        <td class="vq-outer" align="center" style="padding: 32px 16px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="vq-card" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(3, 19, 46, 0.08);">
+            <!-- Header band (brand gradient) -->
+            <tr>
+              <td class="vq-header" align="center" style="background-color: #0a3d91; background-image: linear-gradient(135deg, #031e58 0%, #0d90b1 55%, #021546 100%); padding: 36px 32px;">
+                <span style="font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #ffffff;">Vybe<span style="color: #3bd7f6;">EQ</span></span>
+              </td>
+            </tr>
+            <!-- Body (per-email content) -->
+            <tr>
+              <td class="vq-body" style="padding: 36px 40px 8px 40px;">
+                {{Body}}
+              </td>
+            </tr>
+            <!-- Footer wave (degrades to the footer band if SVG is stripped) -->
+            <tr>
+              <td style="padding: 24px 0 0 0; line-height: 0;">
+                <svg width="100%" height="36" viewBox="0 0 600 36" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
+                  <path d="M0,18 C160,40 380,-6 600,18 L600,36 L0,36 Z" fill="#072a64"></path>
+                </svg>
+              </td>
+            </tr>
+            <!-- Footer band -->
+            <tr>
+              <td align="center" style="background-color: #072a64; padding: 20px 32px 28px 32px;">
+                <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #9dbaea;">StarterKit &middot; Play. Learn. Grow.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

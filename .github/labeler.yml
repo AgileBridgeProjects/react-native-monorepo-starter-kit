@@ -1,0 +1,26 @@
+# ── Apps ──────────────────────────────────────────────────────────────────────
+mobile:
+  - changed-files:
+    - any-glob-to-any-file: apps/expo/**
+
+web:
+  - changed-files:
+    - any-glob-to-any-file: apps/web/**
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file: apps/backend/**
+
+# ── Cross-cutting ─────────────────────────────────────────────────────────────
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/package.json"
+      - "**/package-lock.json"
+      - "**/*.csproj"
+      - "**/*.slnx"
+      - "**/Directory.Build.props"
+
+docs:
+  - changed-files:
+    - any-glob-to-any-file: docs/**

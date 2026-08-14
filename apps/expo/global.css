@@ -1,0 +1,247 @@
+@import 'tailwindcss';
+@import 'uniwind';
+@import '@starterkit/shared/tokens.css';
+@import './src/features/auth/auth.css';
+
+/* Scan monorepo packages for Tailwind classes */
+@source '../../packages/shared';
+@source '../../components';
+
+/* ─── Tailwind v4 @theme ─────────────────────────────────────────────────────
+ * Raw palette shades — used for utility classes like bg-primary-500.
+ * Values reference --starterkit-* primitives from @starterkit/shared/tokens.css.
+ */
+
+@theme {
+  /* ── Brand (green) ── */
+  --color-primary-50:  var(--starterkit-primary-50);
+  --color-primary-100: var(--starterkit-primary-100);
+  --color-primary-200: var(--starterkit-primary-200);
+  --color-primary-300: var(--starterkit-primary-300);
+  --color-primary-400: var(--starterkit-primary-400);
+  --color-primary-500: var(--starterkit-primary-500);
+  --color-primary-600: var(--starterkit-primary-600);
+  --color-primary-700: var(--starterkit-primary-700);
+  --color-primary-800: var(--starterkit-primary-800);
+  --color-primary-900: var(--starterkit-primary-900);
+
+  /* ── Neutral ── */
+  --color-neutral-0:   var(--starterkit-neutral-0);
+  --color-neutral-50:  var(--starterkit-neutral-50);
+  --color-neutral-100: var(--starterkit-neutral-100);
+  --color-neutral-200: var(--starterkit-neutral-200);
+  --color-neutral-300: var(--starterkit-neutral-300);
+  --color-neutral-400: var(--starterkit-neutral-400);
+  --color-neutral-500: var(--starterkit-neutral-500);
+  --color-neutral-600: var(--starterkit-neutral-600);
+  --color-neutral-700: var(--starterkit-neutral-700);
+  --color-neutral-800: var(--starterkit-neutral-800);
+  --color-neutral-900: var(--starterkit-neutral-900);
+  --color-neutral-950: var(--starterkit-neutral-950);
+
+  /* ── Accent (amber-gold) ── */
+  --color-accent-50:  var(--starterkit-accent-50);
+  --color-accent-100: var(--starterkit-accent-100);
+  --color-accent-200: var(--starterkit-accent-200);
+  --color-accent-300: var(--starterkit-accent-300);
+  --color-accent-400: var(--starterkit-accent-400);
+  --color-accent-500: var(--starterkit-accent-500);
+  --color-accent-600: var(--starterkit-accent-600);
+  --color-accent-700: var(--starterkit-accent-700);
+
+  /* ── Status colors (static — no dark-mode variant) ── */
+  --color-success: var(--starterkit-success);
+  --color-warning: var(--starterkit-warning);
+  --color-error:   var(--starterkit-error);
+  --color-info:    var(--starterkit-info);
+  --color-gold:    var(--starterkit-gold);
+
+  /* ── Brand gradient ── */
+  --color-gradient-start: var(--starterkit-gradient-start);
+  --color-gradient-mid:   var(--starterkit-gradient-mid);
+  --color-gradient-end:   var(--starterkit-gradient-end);
+
+  /* ── Spacing ── */
+  --spacing-xs:  var(--starterkit-spacing-xs);
+  --spacing-sm:  var(--starterkit-spacing-sm);
+  --spacing-md:  var(--starterkit-spacing-md);
+  --spacing-lg:  var(--starterkit-spacing-lg);
+  --spacing-xl:  var(--starterkit-spacing-xl);
+  --spacing-2xl: var(--starterkit-spacing-2xl);
+  --spacing-3xl: var(--starterkit-spacing-3xl);
+
+  /* ── Font sizes ── */
+  --text-2xs:  var(--starterkit-text-2xs);
+  --text-xs:   var(--starterkit-text-xs);
+  --text-sm:   var(--starterkit-text-sm);
+  --text-base: var(--starterkit-text-base);
+  --text-lg:   var(--starterkit-text-lg);
+  --text-xl:   var(--starterkit-text-xl);
+  --text-2xl:  var(--starterkit-text-2xl);
+  --text-3xl:  var(--starterkit-text-3xl);
+  --text-4xl:  var(--starterkit-text-4xl);
+
+  /* ── Border radius ── */
+  --radius-sm: var(--starterkit-radius-sm);
+  --radius-md: var(--starterkit-radius-md);
+  --radius-lg: var(--starterkit-radius-lg);
+  --radius-xl: var(--starterkit-radius-xl);
+  --radius-2xl: var(--starterkit-radius-2xl);
+  --radius-pill: var(--starterkit-radius-pill);
+  --radius-auth-control: var(--starterkit-radius-auth-control);
+
+  /* ── Font weights ── */
+  --font-weight-normal:   var(--starterkit-font-weight-normal);
+  --font-weight-medium:   var(--starterkit-font-weight-medium);
+  --font-weight-semibold: var(--starterkit-font-weight-semibold);
+  --font-weight-bold:     var(--starterkit-font-weight-bold);
+
+  /* ── Font families (StarterKit — loaded via @expo-google-fonts) ──
+   * On mobile the family MUST be the exact key useFonts() registers, e.g.
+   * "BebasNeue_400Regular" — not the CSS-friendly "Bebas Neue" used on web. */
+  --font-heading:       'BebasNeue_400Regular';
+  --font-body:          'Poppins_400Regular';
+  /* Bebas Neue ships no italic face at all, and RN does not synthesise a faux
+   * italic for custom fonts the way a browser would — `italic` on any
+   * `font-heading`-family text was a silent no-op. Quotes use this instead of
+   * `font-body` + the bare Tailwind `italic` utility for the same reason: that
+   * utility only sets `font-style`, and without a REGISTERED italic-named font
+   * file RN still renders upright. */
+  --font-body-italic:   'Poppins_400Regular_Italic';
+  --font-body-medium:   'Poppins_500Medium';
+  --font-body-semibold: 'Poppins_600SemiBold';
+  --font-body-bold:     'Poppins_700Bold';
+
+  /* ── StarterKit brand accents ── */
+  --color-brand-blue:            var(--starterkit-blue);
+  --color-brand-blue-dark:       var(--starterkit-blue-dark);
+  --color-brand-blue-input-fill: var(--starterkit-blue-input-fill);
+  --color-brand-blue-card-dark:  var(--starterkit-blue-card-dark);
+  --color-brand-blue-screen:     var(--starterkit-blue-screen);
+  --color-brand-cyan:            var(--starterkit-cyan);
+  --color-brand-cyan-light:      var(--starterkit-cyan-light);
+  --color-brand-purple:          var(--starterkit-purple);
+  --color-brand-pink:            var(--starterkit-pink);
+
+  /* ── Line heights ── */
+  --leading-tight:   var(--starterkit-line-height-tight);
+  --leading-normal:  var(--starterkit-line-height-normal);
+  --leading-relaxed: var(--starterkit-line-height-relaxed);
+
+  /* ── Z-index ── */
+  --z-base:     var(--starterkit-z-base);
+  --z-dropdown: var(--starterkit-z-dropdown);
+  --z-sticky:   var(--starterkit-z-sticky);
+  --z-overlay:  var(--starterkit-z-overlay);
+  --z-modal:    var(--starterkit-z-modal);
+  --z-toast:    var(--starterkit-z-toast);
+
+  /* ── Icon sizes ── */
+  --size-icon-xs: var(--starterkit-icon-xs);
+  --size-icon-sm: var(--starterkit-icon-sm);
+  --size-icon-md: var(--starterkit-icon-md);
+  --size-icon-lg: var(--starterkit-icon-lg);
+}
+
+/* ─── Custom layout utilities ────────────────────────────────────────────────
+ * Tailwind v4 requires @utility for custom utility classes not covered by the
+ * spacing / color theme scales.
+ */
+
+/* Constrains auth form to a readable column width on desktop web,
+ * while staying full-width on mobile. 28rem ≈ 448px at default font size,
+ * but scales with the user's root font-size preference (rem, not px). */
+@utility max-w-auth-form {
+  max-width: 28rem;
+}
+
+/* Standard readable content width for larger tablet and desktop web layouts,
+ * while keeping mobile layouts full-width. */
+@utility max-w-content {
+  max-width: 84rem;
+}
+
+/* Narrower single-column reading/detail width (learn articles, topic lists,
+ * game lobby). 48rem ≈ 768px — comfortable line length on desktop web. */
+@utility max-w-reading {
+  max-width: 48rem;
+}
+
+/* Hide scrollbars while keeping scrolling functional (web only) */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-y: scroll;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* On mobile web (pointer: coarse = touch device) hide all scrollbars globally —
+ * the app should feel native, not like a webpage. */
+@media (pointer: coarse) {
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ─── Semantic Colors (light / dark) ─────────────────────────────────────────
+ * These adapt automatically based on the active Uniwind theme.
+ * Values reference --starterkit-* primitives from @starterkit/shared/tokens.css.
+ */
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-text:              var(--starterkit-neutral-900);
+      --color-text-secondary:    var(--starterkit-neutral-600);
+      --color-text-muted:        var(--starterkit-neutral-400);
+      --color-background:        var(--starterkit-neutral-0);
+      --color-surface:           var(--starterkit-neutral-50);
+      --color-surface-elevated:  var(--starterkit-neutral-0);
+      --color-border:            var(--starterkit-neutral-200);
+      --color-border-strong:     var(--starterkit-neutral-300);
+      --color-primary:           var(--starterkit-primary-500);
+      --color-primary-foreground: var(--starterkit-neutral-0);
+      --color-accent:            var(--starterkit-accent-500);
+      --color-icon:              var(--starterkit-neutral-600);
+      --color-icon-active:       var(--starterkit-primary-500);
+      --color-input:             var(--starterkit-neutral-100);
+      --color-input-text:        var(--starterkit-neutral-600);
+      --color-input-hover:       var(--starterkit-neutral-200);
+      --color-tab-bar:           var(--starterkit-neutral-0);
+      --color-tab-bar-border:    var(--starterkit-neutral-200);
+    }
+
+    @variant dark {
+      --color-text:              var(--starterkit-neutral-50);
+      --color-text-secondary:    var(--starterkit-neutral-400);
+      --color-text-muted:        var(--starterkit-neutral-600);
+      --color-background:        var(--starterkit-neutral-950);
+      --color-surface:           var(--starterkit-neutral-900);
+      --color-surface-elevated:  var(--starterkit-neutral-800);
+      --color-border:            var(--starterkit-neutral-800);
+      --color-border-strong:     var(--starterkit-neutral-700);
+      --color-primary:           var(--starterkit-primary-400);
+      --color-primary-foreground: var(--starterkit-neutral-0);
+      --color-accent:            var(--starterkit-accent-500);
+      --color-icon:              var(--starterkit-neutral-500);
+      --color-icon-active:       var(--starterkit-primary-400);
+      --color-input:             var(--starterkit-neutral-800);
+      --color-input-text:        var(--starterkit-neutral-400);
+      --color-input-hover:       var(--starterkit-neutral-700);
+      --color-tab-bar:           var(--starterkit-neutral-900);
+      --color-tab-bar-border:    var(--starterkit-neutral-800);
+    }
+  }
+}
+
+@utility touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}

@@ -1,0 +1,106 @@
+name: CI — Web
+
+on:
+  push:
+    branches: [main, dev, uat]
+  pull_request:
+    branches: [main, dev, uat]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changes
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            web:
+              - apps/web/**
+              - packages/shared/**
+              - package.json
+              - package-lock.json
+              - tsconfig.base.json
+              - biome.json
+
+  checks:
+    name: Checks (web)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint -w apps/web
+      - run: npm run typecheck -w apps/web
+      - run: npm run test -w apps/web
+      - name: Regenerate proxy from committed schema
+        run: npm run generate:proxy:local -w apps/web
+      - name: Fail if proxy code is out of date
+        run: |
+          if git diff --exit-code apps/web/src/proxy/; then
+            echo "✅ Proxy code matches committed OpenAPI schema."
+          else
+            echo "❌ Proxy drift detected! The committed proxy code does not match the OpenAPI schema."
+            echo "Run 'npm run generate:proxy:local -w apps/web' and commit the result."
+            exit 1
+          fi
+
+  build:
+    name: Build (web)
+    needs: [changes, checks]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w apps/web
+
+  # Single required status check for this workflow. Always runs (even when the
+  # area is unchanged and the jobs above skip) so a required check is always
+  # reported — avoids the path-filter deadlock where a skipped required check
+  # blocks the PR forever. Passes when the jobs succeeded or were skipped;
+  # fails only if a job actually failed or was cancelled.
+  gate:
+    name: Web CI
+    needs: [changes, checks, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required Web jobs passed (or were skipped)
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          CHECKS: ${{ needs.checks.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          echo "changes=$CHANGES checks=$CHECKS build=$BUILD"
+          for r in "$CHANGES" "$CHECKS" "$BUILD"; do
+            if [[ "$r" == "failure" || "$r" == "cancelled" ]]; then
+              echo "A required Web job did not pass (result: $r)"
+              exit 1
+            fi
+          done
+          echo "Web CI gate passed."

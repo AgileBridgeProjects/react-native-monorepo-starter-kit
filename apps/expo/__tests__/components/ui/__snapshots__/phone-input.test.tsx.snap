@@ -1,0 +1,99 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PhoneInput > renders the error message with an alert role and red border 1`] = `
+<View>
+  <View
+    className="flex-row items-center bg-surface border rounded-md overflow-hidden border-error"
+  >
+    <Pressable
+      accessibilityLabel="South Africa +27"
+      accessibilityRole="button"
+      className="flex-row items-center gap-xs px-md py-sm border-r border-border"
+      disabled={true}
+      onPress={[Function]}
+      ref={
+        {
+          "current": null,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "fontSize": 20,
+            "lineHeight": 22,
+          }
+        }
+      >
+        🇿🇦
+      </Text>
+      <Text
+        className="text-text text-base"
+      >
+        +27
+      </Text>
+    </Pressable>
+    <TextInput
+      autoCorrect={false}
+      className="flex-1 px-md py-sm text-text text-base"
+      keyboardType="phone-pad"
+      onChangeText={[MockFunction spy]}
+      placeholderTextColor="#6C757D"
+      testID="phone"
+      value=""
+    />
+  </View>
+  <Text
+    accessibilityRole="alert"
+    className="text-error text-xs mt-xs"
+  >
+    Invalid phone number
+  </Text>
+</View>
+`;
+
+exports[`PhoneInput > renders the fixed +27 country-code prefix and the editable field 1`] = `
+<View>
+  <View
+    className="flex-row items-center bg-surface border rounded-md overflow-hidden border-border"
+  >
+    <Pressable
+      accessibilityLabel="South Africa +27"
+      accessibilityRole="button"
+      className="flex-row items-center gap-xs px-md py-sm border-r border-border"
+      disabled={true}
+      onPress={[Function]}
+      ref={
+        {
+          "current": null,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "fontSize": 20,
+            "lineHeight": 22,
+          }
+        }
+      >
+        🇿🇦
+      </Text>
+      <Text
+        className="text-text text-base"
+      >
+        +27
+      </Text>
+    </Pressable>
+    <TextInput
+      autoCorrect={false}
+      className="flex-1 px-md py-sm text-text text-base"
+      keyboardType="phone-pad"
+      onChangeText={[MockFunction spy]}
+      placeholderTextColor="#6C757D"
+      testID="phone"
+      value="821234567"
+    />
+  </View>
+</View>
+`;

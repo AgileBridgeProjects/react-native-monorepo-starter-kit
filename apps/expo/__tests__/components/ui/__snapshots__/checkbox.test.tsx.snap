@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CheckboxIndicator > uses accent/white colors for the wizard variant 1`] = `
+<View
+  className="items-center justify-center rounded-md border-2 h-7 w-7 border-accent bg-accent"
+>
+  <View
+    testID="icon-checkmark"
+  />
+</View>
+`;
+
+exports[`CheckboxIndicator > uses primary/border colors for the default variant 1`] = `
+<View
+  className="items-center justify-center rounded-md border-2 h-6 w-6 border-primary bg-primary"
+>
+  <View
+    testID="icon-checkmark"
+  />
+</View>
+`;

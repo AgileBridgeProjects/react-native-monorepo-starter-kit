@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OrgListSkeleton — snapshots > matches the default tree 1`] = `
+<View
+  className="flex-1 items-center"
+>
+  <View
+    className="w-full max-w-auth-form items-center"
+  >
+    <View
+      data-shape="circle"
+      testID="skeleton"
+    />
+    <View
+      data-shape="rect"
+      testID="skeleton"
+    />
+    <View
+      data-shape="rect"
+      testID="skeleton"
+    />
+    <View
+      data-shape="card"
+      testID="skeleton"
+    />
+    <View
+      data-shape="card"
+      testID="skeleton"
+    />
+    <View
+      data-shape="card"
+      testID="skeleton"
+    />
+  </View>
+</View>
+`;

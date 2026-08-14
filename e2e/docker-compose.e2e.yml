@@ -1,0 +1,101 @@
+# E2E Test Database — Ephemeral PostgreSQL (pgvector)
+# Spun up before E2E runs, torn down after (including on failure).
+# No persistent volumes — every run starts from a clean slate.
+
+services:
+
+  # ── PostgreSQL + pgvector (E2E) ──────────────────────────────
+  # Single Postgres instance hosts both the application database and the
+  # vector store (pgvector extension available on this image).
+  postgres-e2e:
+    image: pgvector/pgvector:pg17
+    container_name: starterkit-postgres-e2e
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "e2epostgres"
+      POSTGRES_DB: "starterkit_e2e"
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d starterkit_e2e"]
+      interval: 5s
+      retries: 15
+      start_period: 30s
+      timeout: 5s
+
+  # ── Migrator (E2E) ──────────────────────────────────────────
+  migrator-e2e:
+    container_name: starterkit-migrator-e2e
+    build:
+      context: ../apps/backend
+      dockerfile: src/StarterKit.Migrator/Dockerfile
+    depends_on:
+      postgres-e2e:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres-e2e;Port=5432;Database=starterkit_e2e;Username=postgres;Password=e2epostgres
+      - ConnectionStrings__VectorConnection=Host=postgres-e2e;Port=5432;Database=starterkit_e2e;Username=postgres;Password=e2epostgres
+    restart: "no"
+
+  # ── Azurite (Azure Storage emulator, E2E) ───────────────────
+  azurite-e2e:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: starterkit-azurite-e2e
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --loose
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(10000,'localhost',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));\""]
+      interval: 5s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
+
+  # ── Web API (E2E) ────────────────────────────────────────────
+  # Runs the WebApi against the ephemeral E2E database so all test
+  # HTTP traffic stays inside this isolated stack — never touching the
+  # dev Azure database.
+  webapi-e2e:
+    container_name: starterkit-webapi-e2e
+    build:
+      context: ../apps/backend
+      dockerfile: src/StarterKit.WebApi/Dockerfile
+    ports:
+      - "5003:8080"
+    depends_on:
+      migrator-e2e:
+        condition: service_completed_successfully
+      azurite-e2e:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres-e2e;Port=5432;Database=starterkit_e2e;Username=postgres;Password=e2epostgres
+      - ConnectionStrings__VectorConnection=Host=postgres-e2e;Port=5432;Database=starterkit_e2e;Username=postgres;Password=e2epostgres
+      - AzureStorage__ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite-e2e
+      # No Key Vault — credentials are injected directly via env vars.
+      - KeyVault__Name=
+      # Supabase (GoTrue) JWT validation. There is no GoTrue container in this
+      # stack — real logins (global-setup) go to the LOCAL self-hosted stack
+      # (npm run dev:backend, Kong on :8000), and harness-minted synthetic tokens
+      # (e2e/playwright/utils/auth.ts) are HS256-signed with the same committed
+      # demo secret, so both validate here. Override for non-demo environments.
+      - Supabase__Enabled=true
+      - Supabase__ApiExternalUrl=${SUPABASE_URL:-http://localhost:8000}
+      - Supabase__JwtSecret=${SUPABASE_JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      # External providers run disabled / NoOp — their options are validated on
+      # startup (Email:ApiKey is [Required]), so supply dummies as the main
+      # compose does. Without these the API aborts on OptionsValidationException.
+      - Email__Enabled=false
+      - Email__ApiKey=dev-noop
+      - Email__FromEmail=dev@starterkit.local
+      - Email__FromName=StarterKit E2E
+      - Twilio__AccountSid=dev-noop
+      - Twilio__AuthToken=dev-noop
+      - Twilio__FromNumber=+10000000000
+      - Support__HelpEmail=support@starterkit.local
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      retries: 12
+      start_period: 60s
+      timeout: 5s

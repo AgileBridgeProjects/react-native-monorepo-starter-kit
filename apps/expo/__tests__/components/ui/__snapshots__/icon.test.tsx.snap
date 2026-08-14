@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Icon > matches the default snapshot 1`] = `
+<View
+  data-color="#000"
+  data-name="house.fill"
+  data-size={28}
+  testID="icon-symbol"
+/>
+`;

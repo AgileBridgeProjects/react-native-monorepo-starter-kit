@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BarChart > matches the empty snapshot 1`] = `
+<GiftedBarChart
+  backgroundColor="transparent"
+  barBorderRadius={6}
+  barWidth={22}
+  data={[]}
+  disableScroll={true}
+  height={150}
+  hideAxesAndRules={true}
+  hideRules={true}
+  hideYAxisText={true}
+  isAnimated={true}
+  noOfSections={4}
+  showValuesAsTopLabel={true}
+  testID="gifted-bar-chart"
+  topLabelTextStyle={
+    {
+      "color": "#6C757D",
+      "fontSize": 12,
+      "fontWeight": "700",
+    }
+  }
+  xAxisLabelTextStyle={
+    {
+      "color": "#6C757D",
+    }
+  }
+  yAxisLabelWidth={0}
+/>
+`;
+
+exports[`BarChart > matches the populated snapshot 1`] = `
+<GiftedBarChart
+  backgroundColor="transparent"
+  barBorderRadius={6}
+  barWidth={22}
+  data={
+    [
+      {
+        "frontColor": "#1C2333",
+        "label": "A",
+        "labelTextStyle": {
+          "color": "#6C757D",
+          "fontSize": 12,
+          "fontWeight": "700",
+        },
+        "value": 3,
+      },
+      {
+        "frontColor": "#1C2333",
+        "label": "B",
+        "labelTextStyle": {
+          "color": "#6C757D",
+          "fontSize": 12,
+          "fontWeight": "700",
+        },
+        "value": 7,
+      },
+    ]
+  }
+  disableScroll={true}
+  height={150}
+  hideAxesAndRules={true}
+  hideRules={true}
+  hideYAxisText={true}
+  isAnimated={true}
+  noOfSections={4}
+  showValuesAsTopLabel={true}
+  testID="gifted-bar-chart"
+  topLabelTextStyle={
+    {
+      "color": "#6C757D",
+      "fontSize": 12,
+      "fontWeight": "700",
+    }
+  }
+  xAxisLabelTextStyle={
+    {
+      "color": "#6C757D",
+    }
+  }
+  yAxisLabelWidth={0}
+/>
+`;

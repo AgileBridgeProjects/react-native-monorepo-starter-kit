@@ -1,0 +1,102 @@
+name: Deploy Mobile (OTA update)
+
+# Pushes an EAS Update (JS bundle only — no native rebuild) to the matching
+# channel whenever Expo-relevant files change on dev or main.
+#
+# Channel mapping:
+#   dev  branch → dev        channel (TestFlight / internal testers)
+#   main branch → production channel (App Store / Play Store users)
+#
+# All publish logic lives in apps/expo/scripts/publish-ota.mjs — it syncs the
+# eas.json profile env to the EAS environment, verifies the runtimeVersion
+# matches the newest installed build per platform (skipping with a warning —
+# a green run, not a red failure — when a full build is still pending, instead
+# of publishing an update no device would receive), and then publishes.
+# See docs/standards/ota-updates.md.
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - apps/expo/**
+      - packages/shared/**
+      - package.json
+      - package-lock.json
+      - tsconfig.base.json
+      - biome.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-mobile-update-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: EAS Update (${{ github.ref_name }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # check-ota-relevant-changes.mjs diffs against the pre-push SHA —
+          # needs real history, not the default shallow single-commit clone.
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Check for OTA-relevant changes
+        id: ota-relevant
+        env:
+          # Passed via env, not inlined into the script, per GitHub's
+          # run-step injection guidance (matches the Publish step below).
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "First push on this ref (no prior SHA to diff against) — treating as relevant."
+          else
+            node scripts/check-ota-relevant-changes.mjs --before "$BEFORE" --after "$AFTER"
+          fi
+
+      - name: Install dependencies
+        if: steps.ota-relevant.outputs.relevant == 'true'
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        if: steps.ota-relevant.outputs.relevant == 'true'
+        uses: expo/expo-github-action@v8
+        with:
+          # Pinned — an unpinned "latest" broke `eas update` for weeks when the
+          # CLI removed the --profile flag. Bump deliberately.
+          eas-version: 20.5.1
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        if: steps.ota-relevant.outputs.relevant == 'true'
+        run: node scripts/check-native-imports.mjs
+
+      - name: Publish EAS Update
+        if: steps.ota-relevant.outputs.relevant == 'true'
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          PROFILE="${{ github.ref_name == 'main' && 'production' || 'dev' }}"
+          node scripts/publish-ota.mjs --profile "$PROFILE" --message "$COMMIT_MESSAGE"
+
+      - name: No OTA-relevant changes
+        if: steps.ota-relevant.outputs.relevant != 'true'
+        run: echo "::notice title=OTA skipped::No Expo-relevant files changed in this push (root lockfile/package.json changes belonged to other workspaces) — nothing published."

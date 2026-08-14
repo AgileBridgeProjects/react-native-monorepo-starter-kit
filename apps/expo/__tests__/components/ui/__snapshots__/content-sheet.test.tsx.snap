@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ContentSheet > renders children and no banner when online 1`] = `
+<View
+  className=""
+>
+  <View
+    testID="content"
+  />
+</View>
+`;
+
+exports[`ContentSheet > renders the offline banner above the content when offline 1`] = `
+<View
+  className=""
+>
+  <View
+    accessibilityLabel="You are offline"
+    testID="info-banner"
+  />
+  <View
+    testID="content"
+  />
+</View>
+`;

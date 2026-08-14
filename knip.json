@@ -1,0 +1,63 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs", "tools/*.mjs"],
+      "project": ["scripts/**/*.mjs", "tools/**/*.mjs"]
+    },
+    "apps/web": {
+      "entry": [
+        "src/app/**/{page,layout,route,error,loading,not-found,middleware}.{ts,tsx}",
+        "next.config.*",
+        "scripts/*.mjs",
+        "src/components/ui/index.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "scripts/**/*.mjs"],
+      "ignore": ["src/proxy/**", "src/lib/hooks/use-club-select-store.ts"],
+      "ignoreDependencies": ["tailwindcss"]
+    },
+    "apps/expo": {
+      "entry": [
+        "app/**/*.{ts,tsx}",
+        "babel.config.js",
+        "scripts/*.{mjs,cjs}",
+        "{components,hooks,src}/**/*.{web,android,ios}.{ts,tsx}",
+        "components/ui/index.ts"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx}",
+        "app/**/*.{ts,tsx}",
+        "components/**/*.{ts,tsx}",
+        "hooks/**/*.{ts,tsx}",
+        "constants/**/*.{ts,tsx}",
+        "scripts/**/*.{mjs,cjs}"
+      ],
+      "ignore": ["src/proxy/**"],
+      "ignoreDependencies": ["@expo/config", "babel-preset-expo", "sharp"]
+    },
+    "packages/shared": {
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/icons": {
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "e2e": {
+      "entry": ["playwright/**/*.ts", "tests/**/*.spec.ts", "scripts/*.{mjs,ts}"],
+      "project": ["**/*.ts", "scripts/**/*.mjs"],
+      "ignoreDependencies": ["serve", "wait-on"]
+    }
+  },
+  "ignoreDependencies": [
+    "turbo",
+    "@secretlint/secretlint-rule-preset-recommend",
+    "@emnapi/core",
+    "@emnapi/runtime",
+    "@emnapi/wasi-threads"
+  ],
+  "ignoreBinaries": ["az", "eas", "gh", "taskkill"],
+  "ignoreExportsUsedInFile": true,
+  "tags": ["-knipignore"],
+  "rules": {
+    "optionalPeerDependencies": "off"
+  }
+}

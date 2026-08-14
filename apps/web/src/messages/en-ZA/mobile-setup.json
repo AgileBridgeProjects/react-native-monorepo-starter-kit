@@ -1,0 +1,9 @@
+{
+  "title": "Continue in the StarterKit app",
+  "subtitle": "This link is meant to be opened on your phone, in the StarterKit app.",
+  "openInAppButton": "Open in app",
+  "noAppInstalled": "Don't have the app yet?",
+  "appStoreButton": "Download for iOS",
+  "playStoreButton": "Download for Android",
+  "missingToken": "This link is missing its setup token. Please use the exact link from your email."
+}

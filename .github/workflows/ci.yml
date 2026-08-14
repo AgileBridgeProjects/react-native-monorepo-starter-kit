@@ -1,0 +1,98 @@
+# ─────────────────────────────────────────────────────────────
+# CI — repo-wide gates.
+#
+# This workflow is the server-side mirror of the git hooks. `git push --no-verify`
+# cannot be prevented on a developer's machine, so the answer is to make it
+# pointless: every gate the hooks run is repeated here, where it blocks the merge
+# instead of the push. If you add a gate to .husky/*, add it here too —
+# `check:standards` asserts the hook wiring, this job asserts it actually ran.
+#
+# No `paths:` filter: these gates are whole-repo assertions (architecture,
+# standards, dead code, secrets), so narrowing them by path defeats the point.
+# ─────────────────────────────────────────────────────────────
+name: CI
+
+on:
+  push:
+    branches: [main, dev, uat]
+  pull_request:
+    branches: [main, dev, uat]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint / Types / Gates / Tests
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # check:secrets:all scans everything, but knip and the architecture scan
+          # benefit from full history being available for nothing in particular —
+          # depth 0 keeps `git diff`-based tooling honest if it is added later.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # ── Mirrors .husky/pre-commit ──────────────────────────
+      - name: Lint (biome)
+        run: npm run lint
+      - name: Locale casing
+        run: npm run check:locale-casing
+      - name: Architecture boundaries
+        run: npm run check:architecture
+      - name: Markdown
+        run: npm run check:markdown
+
+      # ── Mirrors .husky/pre-push ────────────────────────────
+      - name: Type check
+        run: npm run typecheck
+      - name: Secret scan (whole repo)
+        run: npm run check:secrets:all
+      - name: Dead code / unused deps
+        run: npm run knip
+      - name: Repo standards
+        run: npm run check:standards
+
+      # ── Unit tests ─────────────────────────────────────────
+      - name: Tests
+        run: npm run test -- --reporter=verbose
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  # Single required status check for this workflow. Always runs — even when the
+  # job above is skipped for a draft — so a required check always reports and
+  # cannot deadlock the PR. Same pattern as ci-web.yml / ci-expo.yml.
+  gate:
+    name: Repo CI
+    needs: [checks]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the checks job passed (or was skipped)
+        env:
+          CHECKS: ${{ needs.checks.result }}
+        run: |
+          echo "checks=$CHECKS"
+          if [[ "$CHECKS" == "failure" || "$CHECKS" == "cancelled" ]]; then
+            echo "Repo CI gates did not pass (result: $CHECKS)"
+            exit 1
+          fi
+          echo "Repo CI gate passed."

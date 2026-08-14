@@ -1,0 +1,4 @@
+#!/bin/sh
+# Enforce Conventional Commits (feat/fix/chore/docs/... with optional scope).
+# Bypass in emergencies with `git commit --no-verify`.
+npx --no -- commitlint --edit "$1" || exit 1

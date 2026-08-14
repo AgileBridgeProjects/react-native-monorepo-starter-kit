@@ -1,0 +1,114 @@
+# Maestro E2E flow -- Mobile Login (Full Auth Flow)
+#
+# Tests the complete login journey:
+#   1. Verify form renders
+#   2. Validate client-side errors
+#   3. Login with real GoTrue credentials
+#   4. Assert redirect to authenticated home screen
+#
+# Requires: Expo dev client running on device/emulator
+#
+# Run: maestro test e2e/maestro/auth/login.yaml
+appId: host.exp.exponent
+
+---
+
+# -- Launch Expo Go with a clean slate (clears stored auth tokens) --------
+# clearState wipes SecureStore/AsyncStorage so we always land on login.
+- launchApp:
+    appId: "host.exp.exponent"
+    clearState: true
+- openLink: exp://10.0.2.2:8081
+
+# clearState always triggers the Expo developer-menu bottom sheet.
+# Wait for it to appear, then tap the dimmed area above it to dismiss.
+- extendedWaitUntil:
+    visible:
+      text: "StarterKit Mobile"
+    timeout: 60000
+- tapOn:
+    point: "50%,25%"
+
+# Now wait for the actual login screen to render after dismissing the menu.
+- extendedWaitUntil:
+    visible:
+      id: "login-email-input"
+    timeout: 30000
+- hideKeyboard
+
+# -- Verify login screen elements -----------------------------------------
+- assertVisible:
+    id: "login-email-input"
+- assertVisible:
+    id: "login-password-input"
+- assertVisible:
+    id: "login-submit-button"
+
+# -- Clear any stale field values from a prior run ------------------------
+- tapOn:
+    id: "login-email-input"
+- eraseText
+- tapOn:
+    id: "login-password-input"
+- eraseText
+- hideKeyboard
+
+# -- Test empty form submission shows validation --------------------------
+- tapOn:
+    id: "login-submit-button"
+- waitForAnimationToEnd
+
+# -- Test invalid email validation ----------------------------------------
+- tapOn:
+    id: "login-email-input"
+- inputText: "not-an-email"
+- tapOn:
+    id: "login-password-input"
+- inputText: "validpass123"
+- hideKeyboard
+- tapOn:
+    id: "login-submit-button"
+- waitForAnimationToEnd
+
+# -- Clear and test short password validation -----------------------------
+- tapOn:
+    id: "login-email-input"
+- eraseText
+- tapOn:
+    id: "login-password-input"
+- eraseText
+- tapOn:
+    id: "login-email-input"
+- inputText: "user@example.com"
+- tapOn:
+    id: "login-password-input"
+- inputText: "short"
+- hideKeyboard
+- tapOn:
+    id: "login-submit-button"
+- waitForAnimationToEnd
+
+# -- Clear form for real login --------------------------------------------
+- tapOn:
+    id: "login-email-input"
+- eraseText
+- tapOn:
+    id: "login-password-input"
+- eraseText
+
+# -- Login with real GoTrue credentials ---------------------------------
+- tapOn:
+    id: "login-email-input"
+- inputText: ${E2E_ADMIN_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${E2E_ADMIN_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit-button"
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# -- Assert redirect to authenticated home screen -------------------------
+- assertVisible:
+    text: "LEARNING TOPICS FOR THE DAY"

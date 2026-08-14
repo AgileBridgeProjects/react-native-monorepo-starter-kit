@@ -1,0 +1,95 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AuthScreenLayout — snapshots > matches the native tree 1`] = `
+<View
+  testID="keyboard-dismiss"
+>
+  <LinearGradient
+    style={
+      {
+        "flex": 1,
+      }
+    }
+    testID="auth-gradient-hero"
+  >
+    <View
+      className="flex-1 items-center justify-center pb-lg"
+    >
+      <Image
+        accessibilityLabel="StarterKit logo"
+        accessible={true}
+        className="logo-class"
+        resizeMode="contain"
+        source={1}
+      />
+    </View>
+    <View
+      className="rounded-t-2xl px-md pb-xl bg-surface-elevated pt-2xl"
+      style={
+        {
+          "transform": [
+            {
+              "translateY": 812,
+            },
+          ],
+        }
+      }
+      testID="auth-form-card"
+    >
+      <ScrollView
+        contentContainerStyle={
+          {
+            "paddingBottom": 32,
+          }
+        }
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          testID="form-child"
+        />
+      </ScrollView>
+    </View>
+  </LinearGradient>
+</View>
+`;
+
+exports[`AuthScreenLayout — snapshots > matches the wide-web split-panel tree 1`] = `
+<View
+  className="flex-1 flex-row min-h-screen"
+  testID="auth-screen-layout"
+>
+  <LinearGradient
+    className="flex-1 items-center justify-center min-h-50"
+    locations={
+      [
+        0,
+        0.55,
+        1,
+      ]
+    }
+    testID="auth-gradient-hero"
+  >
+    <Image
+      accessibilityLabel="StarterKit logo"
+      accessible={true}
+      className="logo-class"
+      resizeMode="contain"
+      source={1}
+    />
+  </LinearGradient>
+  <ScrollView
+    className="flex-1 bg-surface"
+    contentContainerClassName="flex-grow justify-center"
+    keyboardShouldPersistTaps="handled"
+  >
+    <View
+      className="w-full max-w-auth-form self-center px-md py-2xl"
+    >
+      <View
+        testID="form-child"
+      />
+    </View>
+  </ScrollView>
+</View>
+`;

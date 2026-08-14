@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SelectOrgHeader — snapshots > matches the default tree 1`] = `
+<View
+  className="w-full max-w-auth-form items-center mb-2xl"
+  testID="select-org-header"
+>
+  <View
+    className="mb-lg h-16 w-16 items-center justify-center rounded-2xl bg-primary/10"
+  >
+    <View
+      testID="icon-building.2.fill"
+    />
+  </View>
+  <Text
+    className="text-center mb-xs"
+    variant="h1"
+  >
+    selectOrg.title
+  </Text>
+  <Text
+    className="text-center text-text-secondary px-md"
+    variant="body-sm"
+  >
+    selectOrg.subtitle
+  </Text>
+</View>
+`;

@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ActionSheet (iOS) > renders the native bottom sheet with children when visible 1`] = `
+<View
+  testID="swift-host"
+>
+  <View
+    accessibilityState={
+      {
+        "expanded": true,
+      }
+    }
+    onAccessibilityEscape={[Function]}
+    onMagicTap={[Function]}
+    testID="swift-bottom-sheet"
+  >
+    <View
+      style={
+        {
+          "gap": 24,
+          "paddingBottom": 32,
+          "paddingHorizontal": 24,
+          "paddingTop": 16,
+        }
+      }
+    >
+      <View
+        testID="sheet-body"
+      />
+    </View>
+  </View>
+</View>
+`;

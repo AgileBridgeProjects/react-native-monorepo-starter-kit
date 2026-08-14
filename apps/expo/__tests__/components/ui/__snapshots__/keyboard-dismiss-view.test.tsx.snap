@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`KeyboardDismissView > matches the iOS snapshot 1`] = `
+<KeyboardAvoidingView
+  behavior="padding"
+  className="flex-1"
+>
+  <TouchableWithoutFeedback
+    accessible={false}
+    onPress={[Function]}
+  >
+    <View
+      testID="kdv-child"
+    />
+  </TouchableWithoutFeedback>
+</KeyboardAvoidingView>
+`;
+
+exports[`KeyboardDismissView > matches the web snapshot 1`] = `
+<View
+  testID="kdv-child"
+/>
+`;

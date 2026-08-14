@@ -1,0 +1,139 @@
+{
+  "cli": {
+    "version": ">= 18.3.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "simulator": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EAS_BUILD_PROFILE": "simulator",
+        "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "channel": "simulator"
+    },
+    "dev-client": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EAS_BUILD_PROFILE": "dev-client",
+        "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
+      },
+      "channel": "dev-client"
+    },
+    "dev": {
+      "channel": "dev",
+      "environment": "preview",
+      "autoIncrement": true,
+      "env": {
+        "EAS_BUILD_PROFILE": "dev",
+        "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
+        "EXPO_PUBLIC_API_URL": "https://yourapp.example.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
+      },
+      "ios": {
+        "distribution": "store"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "uat": {
+      "channel": "uat",
+      "autoIncrement": true,
+      "env": {
+        "EAS_BUILD_PROFILE": "uat",
+        "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-uat",
+        "EXPO_PUBLIC_API_URL": "https://app-starterkit-api-uat.azurewebsites.net",
+        "EXPO_PUBLIC_DEEP_LINK_HOST": "orange-mushroom-0a426670f.7.azurestaticapps.net",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCpFlaYGBPkB0cv_KNjUDWu6MeYgbjx6CU",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "YOUR-FIREBASE-APP-ID",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starterkit-1a1e9.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "YOUR-PROJECT-NUMBER",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "starterkit-1a1e9",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "starterkit-1a1e9.firebasestorage.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
+      },
+      "ios": {
+        "distribution": "store"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "env": {
+        "EAS_BUILD_PROFILE": "production",
+        "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile",
+        "EXPO_PUBLIC_API_URL": "https://yourapp.example.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
+      }
+    }
+  },
+  "submit": {
+    "dev": {
+      "ios": {
+        "ascAppId": "YOUR-ASC-APP-ID",
+        "ascApiKeyId": "$ASC_API_KEY_ID",
+        "ascApiKeyIssuerId": "$ASC_API_KEY_ISSUER_ID",
+        "ascApiKeyPath": "./keys/asc-api-key.p8"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./keys/google-play-service-account.json",
+        "track": "internal"
+      }
+    },
+    "uat": {
+      "ios": {
+        "ascAppId": "YOUR-ASC-APP-ID",
+        "ascApiKeyId": "$ASC_API_KEY_ID",
+        "ascApiKeyIssuerId": "$ASC_API_KEY_ISSUER_ID",
+        "ascApiKeyPath": "./keys/asc-api-key.p8",
+        "groups": ["UAT Testers"]
+      },
+      "android": {
+        "serviceAccountKeyPath": "./keys/google-play-service-account.json",
+        "track": "internal"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascApiKeyId": "$ASC_API_KEY_ID",
+        "ascApiKeyIssuerId": "$ASC_API_KEY_ISSUER_ID",
+        "ascApiKeyPath": "./keys/asc-api-key.p8"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./keys/google-play-service-account.json",
+        "track": "production"
+      }
+    }
+  }
+}

@@ -1,0 +1,469 @@
+/**
+ * StarterKit Primitive Design Tokens — CSS
+ *
+ * Single source of truth for raw design values shared across all apps.
+ * Mirrors packages/shared/src/lib/tokens.ts exactly — when you add a value
+ * to one file, add it to the other at the same time.
+ *
+ * Variables are prefixed --starterkit- to avoid collisions with each app's
+ * semantic layer (--color-*, --spacing-*, etc.).
+ *
+ * Usage:
+ *   @import '@starterkit/shared/tokens.css';
+ *
+ *   Then map primitives to app-level semantic tokens in each app's
+ *   global CSS @theme block:
+ *     --color-primary: var(--starterkit-primary-500);
+ *
+ * Sections (keep in sync with tokens.ts):
+ *   legacy ramp palette (primary, neutral, accent, category, status)
+ *     — generic UI-scale colors still used by existing components
+ *       (buttons, inputs, alerts, admin-portal chrome). Figma does not
+ *       define a tint ramp, so these are untouched pending the
+ *       component-by-component Figma pass.
+ *   StarterKit palette (source of truth: Figma "StarterKit" library variables/styles)
+ *   gradients (named Figma gradient styles)
+ *   typography (font families + named Figma text styles)
+ *   spacing
+ *   font sizes (generic utility scale)
+ *   border radius
+ *   font weights
+ *   line heights
+ *   z-index
+ *   icon sizes
+ */
+
+:root {
+  /* ── Brand (StarterKit Blue) — ramp anchored at the StarterKit "Blue" swatch
+       (#0a3d91 at 500); tints/shades derived around it. Drives the semantic
+       --color-primary in both apps. ─────────────────────────────────────── */
+  --starterkit-primary-50: #eaf0fb;
+  --starterkit-primary-100: #cbdaf4;
+  --starterkit-primary-200: #9dbaea;
+  --starterkit-primary-300: #6693dd;
+  --starterkit-primary-400: #2e62c4;
+  --starterkit-primary-500: #0a3d91;
+  --starterkit-primary-600: #09357e;
+  --starterkit-primary-700: #072a64;
+  --starterkit-primary-800: #051e48;
+  --starterkit-primary-900: #03132e;
+
+  /* ── Neutral (modern gray) — legacy ramp, see note above ─────────────────── */
+  --starterkit-neutral-0: #ffffff;
+  --starterkit-neutral-50: #f8f9fa;
+  --starterkit-neutral-100: #f1f3f5;
+  --starterkit-neutral-200: #e9ecef;
+  --starterkit-neutral-300: #dee2e6;
+  --starterkit-neutral-400: #adb5bd;
+  --starterkit-neutral-500: #868e96;
+  --starterkit-neutral-600: #6c757d;
+  --starterkit-neutral-700: #495057;
+  --starterkit-neutral-800: #343a40;
+  --starterkit-neutral-900: #212529;
+  --starterkit-neutral-950: #0d1117;
+
+  /* ── Accent (StarterKit Cyan) — ramp anchored at the StarterKit "Cyan" swatch
+       (#3bd7f6 at 500; 200 == the Figma "Cyan Light" #a9f1ff). Drives the
+       semantic --color-accent in both apps. ──────────────────────────────── */
+  --starterkit-accent-50: #e8fbfe;
+  --starterkit-accent-100: #c6f4fc;
+  --starterkit-accent-200: #a9f1ff;
+  --starterkit-accent-300: #7fe7f9;
+  --starterkit-accent-400: #59dff7;
+  --starterkit-accent-500: #3bd7f6;
+  --starterkit-accent-600: #16b6d9;
+  --starterkit-accent-700: #0f8ca8;
+
+  /* ── Category (appointment / chart series colours) — legacy, unrelated to
+       the StarterKit Figma pull. Each hue has three stops: light bg, mid border,
+       dark text. ─────────────────────────────────────────────────────────── */
+  --starterkit-category-indigo-bg: #eef2ff;
+  --starterkit-category-indigo-border: #6366f1;
+  --starterkit-category-indigo-text: #4338ca;
+  --starterkit-category-green-bg: #f0fdf4;
+  --starterkit-category-green-border: #22c55e;
+  --starterkit-category-green-text: #166534;
+  --starterkit-category-orange-bg: #fff7ed;
+  --starterkit-category-orange-border: #f97316;
+  --starterkit-category-orange-text: #9a3412;
+  --starterkit-category-pink-bg: #fdf2f8;
+  --starterkit-category-pink-border: #ec4899;
+  --starterkit-category-pink-text: #9d174d;
+  --starterkit-category-sky-bg: #f0f9ff;
+  --starterkit-category-sky-border: #0ea5e9;
+  --starterkit-category-sky-text: #075985;
+  --starterkit-category-purple-bg: #faf5ff;
+  --starterkit-category-purple-border: #a855f7;
+  --starterkit-category-purple-text: #6b21a8;
+  --starterkit-category-cyan-bg: #ecfeff;
+  --starterkit-category-cyan-border: #06b6d4;
+  --starterkit-category-cyan-text: #155e75;
+  --starterkit-category-yellow-bg: #fef9c3;
+  --starterkit-category-yellow-border: #eab308;
+  --starterkit-category-yellow-text: #854d0e;
+
+  /* ── Gradient (auth hero) — now the StarterKit "Dark background" gradient stops
+       (see --starterkit-gradient-dark-background below for the full CSS string).
+       Kept as 3 flat stops because apps/expo's AUTH_GRADIENT_COLORS consumes
+       exactly this shape. ───────────────────────────────────────────────── */
+  --starterkit-gradient-start: #031e58;
+  --starterkit-gradient-mid: #0d90b1;
+  --starterkit-gradient-end: #021546;
+
+  /* ── Status ──────────────────────────────────────────────────────────────── */
+  --starterkit-success: #4caf50;
+  --starterkit-warning: #ff9800;
+  --starterkit-error: #f44336;
+  --starterkit-info: #2196f3;
+  --starterkit-gold: #d4af37;
+  --starterkit-silver: #a8a9ad;
+  --starterkit-bronze: #cd7f32;
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     StarterKit palette — source of truth: Figma "StarterKit" library (variables +
+     styles), file I74RCYzR01MpiCm7mNG8PQ, pulled 2026-07-03. Names mirror the
+     Figma variable/style names 1:1 so a designer can cross-reference directly.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  --starterkit-white: #ffffff;
+  --starterkit-white-10: rgb(255 255 255 / 0.1);
+  --starterkit-white-20: rgb(255 255 255 / 0.2);
+  --starterkit-white-50: rgb(
+    255 255 255 / 0.5
+  ); /* TODO: inferred from the 10/20/60% siblings — not directly confirmed in a Figma frame */
+  --starterkit-white-60: rgb(255 255 255 / 0.6);
+
+  /* TODO: Figma variable "Blue" has no confirmed hex — no inspected frame used it directly.
+     Using Blue Dark as a placeholder until a frame surfaces the real value. */
+  --starterkit-blue: #0a3d91;
+  --starterkit-blue-dark: #0a3d91;
+  /* TODO: Figma variable "Blue Bright" has no confirmed hex — using Cyan as a placeholder. */
+  --starterkit-blue-bright: #3bd7f6;
+  /* Field fill for every dark input treatment: auth inputs, the message composer pill, the
+     onboarding pill controls, the stats-import pickers.
+
+     A translucent WHITE overlay, not a navy, which is why it no longer needs a per-surface
+     variant. Two opaque navies were tried and each was wrong on one surface: the original
+     Figma #032158 read as a conspicuously light, saturated blue against the the identity split
+     background, and matching the background (#010d28) left a field on a SCREEN with no edge
+     at all. An overlay lifts whatever is behind it, so the same value reads correctly on the
+     screen, on a card, and in a bottom sheet. Same 10% white as the skeleton, anchored menu
+     and icon wells. */
+  --starterkit-blue-input-fill: rgba(255, 255, 255, 0.1);
+  /* Sign-In screen dark card background (Figma "Sign In" frame). */
+  --starterkit-blue-card-dark: #0a1c40;
+  /* In-app screen background — solid deep navy behind all tab/detail screens.
+     Deliberately much darker than --starterkit-blue-card-dark so grouped cards read as
+     raised surfaces: card-vs-background contrast is 1.14:1 here. #021130 read as too
+     flat (1.11:1) and #01091f as too dark, so this sits between them (pure black would
+     be the 1.25:1 ceiling).
+     The auth/login screens keep the diagonal SCREEN_GRADIENT instead. */
+  --starterkit-blue-screen: #010d28;
+
+  --starterkit-cyan: #3bd7f6;
+  --starterkit-cyan-light: #a9f1ff;
+
+  --starterkit-purple: #c744ff;
+  --starterkit-pink: #ff06b8;
+
+  --starterkit-gray-light: #d9d9d9;
+  --starterkit-gray-dark: #505050;
+  /* "Gray Dark 70%" is a distinct navy-gray (#576179) at 70% alpha — NOT
+     --starterkit-gray-dark at 70% opacity. Confirmed via a Figma component fill. */
+  --starterkit-gray-dark-70: rgb(87 97 121 / 0.7);
+  --starterkit-gray-black: #2d2d2d;
+
+  --starterkit-green: #01a612;
+  --starterkit-green-light: #cdffd2;
+  --starterkit-amber: #ff7700;
+  --starterkit-amber-light: #ffdec2;
+  --starterkit-yellow: #ffbf00;
+  --starterkit-red: #cf3928;
+
+  /* ── DISC profile colours (chip gradients) ───────────────────────────────────
+     Hues follow the Skill Library's category set (pink, amber, cyan) rather than
+     the earlier red/yellow/navy, so DISC and Skills read as one family; S keeps a
+     green, the one hue that set lacks. Each start is the same hue darkened.
+     Every stop checked against text at WCAG 4.5:1 (the sm trait badge's 16px
+     letter is body text, not large text). Only d is a white-on-deep chip; the
+     other three are light ramps with dark text, which is what lets s use the
+     system's lighter greens (emotion relaxed into green light). */
+  --starterkit-disc-d-start: #9e0472;
+  --starterkit-disc-d-end: #c8048f;
+  --starterkit-disc-d-text: #ffffff;
+  --starterkit-disc-i-start: #ff7700;
+  --starterkit-disc-i-end: #ffbf00;
+  --starterkit-disc-i-text: #2d2d2d;
+  --starterkit-disc-s-start: #34d97a;
+  --starterkit-disc-s-end: #cdffd2;
+  --starterkit-disc-s-text: #2d2d2d;
+  --starterkit-disc-c-start: #2aa3be;
+  --starterkit-disc-c-end: #3bd7f6;
+  --starterkit-disc-c-text: #2d2d2d;
+
+  /* ── Named gradients (Figma fill styles) ─────────────────────────────────── */
+  --starterkit-gradient-dark-background: linear-gradient(
+    212.36deg,
+    #031e58 12.171%,
+    #0d90b1 64.004%,
+    #021546 98.874%
+  );
+  --starterkit-gradient-light-background: linear-gradient(250.79deg, #3bd7f6 39.438%, #012d74 93.337%);
+  /* Unnamed in Figma's Styles panel — a raw fill on the "Background/Variant3" symbol. */
+  --starterkit-gradient-background-variant3: linear-gradient(
+    -18.06deg,
+    #5ec4db 35.392%,
+    #dcebfa 87.614%
+  );
+  --starterkit-gradient-blue-purple: linear-gradient(192.86deg, #c744ff 21.162%, #012d74 93.533%);
+  --starterkit-gradient-button: linear-gradient(187.69deg, #ffffff 3.16%, #a9f1ff 113.29%);
+  /* TODO: "Button gradient light" style exists in Figma but no inspected frame used it —
+     identical to --starterkit-gradient-button as a placeholder pending confirmation. */
+  --starterkit-gradient-button-light: linear-gradient(187.69deg, #ffffff 3.16%, #a9f1ff 113.29%);
+  /* TODO: "Cyan gradient" style exists in Figma but no inspected frame used it —
+     identical to --starterkit-gradient-button as a placeholder pending confirmation. */
+  --starterkit-gradient-cyan: linear-gradient(187.69deg, #ffffff 3.16%, #a9f1ff 113.29%);
+  /* Bonus: seen on an Icon Buttons/BluePink component — not yet a named Figma style. */
+  --starterkit-gradient-blue-pink: linear-gradient(90deg, #0a3d91 0%, #8322a4 66.581%, #ff06b8 98.494%);
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     Admin portal brand — source of truth: the starterkit.com marketing site
+     (pulled from its :root custom properties, 2026-07-29).
+
+     These primitives exist so the admin portal can carry the *marketing site's*
+     identity (volt-on-black) while apps/expo keeps the StarterKit Blue identity
+     above. The two are deliberately separate ramps: nothing in this block is
+     consumed by the mobile app, and nothing above is consumed by the portal's
+     colour layer. Rebranding one never touches the other.
+
+     Consumed by apps/web/src/app/globals.css only.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* ── Volt — the site's signal green (#aaff00 at 500). Drives the portal's
+       --color-primary. Ramp derived by holding hue 80° / saturation 100% and
+       walking lightness, so every stop stays on the same brand hue. ───────── */
+  --starterkit-volt-50: #f3ffdb;
+  --starterkit-volt-100: #e6ffb3;
+  --starterkit-volt-200: #d6ff85;
+  --starterkit-volt-300: #c7ff57;
+  --starterkit-volt-400: #b8ff29;
+  --starterkit-volt-500: #aaff00;
+  --starterkit-volt-600: #8ed600;
+  --starterkit-volt-700: #70a800;
+  --starterkit-volt-800: #527a00;
+  --starterkit-volt-900: #365200;
+
+  /* ── Onyx — the site's near-black neutral scale. Direction matches
+       --starterkit-neutral-* (0 = white, 1000 = black) so the two ramps are
+       interchangeable in a semantic mapping. Stops annotated with the
+       starterkit.com variable they were taken from. ───────────────────────────── */
+  --starterkit-onyx-0: #ffffff;
+  --starterkit-onyx-50: #f0f0f0; /* site --foreground */
+  --starterkit-onyx-100: #d4d4d4;
+  --starterkit-onyx-200: #b3b3b3;
+  --starterkit-onyx-300: #888888; /* site --muted-foreground */
+  --starterkit-onyx-400: #5c5c5c;
+  --starterkit-onyx-500: #3d3d3d;
+  --starterkit-onyx-600: #333333; /* site --switch-background */
+  --starterkit-onyx-700: #232323;
+  --starterkit-onyx-800: #1a1a1a; /* site --secondary / --input (and --muted #1c1c1c) */
+  --starterkit-onyx-850: #141414;
+  --starterkit-onyx-900: #111111; /* site --card / --popover */
+  --starterkit-onyx-925: #0d0d0d; /* site --sidebar */
+  --starterkit-onyx-950: #080808; /* site --background */
+  --starterkit-onyx-1000: #000000; /* site --primary-foreground (text on volt) */
+
+  /* Hairline rules. The site draws every border as translucent white rather
+     than a solid grey, so borders stay correct on any onyx surface. 0.08
+     mirrors the site's --border (#ffffff14). */
+  --starterkit-onyx-hairline: rgb(255 255 255 / 0.08);
+  --starterkit-onyx-hairline-strong: rgb(255 255 255 / 0.16);
+
+  /* ── Status (dark-tuned) — the site only names --destructive; the rest come
+       from its chart palette, which is the Apple system-colour family. Success
+       is the family's green (volt is reserved for primary, so it cannot double
+       as the success hue). ────────────────────────────────────────────────── */
+  --starterkit-admin-success: #30d158;
+  --starterkit-admin-warning: #ffcc00; /* site --chart-4 */
+  --starterkit-admin-error: #ff3b30; /* site --destructive */
+  --starterkit-admin-info: #00d4ff; /* site --chart-2 */
+
+  /* ── Chart series — the site's --chart-1..5 verbatim ─────────────────────── */
+  --starterkit-admin-chart-1: #aaff00;
+  --starterkit-admin-chart-2: #00d4ff;
+  --starterkit-admin-chart-3: #ff3b30;
+  --starterkit-admin-chart-4: #ffcc00;
+  --starterkit-admin-chart-5: #bf5af2;
+
+  /* ── Category (appointment / chart series) on dark — the dark counterpart to
+       --starterkit-category-* above. Backgrounds are alpha so a chip composites
+       correctly over any onyx surface; borders and text are the light-on-dark
+       inversion of the light set. ─────────────────────────────────────────── */
+  --starterkit-admin-category-indigo-bg: rgb(99 102 241 / 0.16);
+  --starterkit-admin-category-indigo-border: #818cf8;
+  --starterkit-admin-category-indigo-text: #c7d2fe;
+  --starterkit-admin-category-green-bg: rgb(34 197 94 / 0.16);
+  --starterkit-admin-category-green-border: #4ade80;
+  --starterkit-admin-category-green-text: #bbf7d0;
+  --starterkit-admin-category-orange-bg: rgb(249 115 22 / 0.16);
+  --starterkit-admin-category-orange-border: #fb923c;
+  --starterkit-admin-category-orange-text: #fed7aa;
+  --starterkit-admin-category-pink-bg: rgb(236 72 153 / 0.16);
+  --starterkit-admin-category-pink-border: #f472b6;
+  --starterkit-admin-category-pink-text: #fbcfe8;
+  --starterkit-admin-category-sky-bg: rgb(14 165 233 / 0.16);
+  --starterkit-admin-category-sky-border: #38bdf8;
+  --starterkit-admin-category-sky-text: #bae6fd;
+  --starterkit-admin-category-purple-bg: rgb(168 85 247 / 0.16);
+  --starterkit-admin-category-purple-border: #c084fc;
+  --starterkit-admin-category-purple-text: #e9d5ff;
+  --starterkit-admin-category-cyan-bg: rgb(6 182 212 / 0.16);
+  --starterkit-admin-category-cyan-border: #22d3ee;
+  --starterkit-admin-category-cyan-text: #a5f3fc;
+  --starterkit-admin-category-yellow-bg: rgb(234 179 8 / 0.16);
+  --starterkit-admin-category-yellow-border: #facc15;
+  --starterkit-admin-category-yellow-text: #fef08a;
+
+  /* ── Admin gradients — flat {start,mid,end} stops, matching the shape of
+       --starterkit-gradient-* above so the portal's existing gradient classes swap
+       over with a one-line var change.
+
+       "accent" is the loud volt sweep for small surfaces (CTA buttons,
+       progress fills, the AI wave). "hero" is the quiet volt-tinted black for
+       large decorative surfaces (the auth split panel) — a full-height volt
+       gradient at that scale is unreadable.
+
+       All three accent stops sit in volt's bright range (600–400) on purpose.
+       The blue gradient these replace ran dark → mid → dark, so white text held
+       across it; a volt sweep with dark ends would need white text at the ends
+       and black in the middle, which is impossible for a single label — and
+       .btn-gradient-cta animates background-position on hover, so the text
+       moves across the stops. Staying bright keeps black text at 7:1 or better
+       everywhere in the sweep. ────────────────────────────────────────────── */
+  --starterkit-admin-gradient-start: #8ed600; /* volt-600 */
+  --starterkit-admin-gradient-mid: #b8ff29; /* volt-400 */
+  --starterkit-admin-gradient-end: #70a800; /* volt-700 */
+
+  --starterkit-admin-hero-start: #141414;
+  --starterkit-admin-hero-mid: #080808;
+  --starterkit-admin-hero-end: #1f3000;
+
+  /* ── Admin radius — starterkit.com's near-square aesthetic (its --radius is
+       0.125rem). A separate scale from --starterkit-radius-* because the mobile
+       app keeps the rounder Figma geometry; the portal maps its semantic
+       --radius-* to these. Same sm→xl direction, roughly half the size. ───── */
+  --starterkit-admin-radius-sm: 2px;
+  --starterkit-admin-radius-md: 4px;
+  --starterkit-admin-radius-lg: 6px;
+  --starterkit-admin-radius-xl: 8px;
+
+  /* ── Typography ───────────────────────────────────────────────────────────
+       Headings use "Bebas Neue"; body copy uses "Poppins". Both are Google
+       Fonts — loaded via next/font/google (web) or @expo-google-fonts (app). */
+  --starterkit-font-heading: "Bebas Neue", sans-serif;
+  --starterkit-font-body: "Poppins", sans-serif;
+
+  /* Named Figma text styles (size/line-height/tracking). H1–H3 use the heading
+     font; the rest use the body font. */
+  --starterkit-type-h1-size: 32px;
+  --starterkit-type-h1-line-height: 30px;
+  --starterkit-type-h1-tracking: 1px;
+  --starterkit-type-h2-size: 20px;
+  --starterkit-type-h2-line-height: 30px;
+  --starterkit-type-h2-tracking: 1px;
+  --starterkit-type-h3-size: 16px;
+  --starterkit-type-h3-line-height: 30px;
+  --starterkit-type-h3-tracking: 1px;
+  --starterkit-type-big-body-size: 14px;
+  --starterkit-type-big-body-line-height: 16px;
+  --starterkit-type-body-size: 12px;
+  --starterkit-type-body-line-height: 16px;
+  --starterkit-type-small-size: 10px;
+  --starterkit-type-small-line-height: 12px;
+  --starterkit-type-x-small-size: 8px;
+  --starterkit-type-x-small-line-height: 16px;
+
+  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  --starterkit-spacing-xs: 4px;
+  --starterkit-spacing-sm: 8px;
+  --starterkit-spacing-md: 16px;
+  --starterkit-spacing-lg: 24px;
+  --starterkit-spacing-xl: 32px;
+  --starterkit-spacing-2xl: 48px;
+  --starterkit-spacing-3xl: 64px;
+
+  /* ── Font sizes (generic utility scale — unrelated to the named text styles
+       above; still used for arbitrary Tailwind font-size utilities) ────────── */
+  --starterkit-text-2xs: 9px;
+  --starterkit-text-xs: 12px;
+  --starterkit-text-sm: 14px;
+  --starterkit-text-base: 16px;
+  --starterkit-text-lg: 18px;
+  --starterkit-text-xl: 20px;
+  --starterkit-text-2xl: 24px;
+  --starterkit-text-3xl: 30px;
+  --starterkit-text-4xl: 36px;
+
+  /* ── Border radius ───────────────────────────────────────────────────────── */
+  --starterkit-radius-sm: 4px;
+  --starterkit-radius-md: 8px;
+  --starterkit-radius-lg: 12px;
+  --starterkit-radius-xl: 16px;
+  /* Auth card top corners, every auth screen (Figma "Sign In" frame). */
+  --starterkit-radius-2xl: 20px;
+  /* General pill-shaped controls — NOT the Sign-In screen's Button/Input,
+     which are taller (52-55px) and need --starterkit-radius-auth-control instead:
+     at 15px this radius is less than half their height, so it reads as
+     rounded corners rather than a true pill/stadium shape. */
+  --starterkit-radius-pill: 15px;
+  /* Sign-In screen's auth-size Button and floating-label Input (Figma "Sign
+     In" frame) — taller than half authControlHeight.button/.input
+     so the ends stay fully round on both. */
+  --starterkit-radius-auth-control: 60px;
+
+  /* ── Font weights ────────────────────────────────────────────────────────── */
+  --starterkit-font-weight-normal: 400;
+  --starterkit-font-weight-medium: 500;
+  --starterkit-font-weight-semibold: 600;
+  --starterkit-font-weight-bold: 700;
+
+  /* ── Line heights ────────────────────────────────────────────────────────── */
+  --starterkit-line-height-tight: 1.25;
+  --starterkit-line-height-normal: 1.5;
+  --starterkit-line-height-relaxed: 1.75;
+
+  /* ── Z-index ─────────────────────────────────────────────────────────────── */
+  --starterkit-z-base: 0;
+  --starterkit-z-dropdown: 10;
+  --starterkit-z-sticky: 20;
+  --starterkit-z-overlay: 30;
+  --starterkit-z-modal: 40;
+  --starterkit-z-toast: 50;
+
+  /* ── Icon sizes ──────────────────────────────────────────────────────────── */
+  --starterkit-icon-xs: 16px;
+  --starterkit-icon-sm: 20px;
+  --starterkit-icon-md: 28px;
+  --starterkit-icon-lg: 48px;
+
+  /* ── Avatar sizes ─────────────────────────────────────────────────────────── */
+  --starterkit-avatar-sm: 24px;
+  --starterkit-avatar-md: 40px;
+
+  /* ── On-primary (white-on-dark overlays at varying opacity) ──────────────
+       Uses rgb() with alpha — color-mix() is incompatible with Tailwind v4's
+       @theme inline processing (it strips the :root declarations). ────────── */
+  --starterkit-on-primary: rgb(255 255 255);
+  --starterkit-on-primary-muted: rgb(255 255 255 / 0.7);
+  --starterkit-on-primary-subtle: rgb(255 255 255 / 0.45);
+  --starterkit-on-primary-hover: rgb(255 255 255 / 0.6);
+  --starterkit-on-primary-surface: rgb(255 255 255 / 0.08);
+  --starterkit-on-primary-surface-hover: rgb(255 255 255 / 0.12);
+  --starterkit-on-primary-border: rgb(255 255 255 / 0.12);
+  --starterkit-on-primary-overlay: rgb(255 255 255 / 0.1);
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────────── */
+  --starterkit-sidebar-dark: #1e2330;
+  --starterkit-sidebar-dot-size: 16px;
+  --starterkit-sidebar-dot-radius: 1px;
+}

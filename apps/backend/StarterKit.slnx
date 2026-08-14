@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StarterKit.Auth/StarterKit.Auth.csproj" />
+    <Project Path="src/StarterKit.Core/StarterKit.Core.csproj" />
+    <Project Path="src/StarterKit.Data/StarterKit.Data.csproj" />
+    <Project Path="src/StarterKit.Mcp/StarterKit.Mcp.csproj" />
+    <Project Path="src/StarterKit.MobileApi/StarterKit.MobileApi.csproj" />
+    <Project Path="src/StarterKit.Migrator/StarterKit.Migrator.csproj" />
+    <Project Path="src/StarterKit.WebApi/StarterKit.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StarterKit.Auth.Tests/StarterKit.Auth.Tests.csproj" />
+    <Project Path="tests/StarterKit.Core.Tests/StarterKit.Core.Tests.csproj" />
+    <Project Path="tests/StarterKit.Data.Tests/StarterKit.Data.Tests.csproj" />
+    <Project Path="tests/StarterKit.MobileApi.Tests/StarterKit.MobileApi.Tests.csproj" />
+    <Project Path="tests/StarterKit.WebApi.Tests/StarterKit.WebApi.Tests.csproj" />
+  </Folder>
+</Solution>

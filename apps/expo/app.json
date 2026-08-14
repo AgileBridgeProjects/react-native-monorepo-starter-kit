@@ -1,0 +1,136 @@
+{
+  "expo": {
+    "name": "StarterKit",
+    "slug": "starterkit",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "starterkit-mobile",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.starterkit",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true,
+          "NSAllowsArbitraryLoads": false
+        },
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
+      },
+      "associatedDomains": ["applinks:yourapp.example.com"]
+    },
+    "android": {
+      "package": "com.example.starterkit",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/icon-bg.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "yourapp.example.com",
+              "pathPrefix": "/mobile-setup-account"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/brand-wordmark.png",
+          "imageWidth": 260,
+          "resizeMode": "contain",
+          "backgroundColor": "#0A3D91",
+          "dark": {
+            "backgroundColor": "#0A3D91"
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-font",
+      "expo-image",
+      "expo-web-browser",
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow StarterKit to access your photos so you can set your profile picture and attach photos or videos to messages.",
+          "cameraPermission": "Allow StarterKit to use your camera so you can take a photo to attach to a message.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-foreground.png",
+          "color": "#1A1A1A",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.YOUR-IOS-OAUTH-CLIENT-ID"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "./plugins/withAsyncStorageRepo",
+      "expo-screen-orientation",
+      "expo-audio",
+      "expo-status-bar",
+      "expo-video",
+      "@react-native-vector-icons/ionicons",
+      "@react-native-vector-icons/fontawesome",
+      "@react-native-vector-icons/material-icons",
+      "@react-native-vector-icons/material-design-icons",
+      "@react-native-community/datetimepicker"
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/YOUR-EAS-PROJECT-ID"
+    },
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "YOUR-EAS-PROJECT-ID"
+      }
+    },
+    "owner": "your-eas-account"
+  }
+}

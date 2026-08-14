@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit: FAST, staged-only, deterministic. Heavy checks (typecheck) run on
+# pre-push; full validation runs in CI. Keep this hook under ~10s so frequent
+# commits (human or agent) never stall. Never start Docker or make network calls here.
+
+# Format/lint only the staged files (biome for JS/TS, csharpier for C#).
+npx lint-staged || exit 1
+
+# Locale JSON values must remain sentence-case (fast node script).
+npm run check:locale-casing || exit 1
+
+# Architecture boundaries: layering + dependency rules (fast, whole-repo static scan).
+npm run check:architecture || exit 1
+
+# Proxy-drift reminder (non-blocking): if backend C# is staged, the OpenAPI proxy
+# may need regeneration. CI and e2e catch real drift; don't build Docker in a hook.
+if git diff --cached --name-only | grep -qE 'apps/backend/src/.*\.cs$'; then
+  echo ""
+  echo "i Backend C# staged - if you added/changed endpoints or DTOs, regenerate the proxy:"
+  echo "    npm run generate:proxy        (backend running)"
+  echo "    npm run generate:proxy:local  (committed schema only)"
+fi

@@ -1,0 +1,139 @@
+name: Deploy DB Migrations to Azure PostgreSQL (uat)
+
+on:
+  push:
+    branches: [uat]
+    paths:
+      - apps/backend/src/StarterKit.Data/**/Migrations/**
+      - apps/backend/src/StarterKit.Migrator/**
+      - .github/workflows/deploy-db-migrations-azure-uat.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: uat
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      DB_CONNECTION_SECRET_NAME: ${{ vars.DB_CONNECTION_SECRET_NAME }}
+      VECTOR_CONNECTION_SECRET_NAME: ${{ vars.VECTOR_CONNECTION_SECRET_NAME }}
+      BLOB_CONNECTION_SECRET_NAME: ${{ vars.BLOB_CONNECTION_SECRET_NAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        shell: bash
+        run: |
+          test -n "$AZURE_RESOURCE_GROUP"
+          test -n "$KEYVAULT_NAME"
+          test -n "$DB_CONNECTION_SECRET_NAME"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore backend projects
+        shell: bash
+        run: |
+          dotnet restore apps/backend/src/StarterKit.Migrator/StarterKit.Migrator.csproj
+
+      - name: Fetch secrets from Key Vault
+        id: kv
+        shell: bash
+        run: |
+          DB_CONNECTION_STRING="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$DB_CONNECTION_SECRET_NAME" --query value -o tsv)"
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "Missing PostgreSQL connection string secret."
+            exit 1
+          fi
+          echo "::add-mask::$DB_CONNECTION_STRING"
+          echo "db_connection_string=$DB_CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$VECTOR_CONNECTION_SECRET_NAME" ]; then
+            VECTOR_CONNECTION_STRING="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$VECTOR_CONNECTION_SECRET_NAME" --query value -o tsv 2>/dev/null || true)"
+            if [ -n "$VECTOR_CONNECTION_STRING" ]; then
+              echo "::add-mask::$VECTOR_CONNECTION_STRING"
+              echo "vector_connection_string=$VECTOR_CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+          if [ -n "$BLOB_CONNECTION_SECRET_NAME" ]; then
+            BLOB_CONNECTION_STRING="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$BLOB_CONNECTION_SECRET_NAME" --query value -o tsv 2>/dev/null || true)"
+            if [ -n "$BLOB_CONNECTION_STRING" ]; then
+              echo "::add-mask::$BLOB_CONNECTION_STRING"
+              echo "blob_connection_string=$BLOB_CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Resolve PostgreSQL server name from connection string
+        id: pg
+        shell: bash
+        run: |
+          DB_CONNECTION_STRING="${{ steps.kv.outputs.db_connection_string }}"
+          # Npgsql format: Host=<server>.postgres.database.azure.com;Port=5432;Database=...;Username=...;Password=...
+          HOST_PART="$(echo "$DB_CONNECTION_STRING" | tr ';' '\n' | awk -F= 'tolower($1)=="host"{print $2}')"
+          PG_SERVER_NAME="$(echo "$HOST_PART" | sed -E 's/\.postgres\.database\.azure\.com$//')"
+          if [ -z "$PG_SERVER_NAME" ]; then
+            echo "Could not parse PostgreSQL server name from connection string."
+            exit 1
+          fi
+          echo "pg_server_name=$PG_SERVER_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Detect GitHub runner public IP
+        id: runner_ip
+        shell: bash
+        run: |
+          RUNNER_IP="$(curl -s https://api.ipify.org)"
+          if [ -z "$RUNNER_IP" ]; then
+            echo "Failed to detect runner public IP."
+            exit 1
+          fi
+          echo "runner_ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
+
+      - name: Add temporary PostgreSQL firewall rule
+        id: fw
+        shell: bash
+        run: |
+          RULE_NAME="gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "rule_name=$RULE_NAME" >> "$GITHUB_OUTPUT"
+          az postgres flexible-server firewall-rule create \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ steps.pg.outputs.pg_server_name }}" \
+            --rule-name "$RULE_NAME" \
+            --start-ip-address "${{ steps.runner_ip.outputs.runner_ip }}" \
+            --end-ip-address "${{ steps.runner_ip.outputs.runner_ip }}"
+          sleep 20
+
+      - name: Apply migrations and seed data
+        env:
+          ConnectionStrings__DefaultConnection: ${{ steps.kv.outputs.db_connection_string }}
+          ConnectionStrings__VectorConnection: ${{ steps.kv.outputs.vector_connection_string }}
+          AzureStorage__ConnectionString: ${{ steps.kv.outputs.blob_connection_string }}
+        run: |
+          dotnet run \
+            --project apps/backend/src/StarterKit.Migrator/StarterKit.Migrator.csproj \
+            --configuration Release
+
+      - name: Remove temporary PostgreSQL firewall rule
+        if: always()
+        shell: bash
+        run: |
+          az postgres flexible-server firewall-rule delete \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ steps.pg.outputs.pg_server_name }}" \
+            --rule-name "${{ steps.fw.outputs.rule_name }}" \
+            --yes || true

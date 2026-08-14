@@ -1,0 +1,24 @@
+{
+  "switcher": {
+    "placeholder": "Select workspace…",
+    "label": "Workspace",
+    "clubSection": "Club Context",
+    "adminSection": "Administration",
+    "selectWorkspace": "Select a club",
+    "club": "Club",
+    "clubPlaceholder": "Choose a club",
+    "selectClub": "Select club",
+    "selectClubFirst": "Select a club first",
+    "allClubs": "All Clubs",
+    "recent": "Recent",
+    "searchPlaceholder": "Search {{clubs}} clubs…",
+    "searchClubs": "Search clubs…",
+    "searchTeams": "Search {{count}} teams…",
+    "selectTeam": "Select a team",
+    "clearTeam": "Clear team filter",
+    "teamCount_one": "{{count}} team",
+    "teamCount_other": "{{count}} teams",
+    "aiCredits": "AI credits",
+    "creditsLeft": "{{credits}} left"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "statusBanner": {
+    "resetAtMidnight": "All attempts reset at midnight",
+    "offline": "You're offline"
+  },
+  "met": "met",
+  "notMet": "not met",
+  "field": {
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "segmentedTabs": {
+    "selected": "Selected",
+    "notSelected": "Not selected"
+  }
+}

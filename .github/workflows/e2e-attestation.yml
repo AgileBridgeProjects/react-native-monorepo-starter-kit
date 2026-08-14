@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────
+# E2E Attestation — the cheap required check.
+#
+# Runs NO tests. The E2E suites are too expensive to gate every PR (see e2e.yml),
+# so this verifies the developer's *claim* that they ran the affected specs locally,
+# bound to the PR head SHA. A new push invalidates the claim and turns this red.
+#
+# Make this a required status check on `dev` in branch protection — it is the whole
+# point of the workflow. Contract: docs/standards/e2e-testing.md § Pre-push attestation.
+#
+# `edited` is in the trigger list so pasting the line re-runs the check without
+# needing an empty commit.
+# ─────────────────────────────────────────────────────────────
+name: E2E Attestation
+
+on:
+  pull_request:
+    branches: [dev]
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+concurrency:
+  group: e2e-attestation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # No `if:` on the job — a skipped required check blocks a PR forever (same reason
+  # the other workflows use an always-running `gate` job). Draft PRs are handled
+  # inside the script instead, so the check always reports a result.
+  attestation:
+    name: Verify E2E attestation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # Shallow — the script only needs the mapping table; PR facts come from the API.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check attestation
+        run: node scripts/check-e2e-attestation.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}

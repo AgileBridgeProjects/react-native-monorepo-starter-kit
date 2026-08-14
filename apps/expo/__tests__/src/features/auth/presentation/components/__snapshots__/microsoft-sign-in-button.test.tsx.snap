@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MicrosoftSignInButton — snapshots > matches the default tree 1`] = `
+<Pressable
+  accessibilityLabel="microsoft.signInWithMicrosoftA11y"
+  accessibilityState={
+    {
+      "busy": false,
+      "disabled": false,
+    }
+  }
+  data-icon="windows"
+  onPress={[MockFunction spy]}
+  testID="ms"
+>
+  <Svg
+    height={20}
+    viewBox="0 0 21 21"
+    width={20}
+  >
+    <Rect
+      fill="#F25022"
+      height={9}
+      width={9}
+      x={1}
+      y={1}
+    />
+    <Rect
+      fill="#7FBA00"
+      height={9}
+      width={9}
+      x={11}
+      y={1}
+    />
+    <Rect
+      fill="#00A4EF"
+      height={9}
+      width={9}
+      x={1}
+      y={11}
+    />
+    <Rect
+      fill="#FFB900"
+      height={9}
+      width={9}
+      x={11}
+      y={11}
+    />
+  </Svg>
+  <Text>
+    microsoft.signInWithMicrosoft
+  </Text>
+</Pressable>
+`;

@@ -1,0 +1,40 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProviderConflictSheet — snapshots > matches the hidden (no conflict) tree 1`] = `null`;
+
+exports[`ProviderConflictSheet — snapshots > matches the visible (conflict) tree 1`] = `
+<View
+  data-onclose={[Function]}
+  testID="provider-conflict-sheet"
+>
+  <View
+    className="items-center gap-md"
+  >
+    <Text
+      className="text-center"
+      variant="h3"
+    >
+      providerConflict.title
+    </Text>
+    <Text
+      className="text-text-secondary text-center"
+      variant="body"
+    >
+      providerConflict.message
+    </Text>
+    <Pressable
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      onPress={[Function]}
+      testID="provider-conflict-dismiss"
+    >
+      <Text>
+        providerConflict.dismiss
+      </Text>
+    </Pressable>
+  </View>
+</View>
+`;

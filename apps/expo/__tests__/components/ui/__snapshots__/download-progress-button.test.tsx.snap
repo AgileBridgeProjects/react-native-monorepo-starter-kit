@@ -1,0 +1,119 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DownloadProgressButton > matches the determinate snapshot 1`] = `
+<Pressable
+  accessibilityLabel="Cancel download"
+  accessibilityRole="button"
+  className="items-center justify-center"
+  hitSlop={8}
+  onPress={[Function]}
+  testID="dl-progress"
+>
+  <View
+    style={
+      {
+        "transform": [
+          {
+            "rotate": "0deg",
+          },
+        ],
+      }
+    }
+  >
+    <Svg
+      height={32}
+      width={32}
+    >
+      <Circle
+        cx={16}
+        cy={16}
+        fill="none"
+        r={14.75}
+        stroke="#E9ECEF"
+        strokeWidth={2.5}
+      />
+      <Circle
+        cx={16}
+        cy={16}
+        fill="none"
+        origin="16, 16"
+        r={14.75}
+        rotation={-90}
+        stroke="#0A3D91"
+        strokeDasharray={92.6769832808989}
+        strokeDashoffset={46.33849164044945}
+        strokeLinecap="round"
+        strokeWidth={2.5}
+      />
+      <Rect
+        fill="#ADB5BD"
+        height={10.24}
+        rx={1.536}
+        ry={1.536}
+        width={10.24}
+        x={10.879999999999999}
+        y={10.879999999999999}
+      />
+    </Svg>
+  </View>
+</Pressable>
+`;
+
+exports[`DownloadProgressButton > matches the indeterminate snapshot 1`] = `
+<Pressable
+  accessibilityLabel="Cancel download"
+  accessibilityRole="button"
+  className="items-center justify-center"
+  hitSlop={8}
+  onPress={[Function]}
+  testID="dl-progress"
+>
+  <View
+    style={
+      {
+        "transform": [
+          {
+            "rotate": "0deg",
+          },
+        ],
+      }
+    }
+  >
+    <Svg
+      height={32}
+      width={32}
+    >
+      <Circle
+        cx={16}
+        cy={16}
+        fill="none"
+        r={14.75}
+        stroke="#E9ECEF"
+        strokeWidth={2.5}
+      />
+      <Circle
+        cx={16}
+        cy={16}
+        fill="none"
+        origin="16, 16"
+        r={14.75}
+        rotation={-90}
+        stroke="#0A3D91"
+        strokeDasharray={92.6769832808989}
+        strokeDashoffset={0}
+        strokeLinecap="round"
+        strokeWidth={2.5}
+      />
+      <Rect
+        fill="#ADB5BD"
+        height={10.24}
+        rx={1.536}
+        ry={1.536}
+        width={10.24}
+        x={10.879999999999999}
+        y={10.879999999999999}
+      />
+    </Svg>
+  </View>
+</Pressable>
+`;

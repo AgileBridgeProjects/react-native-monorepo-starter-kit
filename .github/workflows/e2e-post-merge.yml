@@ -1,0 +1,284 @@
+# ─────────────────────────────────────────────────────────────
+# E2E (post-merge) — consequence, not a gate.
+#
+# E2E is too expensive to require on every PR, so instead of blocking the merge we
+# make skipping it *visible*: after a merge lands on `dev`, the specs the merge
+# actually touched are run, and a failure opens a Linear ticket assigned to the
+# merge author. You pay once per merge, not once per push, and the person who
+# skipped it locally gets the ticket with their name on it.
+#
+# Cost control:
+#   • Only the specs the diff selects run (e2e/scripts/affected-specs.mjs).
+#   • The web job (Docker + Key Vault + WebApi image) only runs when web specs are
+#     selected; expo-only merges skip Docker entirely and take ~1 minute.
+#   • Nothing runs at all when the merge selects no specs.
+#
+# `cancel-in-progress: false` is deliberate: cancelling would lose the per-merge
+# attribution this workflow exists to provide. Runs queue instead. If the queue
+# becomes a problem, flip it to true and accept coarser blame.
+# ─────────────────────────────────────────────────────────────
+name: E2E (post-merge)
+
+on:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: e2e-post-merge
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  # ── Which specs does this merge select? ─────────────────────
+  select:
+    name: Select affected specs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      web: ${{ steps.pick.outputs.web }}
+      expo: ${{ steps.pick.outputs.expo }}
+      any: ${{ steps.pick.outputs.any }}
+      author: ${{ steps.author.outputs.email }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Resolve affected specs
+        id: pick
+        env:
+          # All-zeros on a branch's first push or after some force-pushes.
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "No usable 'before' SHA — falling back to the previous commit."
+            BEFORE="$(git rev-parse HEAD~1)"
+          fi
+          echo "Comparing $BEFORE..HEAD"
+
+          # --json emits only the selection, so no npm ci is needed here.
+          SELECTION="$(node e2e/scripts/e2e-affected.mjs --json --base "$BEFORE")"
+          echo "$SELECTION"
+
+          WEB="$(echo "$SELECTION" | jq -r '.web | join(" ")')"
+          EXPO="$(echo "$SELECTION" | jq -r '.expo | join(" ")')"
+          echo "web=$WEB" >> "$GITHUB_OUTPUT"
+          echo "expo=$EXPO" >> "$GITHUB_OUTPUT"
+          if [ -n "$WEB" ] || [ -n "$EXPO" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "any=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No E2E-relevant changes in this merge — nothing to run."
+          fi
+
+          UNCOVERED="$(echo "$SELECTION" | jq -r '.uncovered | length')"
+          if [ "$UNCOVERED" != "0" ]; then
+            echo "::warning::$UNCOVERED changed path(s) match no rule in e2e/scripts/affected-specs.mjs"
+          fi
+
+      - name: Resolve the merge author
+        id: author
+        run: echo "email=$(git log -1 --format=%ae HEAD)" >> "$GITHUB_OUTPUT"
+
+  # ── Web specs: full stack (Docker + isolated WebApi) ────────
+  web:
+    name: Affected web specs
+    needs: select
+    if: needs.select.outputs.web != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+      # Only the Next server — Metro is irrelevant to the web suite.
+      E2E_SERVERS: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+      - name: Install Playwright browsers
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Install Playwright OS deps
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Start E2E database
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait postgres-e2e
+
+      - name: Run database migrations
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e up migrator-e2e --build --abort-on-container-exit
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Fetch E2E secrets from Key Vault
+        run: |
+          names=$(az keyvault secret list \
+            --vault-name "$KEYVAULT_NAME" \
+            --query "[?tags.app=='e2e'].name" -o tsv)
+          for name in $names; do
+            value=$(az keyvault secret show \
+              --vault-name "$KEYVAULT_NAME" --name "$name" --query value -o tsv)
+            echo "::add-mask::$value"
+            var_name="${name//-/_}"
+            echo "${var_name^^}=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Start E2E backend API
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait webapi-e2e --build
+
+      - name: Run affected web specs
+        working-directory: e2e
+        env:
+          CI: "true"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/web-results.json
+          SPECS: ${{ needs.select.outputs.web }}
+        # SPECS is a space-separated list of spec paths from the selector; word
+        # splitting here is intentional.
+        run: npx playwright test --config playwright.config.ts --project=web --reporter=json,html $SPECS
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/web-results.json
+          retention-days: 14
+
+      - name: Tear down
+        if: always()
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e down -v --remove-orphans
+
+  # ── Expo specs: static export + synthetic auth, no backend ──
+  expo:
+    name: Affected expo specs
+    needs: select
+    if: needs.select.outputs.expo != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: pw-cache-expo
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+      - name: Install Playwright browsers
+        if: steps.pw-cache-expo.outputs.cache-hit != 'true'
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+      - name: Install Playwright OS deps
+        if: steps.pw-cache-expo.outputs.cache-hit == 'true'
+        working-directory: e2e
+        run: npx playwright install-deps chromium
+
+      - name: Build Expo web (static export)
+        working-directory: apps/expo
+        run: npx expo export --platform web --output-dir /tmp/expo-web-dist
+
+      - name: Serve Expo web build
+        run: |
+          npx --prefix e2e serve /tmp/expo-web-dist -l 8081 &
+          npx --prefix e2e wait-on http://localhost:8081 --timeout 60000
+
+      - name: Run affected expo specs
+        working-directory: e2e
+        env:
+          CI: "true"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/expo-results.json
+          PLAYWRIGHT_HTML_OUTPUT_DIR: html-report
+          SPECS: ${{ needs.select.outputs.expo }}
+        run: npx playwright test --config playwright.expo-local.config.ts --reporter=list,json,html $SPECS
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-expo-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/expo-results.json
+          retention-days: 14
+
+  # ── Failure → Linear ticket assigned to the merge author ────
+  report:
+    name: Report failures to Linear
+    needs: [select, web, expo]
+    if: always() && (needs.web.result == 'failure' || needs.expo.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+
+      - name: Download web results
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: .
+        continue-on-error: true
+      - name: Download expo results
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-expo-report
+          path: .
+        continue-on-error: true
+
+      - name: Create Linear tickets
+        working-directory: e2e
+        run: npx tsx scripts/report-failures.ts
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+          # The merge author owns the regression — the failing spec is usually innocent.
+          E2E_BLAME_EMAIL: ${{ needs.select.outputs.author }}
+          E2E_TRIGGER: post-merge to dev

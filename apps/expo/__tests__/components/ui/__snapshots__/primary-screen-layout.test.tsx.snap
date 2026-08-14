@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PrimaryScreenLayout > renders the hero inside a primary background with a rounded card on native 1`] = `
+<View
+  className="flex-1 bg-primary"
+  testID="layout"
+>
+  <View
+    style={
+      {
+        "paddingTop": 0,
+      }
+    }
+  >
+    <View
+      testID="hero"
+    />
+  </View>
+  <View
+    className="flex-1 overflow-hidden rounded-t-3xl bg-background"
+  >
+    <View
+      testID="card"
+    />
+  </View>
+</View>
+`;
+
+exports[`PrimaryScreenLayout > uses the flat web-mobile layout (no rounded card) on web below the tablet breakpoint 1`] = `
+<View
+  className="flex-1 bg-background"
+  testID="layout"
+>
+  <View
+    testID="hero"
+  />
+  <View
+    testID="card"
+  />
+</View>
+`;

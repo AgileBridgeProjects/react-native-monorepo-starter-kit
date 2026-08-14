@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Card > matches the default snapshot 1`] = `
+<View
+  className="rounded-2xl bg-brand-blue-card-dark p-lg"
+  testID="card"
+>
+  <Text>
+    Content
+  </Text>
+</View>
+`;

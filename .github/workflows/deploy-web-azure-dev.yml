@@ -1,0 +1,115 @@
+name: Deploy Web to Azure (dev)
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - apps/web/**
+      - packages/shared/**
+      - package.json
+      - package-lock.json
+      - tsconfig.base.json
+      - .github/workflows/deploy-web-azure-dev.yml
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag override (defaults to short SHA)
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-web-azure-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME_WEB }}
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      WEB_BASE_URL: ${{ vars.WEB_BASE_URL }}
+      IMAGE_NAME: starterkit-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        shell: bash
+        run: |
+          test -n "$AZURE_RESOURCE_GROUP"
+          test -n "$AZURE_WEBAPP_NAME"
+          test -n "$ACR_NAME"
+          test -n "$WEB_BASE_URL"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Inject web secrets from Key Vault
+        shell: bash
+        run: |
+          # Pull all secrets tagged app=web from Key Vault and write them into
+          # apps/web/.env.local. Next.js gives .env.local highest precedence in all
+          # build modes — no Dockerfile ARG/ENV changes ever needed for new secrets.
+          #
+          # To add a new secret: az keyvault secret set --vault-name $KV \
+          #   --name <kebab-name> --value <val> --tags app=web env=dev
+          # No pipeline or Dockerfile changes required.
+          KV="${{ vars.KEYVAULT_NAME }}"
+          SECRET_NAMES=$(az keyvault secret list --vault-name "$KV" \
+            --query "[?tags.app=='web'].name" -o tsv)
+          > apps/web/.env.local
+          for name in $SECRET_NAMES; do
+            value=$(az keyvault secret show --vault-name "$KV" --name "$name" --query value -o tsv)
+            var_name=$(echo "$name" | tr '[:lower:]-' '[:upper:]_')
+            echo "$var_name=$value" >> apps/web/.env.local
+            echo "::add-mask::$value"
+          done
+
+      - name: Login to ACR
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Resolve image tag
+        id: tag
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            TAG="${{ github.event.inputs.image_tag }}"
+          else
+            TAG="${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_URI=${ACR_NAME}.azurecr.io/${IMAGE_NAME}:$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        shell: bash
+        run: |
+          IMAGE_URI="${{ steps.tag.outputs.IMAGE_URI }}"
+          docker build -f apps/web/Dockerfile -t "$IMAGE_URI" -t "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:dev" .
+          docker push "$IMAGE_URI"
+          docker push "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:dev"
+
+      - name: Update Web App container image
+        run: |
+          az webapp config container set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --docker-custom-image-name "${{ steps.tag.outputs.IMAGE_URI }}" \
+            --docker-registry-server-url "https://${ACR_NAME}.azurecr.io"
+
+      - name: Restart Web App
+        run: az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
+
+      - name: Print deployed URL
+        shell: bash
+        run: |
+          echo "Configured web URL: $WEB_BASE_URL"

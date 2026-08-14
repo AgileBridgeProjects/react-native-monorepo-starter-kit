@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "tailwindcss": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "tailwindcss-mcp-server@latest"],
+      "note": "Tailwind CSS docs, utilities, and NativeWind pattern assistance."
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "note": "Live library docs on demand — replaces skills for Expo, Next.js, ASP.NET, xUnit, React Query, etc."
+    },
+    "linear": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"],
+      "note": "Linear issue tracking. Authenticates via OAuth in the browser — no API key needed."
+    },
+    "figma": {
+      "type": "http",
+      "url": "http://127.0.0.1:3845/mcp",
+      "note": "Figma Dev Mode MCP server (local). Requires the Figma Desktop app with the Dev Mode MCP server enabled in Preferences, and the StarterKit file open."
+    },
+    "repomix": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "repomix", "--mcp"],
+      "note": "Repository packing and structured extraction for large-context analysis tasks."
+    }
+  }
+}

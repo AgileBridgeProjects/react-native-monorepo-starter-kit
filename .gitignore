@@ -1,0 +1,306 @@
+# ============================================================
+# StarterKit Monorepo .gitignore
+# Covers: C#/.NET, Node/React/Expo, Docker, Azure, tooling
+# ============================================================
+
+# ── C# / .NET ────────────────────────────────────────────────
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.log
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+publish/
+**/Properties/launchSettings.json
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.vspscc
+*.vssscc
+
+# Local scratch output files
+/tmp/
+.builds
+*_output.txt
+*output.txt
+*.pidb
+*.svclog
+*.scc
+_Codegeneration/
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+Generated_Code/
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+*.rptproj.bak
+*.mdf
+*.ldf
+*.ndf
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+*.rptproj.rsuser
+*- [Bb]ackup.rdl
+*- [Bb]ackup ([0-9]).rdl
+*- [Bb]ackup ([0-9][0-9]).rdl
+*.Cache
+ClientBin/
+[Ss]tyle[Cc]op.*
+![Ss]tyle[Cc]op.targets
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+_TeamCity*
+.axoCover/
+.coverage
+*.coveragexml
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+*.mm.*
+AutoTest.Net/
+.sass-cache/
+[Ee]xpress/
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+publish/
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+PublishScripts/
+*.nupkg
+*.snupkg
+apps/backend/**/[Pp]ackages/*
+!apps/backend/**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+csx/
+*.build.csdef
+ecf/
+rcf/
+AppServiceLocalCache/
+momentum/
+Queueing/
+*.VC.db
+*.VC.opendb
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.e2e
+BenchmarkDotNet.Artifacts/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+!**/.gitkeep
+.fake/
+.cr/personal
+**/.DS_Store
+FakesAssemblies/
+.grunt
+wwwroot/dist/
+
+# ── EF Core Migrations (keep migrations, ignore snapshots cache) ──
+# Do NOT ignore Migrations folder - we want these in source control
+
+# ── App Secrets / Config ─────────────────────────────────────
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+
+# ── Node / NPM ───────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+lerna-debug.log*
+
+# ── React / Next.js / Vite ───────────────────────────────────
+.next/
+out/
+dist/
+dist-ssr/
+*.tsbuildinfo
+*.local
+.cache/
+.parcel-cache/
+
+# ── Expo / React Native ──────────────────────────────────────
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.mobileprovision
+*.orig.*
+web-build/
+ios/
+android/
+
+# Local Expo native modules ship their own android/ source — it must be tracked.
+# (The bare `android/` rule above otherwise excludes it, omitting the native module
+# from git even though EAS picks it up via .easignore.)
+!apps/expo/modules/*/android/
+!apps/expo/modules/*/android/**
+
+# ── Environment files ────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+scripts/harvest-category-map.json
+
+# ── Docker ───────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Azure ────────────────────────────────────────────────────
+.azure/
+local.settings.json
+
+# ── Azurite (local Azure Storage emulator) ───────────────────
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__azurite_db_queue__.json
+__azurite_db_queue_extent__.json
+__azurite_db_table__.json
+__azurite_db_table_extent__.json
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+AzuriteConfig
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── IDE / Editors ────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/mcp.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Test results ─────────────────────────────────────────────
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+lcov.info
+
+# ── Spec Workflow MCP (approval state is local, specs are tracked) ─
+.spec-workflow/approvals/
+.spec-workflow/archive/
+
+# ── BMAD output (scratch artifacts) ─────────────────────────
+_bmad-output/*.patch
+
+# ── Claude Code (local settings are personal, not shared) ────
+.claude/settings.local.json
+.claude/worktrees/
+
+# ── .NET first-use sentinel / home dir (CI-generated artefacts) ──
+dotnet-home/
+
+# ── Playwright MCP screenshots / snapshots (local dev artifacts) ──
+.playwright-mcp/
+
+# ── E2E test artifacts (generated, not tracked) ──────────────
+e2e/node_modules/
+e2e/test-results/
+e2e/html-report/
+# Local run receipt written by `npm run e2e:affected` (see docs/standards/e2e-testing.md)
+e2e/.e2e-receipt.json
+# Playwright storageState auth files (contain session tokens, never commit)
+e2e/.auth/
+# Local E2E credentials — copy from .env.e2e.example and fill in values
+e2e/.env.e2e
+# Playwright saved auth state — contains credentials, never commit
+e2e/.auth/
+
+# graphify – keep outputs, ignore build cache & secrets
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/.graphify_python
+graphify-out/_merge.py
+apps/backend/nul
+
+# Static Expo web export built by e2e:affected (mirrors the CI job) — never committed.
+e2e/.expo-web-dist/
+
+# ── BMAD planning artifacts (working docs, not meant to be committed) ──
+_bmad-output/planning-artifacts/*
+!_bmad-output/planning-artifacts/.gitkeep

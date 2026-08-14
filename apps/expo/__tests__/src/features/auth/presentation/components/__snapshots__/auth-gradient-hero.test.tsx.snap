@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AuthGradientHero — snapshots > matches the default (logo only) tree 1`] = `
+<LinearGradient
+  className="flex-1 items-center justify-center pb-lg"
+  colors={
+    [
+      "#a",
+      "#b",
+      "#c",
+    ]
+  }
+  end={
+    {
+      "x": 0,
+      "y": 1,
+    }
+  }
+  locations={
+    [
+      0.12171,
+      0.64004,
+      0.98874,
+    ]
+  }
+  start={
+    {
+      "x": 1,
+      "y": 0,
+    }
+  }
+  testID="auth-gradient-hero"
+>
+  <Image
+    accessibilityLabel="StarterKit logo"
+    accessible={true}
+    className="w-[220px] h-[61px]"
+    resizeMode="contain"
+    source={1}
+  />
+</LinearGradient>
+`;
+
+exports[`AuthGradientHero — snapshots > matches the tree with children below the logo 1`] = `
+<LinearGradient
+  className="flex-1 items-center justify-center pb-lg"
+  colors={
+    [
+      "#a",
+      "#b",
+      "#c",
+    ]
+  }
+  end={
+    {
+      "x": 0,
+      "y": 1,
+    }
+  }
+  locations={
+    [
+      0.12171,
+      0.64004,
+      0.98874,
+    ]
+  }
+  start={
+    {
+      "x": 1,
+      "y": 0,
+    }
+  }
+  testID="auth-gradient-hero"
+>
+  <Image
+    accessibilityLabel="StarterKit logo"
+    accessible={true}
+    className="w-[220px] h-[61px]"
+    resizeMode="contain"
+    source={1}
+  />
+  <Text>
+    hi
+  </Text>
+</LinearGradient>
+`;

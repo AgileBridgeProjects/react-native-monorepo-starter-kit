@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Collapsible > matches the collapsed snapshot 1`] = `
+<View
+  className="mb-md"
+>
+  <Pressable
+    className="flex-row items-center gap-xs active:opacity-80"
+    onPress={[Function]}
+  >
+    <View
+      style={
+        {
+          "transform": [
+            {
+              "rotate": "0deg",
+            },
+          ],
+        }
+      }
+      testID="icon-chevron.right"
+    />
+    <Text>
+      Section
+    </Text>
+  </Pressable>
+</View>
+`;

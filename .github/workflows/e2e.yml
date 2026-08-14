@@ -1,0 +1,388 @@
+# ─────────────────────────────────────────────────────────────
+# E2E — Playwright (Admin Portal + Expo Web)
+#
+# Triggers (balancing coverage vs GitHub minutes):
+#   • schedule (Mon 07:00 UTC) — full sweep on `dev`. On failure it opens
+#     Linear bug tickets (deduped against still-open ones). Change-gated:
+#     a job is skipped if nothing in its paths changed in the last 8 days.
+#   • pull_request → uat — the dev→uat promotion gate. Runs the verified
+#     Expo suite (synthetic auth, 3 viewports); failures block the merge and
+#     show in the PR, so no tickets are opened here.
+#   • workflow_dispatch — on-demand full run (both suites, no change gate).
+#
+# The heavy admin-portal (web) suite — docker DBs + backend + Azure Key Vault —
+# runs only on the weekly sweep / manual dispatch, never as the promotion gate.
+#
+# Maestro (mobile) is disabled below pending the dev-menu fix.
+# ─────────────────────────────────────────────────────────────
+name: E2E
+
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Monday 07:00 UTC
+  pull_request:
+    branches: [uat]
+  workflow_dispatch: # Allow manual trigger
+
+concurrency:
+  # Scope by event + ref so a new PR push cancels the stale PR run without
+  # cancelling an in-flight weekly sweep.
+  group: e2e-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  # ── Change Detection (scheduled sweep only) ─────────────────
+  # Detects whether web or expo paths changed in the last 8 days (weekly
+  # window + drift). Skips the relevant job when nothing changed, saving
+  # ~30-45 min of runner time. PR + manual runs always run in full.
+  check-changes:
+    name: Check for changes
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      web-changed: ${{ steps.web.outputs.changed }}
+      expo-changed: ${{ steps.expo.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Detect web changes
+        id: web
+        run: |
+          COUNT=$(git log --since="8 days ago" --oneline -- \
+            apps/web/ packages/ e2e/playwright/ e2e/tests/web/ apps/backend/ | wc -l)
+          echo "changed=$([ "$COUNT" -gt 0 ] && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+          echo "Web changes in last 8d: $COUNT commit(s)"
+
+      - name: Detect expo changes
+        id: expo
+        run: |
+          COUNT=$(git log --since="8 days ago" --oneline -- \
+            apps/expo/ packages/ e2e/expo/ e2e/tests/expo/ | wc -l)
+          echo "changed=$([ "$COUNT" -gt 0 ] && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+          echo "Expo changes in last 8d: $COUNT commit(s)"
+
+  # ── Playwright (Web — Admin Portal) ─────────────────────────
+  # Heavy full-stack suite. Weekly sweep + manual dispatch only — never the
+  # promotion gate (legacy suite, not yet hardened; a false red must not block
+  # dev→uat). Failures on the sweep surface as Linear tickets.
+  playwright:
+    needs: check-changes
+    if: >-
+      always() &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'schedule' && needs.check-changes.outputs.web-changed == 'true'))
+    name: Playwright (Web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 50 # Need history for git-log blame
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache-web
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      # Cache miss: full install (browser binaries + OS deps).
+      - name: Install Playwright browsers
+        if: steps.playwright-cache-web.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      # Cache hit: binaries restored from cache; only OS deps (apt) need installing.
+      - name: Install Playwright OS deps
+        if: steps.playwright-cache-web.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Start E2E databases
+        working-directory: e2e
+        run: |
+          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait postgres-e2e
+
+      - name: Run database migrations
+        working-directory: e2e
+        run: |
+          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up migrator-e2e --build --abort-on-container-exit
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Fetch E2E secrets from Key Vault
+        run: |
+          # Pull all secrets tagged app=e2e and export them into GITHUB_ENV.
+          # Auto-map mirrors e2e/scripts/pull-env.mjs: kebab-case → UPPER_SNAKE_CASE
+          # (e2e-admin-email → E2E_ADMIN_EMAIL).
+          names=$(az keyvault secret list \
+            --vault-name "$KEYVAULT_NAME" \
+            --query "[?tags.app=='e2e'].name" -o tsv)
+          for name in $names; do
+            value=$(az keyvault secret show \
+              --vault-name "$KEYVAULT_NAME" --name "$name" --query value -o tsv)
+            echo "::add-mask::$value"
+            var_name="${name//-/_}"
+            var_name="${var_name^^}"
+            echo "$var_name=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Start E2E backend API
+        working-directory: e2e
+        run: |
+          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait webapi-e2e --build
+
+      - name: Run Playwright tests
+        working-directory: e2e
+        run: npx playwright test --config playwright.config.ts --project=web --reporter=json,html
+        env:
+          CI: "true"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/web-results.json
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/web-results.json
+          retention-days: 14
+
+      - name: Tear down E2E databases
+        if: always()
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e down -v --remove-orphans
+
+  # ── Playwright (Expo Web) ────────────────────────────────────
+  # The hardened suite: synthetic Supabase auth (no live backend / no creds),
+  # run across desktop + tablet + mobile viewports. Runs on the weekly sweep,
+  # the dev→uat promotion gate, and manual dispatch. Real-GoTrue email specs
+  # fall back to the seeded dev admin credentials.
+  playwright-expo:
+    needs: check-changes
+    if: >-
+      always() &&
+      (github.event_name != 'schedule' || needs.check-changes.outputs.expo-changed == 'true')
+    name: Playwright (Expo Web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # On the dev→uat PR, test the dev head being promoted; otherwise dev.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
+          fetch-depth: 50
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache-expo
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      # Cache miss: full install (browser binaries + OS deps).
+      - name: Install Playwright browsers
+        if: steps.playwright-cache-expo.outputs.cache-hit != 'true'
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+      # Cache hit: binaries restored from cache; only OS deps (apt) need installing.
+      - name: Install Playwright OS deps
+        if: steps.playwright-cache-expo.outputs.cache-hit == 'true'
+        working-directory: e2e
+        run: npx playwright install-deps chromium
+
+      - name: Build Expo web (static export)
+        working-directory: apps/expo
+        run: npx expo export --platform web --output-dir /tmp/expo-web-dist
+        env:
+          # This suite runs with synthetic auth and no live backend (see job comment) — routes
+          # never actually hit this URL. `expo export` always builds in production mode, so
+          # api-client.ts's fail-fast guard (real prod builds must not silently default) requires
+          # *some* non-empty value; it doesn't need to be reachable. Same value the code's own
+          # dev-mode fallback already uses.
+          EXPO_PUBLIC_API_URL: http://localhost:5001
+          # EXPO_PUBLIC_SOCIAL_AUTH_ENABLED is deliberately NOT set. It used to be forced on
+          # here so the phone/social specs had buttons to click, which meant the suite was
+          # verifying UI no user can reach — the flag is off in every real environment and the
+          # GoTrue providers behind it are not wired. Those specs are gone; the export now
+          # matches what ships. Set it again when social sign-in actually ships, together with
+          # the specs.
+
+      - name: Serve Expo web build
+        run: |
+          npx --prefix e2e serve /tmp/expo-web-dist -l 8081 &
+          npx --prefix e2e wait-on http://localhost:8081 --timeout 60000
+
+      - name: Run Playwright Expo tests
+        # Uses the synthetic-auth config (no global-setup / Next server) — the
+        # exact setup the suite was verified green against, across 3 viewports.
+        working-directory: e2e
+        run: npx playwright test --config playwright.expo-local.config.ts --reporter=list,json,html
+        env:
+          CI: "true"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/expo-results.json
+          PLAYWRIGHT_HTML_OUTPUT_DIR: html-report
+
+      - name: Upload Expo Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-expo-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/expo-results.json
+          retention-days: 14
+
+  # ── Maestro (Mobile — Expo) — DISABLED (dev menu issue unresolved) ──────────
+  # maestro:
+  #   needs: check-changes
+  #   if: needs.check-changes.outputs.expo-changed == 'true'
+  #   name: Maestro
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 45
+  #   env:
+  #     E2E_ADMIN_EMAIL: admin@starterkit.local
+  #     E2E_ADMIN_PASSWORD: "P@ssword01*$"
+  #     E2E_REGISTER_EMAIL: e2e-ci-${{ github.run_id }}@starterkit.local
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 50
+  #
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: npm
+  #
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: temurin
+  #         java-version: 17
+  #
+  #     - run: npm ci
+  #
+  #     - name: Install Maestro CLI
+  #       run: |
+  #         curl -fsSL "https://get.maestro.mobile.dev" | bash
+  #         echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+  #
+  #     - name: Start E2E databases
+  #       working-directory: e2e
+  #       run: |
+  #         docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait postgres-e2e
+  #
+  #     - name: Run database migrations
+  #       working-directory: e2e
+  #       run: |
+  #         docker compose -f docker-compose.e2e.yml -p starterkit-e2e up migrator-e2e --build --abort-on-container-exit
+  #
+  #     - name: Run Maestro tests
+  #       uses: reactivecircus/android-emulator-runner@v2
+  #       with:
+  #         api-level: 34
+  #         arch: x86_64
+  #         profile: pixel_6
+  #         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+  #         script: |
+  #           EXPO_APK_URL="https://d1ahtucjixef4r.cloudfront.net/Exponent-2.32.13.apk"
+  #           curl -fsSL "$EXPO_APK_URL" -o /tmp/expo-go.apk
+  #           adb install /tmp/expo-go.apk
+  #           cd apps/expo
+  #           npx expo start --android --no-dev 2>&1 &
+  #           EXPO_PID=$!
+  #           sleep 30
+  #           cd "$GITHUB_WORKSPACE/e2e"
+  #           maestro test maestro/ --format junit --output maestro-results.xml || true
+  #           kill $EXPO_PID 2>/dev/null || true
+  #
+  #     - name: Upload Maestro results
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: maestro-report
+  #         path: e2e/maestro-results.xml
+  #         retention-days: 14
+  #
+  #     - name: Tear down E2E databases
+  #       if: always()
+  #       working-directory: e2e
+  #       run: docker compose -f docker-compose.e2e.yml -p starterkit-e2e down -v --remove-orphans
+
+  # ── Report Failures → Linear ────────────────────────────────
+  # Only on dev-context runs (schedule / manual) — never on the dev→uat PR,
+  # where failures are visible in the PR check itself.
+  report-failures:
+    name: Report Failures to Linear
+    needs: [playwright, playwright-expo]
+    if: >-
+      always() &&
+      github.event_name != 'pull_request' &&
+      (needs.playwright.result == 'failure' || needs.playwright-expo.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 50
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download Playwright results
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: .
+        continue-on-error: true
+
+      - name: Download Playwright Expo results
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-expo-report
+          path: .
+        continue-on-error: true
+
+      - name: Create Linear tickets for failures
+        working-directory: e2e
+        run: npx tsx scripts/report-failures.ts
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}

@@ -1,0 +1,10 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/_expo/*", "/favicon.png", "/.well-known/*"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    "apple-app-site-association": "application/json"
+  }
+}

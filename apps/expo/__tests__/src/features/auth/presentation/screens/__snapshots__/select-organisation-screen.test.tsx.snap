@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SelectOrganisationScreen — snapshots > matches the populated tree 1`] = `
+<View
+  className="flex-1 bg-background px-xl"
+  testID="select-org-screen"
+>
+  <View>
+    <View
+      testID="select-org-header"
+    />
+    <Pressable
+      accessibilityLabel="selectOrg.selectAria"
+      onPress={[Function]}
+      testID="select-org-item-c1"
+    >
+      <Text>
+        Acme Corp
+      </Text>
+    </Pressable>
+    <Pressable
+      accessibilityLabel="selectOrg.selectAria"
+      onPress={[Function]}
+      testID="select-org-item-c2"
+    >
+      <Text>
+        Globex
+      </Text>
+    </Pressable>
+  </View>
+</View>
+`;

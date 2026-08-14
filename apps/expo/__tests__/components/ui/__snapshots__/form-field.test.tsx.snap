@@ -1,0 +1,83 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FormField > renders the wrapped Input with its label and the controlled value 1`] = `
+[
+  <View
+    className="mb-md"
+  >
+    <Text
+      className="text-text-secondary text-sm mb-xs"
+    >
+      Email
+    </Text>
+    <View
+      className="relative"
+    >
+      <TextInput
+        accessibilityLabel="Email"
+        accessibilityState={
+          {
+            "disabled": false,
+          }
+        }
+        className="px-md font-body text-base border border-transparent bg-brand-blue-input-fill text-white h-12 rounded-xl py-0"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholderTextColor="#868E96"
+        ref={null}
+        testID="email"
+        value="a@b.com"
+      />
+    </View>
+  </View>,
+  <Pressable
+    onPress={[Function]}
+    testID="submit"
+  />,
+]
+`;
+
+exports[`FormField > surfaces a validation error from the controller state below the input 1`] = `
+[
+  <View
+    className="mb-md"
+  >
+    <Text
+      className="text-text-secondary text-sm mb-xs"
+    >
+      Email
+    </Text>
+    <View
+      className="relative"
+    >
+      <TextInput
+        accessibilityLabel="Email"
+        accessibilityState={
+          {
+            "disabled": false,
+          }
+        }
+        className="px-md font-body text-base border bg-brand-blue-input-fill text-white border-error h-12 rounded-xl py-0"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholderTextColor="#868E96"
+        ref={null}
+        testID="email"
+        value=""
+      />
+    </View>
+    <Text
+      accessibilityRole="alert"
+      className="text-error text-xs mt-xs"
+    >
+      Email is required
+    </Text>
+  </View>,
+  <Pressable
+    onPress={[Function]}
+    testID="submit"
+  />,
+]
+`;

@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProfileInfoCard — structural snapshot > matches the default render 1`] = `
+<View
+  className="gap-md rounded-2xl border border-border bg-background p-lg"
+>
+  <View
+    className="flex-row items-center gap-md"
+  >
+    <View
+      accessibilityLabel="avatar:Alex Johnson"
+      data-size="xl"
+      data-text-class="text-xl"
+      testID="avatar"
+    />
+    <View
+      className="flex-1 gap-xs"
+    >
+      <View
+        className="flex-row items-center gap-xs"
+      >
+        <Text
+          variant="h3"
+        >
+          Alex Johnson
+        </Text>
+      </View>
+      <Text
+        className="text-text-secondary"
+        variant="body"
+      >
+        alex.johnson@starterkit.app
+      </Text>
+      <Text
+        variant="caption"
+      >
+        memberSince
+      </Text>
+    </View>
+  </View>
+</View>
+`;

@@ -1,0 +1,290 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoginScreen — structural snapshot > matches the rendered tree 1`] = `
+[
+  <Text
+    className="mb-lg text-center uppercase text-white"
+    variant="h1"
+  >
+    login.title
+  </Text>,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-email-input"
+    value=""
+  />,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-password-input"
+    value=""
+  />,
+  <View
+    className="mb-md flex-row items-center justify-end"
+  >
+    <Pressable
+      accessibilityRole="link"
+      className="touch-target justify-center"
+      onPress={[Function]}
+      testID="login-forgot-password"
+    >
+      <Text
+        className="text-white underline"
+        variant="caption"
+      >
+        login.forgotPassword
+      </Text>
+    </Pressable>
+  </View>,
+  <Text
+    className="mb-lg text-left text-2xs text-white/70"
+    variant="caption"
+  >
+    login.terms
+  </Text>,
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="login-submit-button"
+  >
+    <Text>
+      login.submitButton
+    </Text>
+  </Pressable>,
+]
+`;
+
+exports[`LoginScreen — structural snapshot > matches the tree with a login error 1`] = `
+[
+  <Text
+    className="mb-lg text-center uppercase text-white"
+    variant="h1"
+  >
+    login.title
+  </Text>,
+  <Pressable
+    onPress={[MockFunction spy]}
+    testID="alert-error"
+  >
+    <Text>
+      Invalid credentials
+    </Text>
+  </Pressable>,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-email-input"
+    value=""
+  />,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-password-input"
+    value=""
+  />,
+  <View
+    className="mb-md flex-row items-center justify-end"
+  >
+    <Pressable
+      accessibilityRole="link"
+      className="touch-target justify-center"
+      onPress={[Function]}
+      testID="login-forgot-password"
+    >
+      <Text
+        className="text-white underline"
+        variant="caption"
+      >
+        login.forgotPassword
+      </Text>
+    </Pressable>
+  </View>,
+  <Text
+    className="mb-lg text-left text-2xs text-white/70"
+    variant="caption"
+  >
+    login.terms
+  </Text>,
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="login-submit-button"
+  >
+    <Text>
+      login.submitButton
+    </Text>
+  </Pressable>,
+]
+`;
+
+exports[`LoginScreen — structural snapshot > matches the tree with social sign-in enabled 1`] = `
+[
+  <Text
+    className="mb-lg text-center uppercase text-white"
+    variant="h1"
+  >
+    login.title
+  </Text>,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-email-input"
+    value=""
+  />,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-password-input"
+    value=""
+  />,
+  <View
+    className="mb-md flex-row items-center justify-end"
+  >
+    <Pressable
+      accessibilityRole="link"
+      className="touch-target justify-center"
+      onPress={[Function]}
+      testID="login-forgot-password"
+    >
+      <Text
+        className="text-white underline"
+        variant="caption"
+      >
+        login.forgotPassword
+      </Text>
+    </Pressable>
+  </View>,
+  <Text
+    className="mb-lg text-left text-2xs text-white/70"
+    variant="caption"
+  >
+    login.terms
+  </Text>,
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="login-submit-button"
+  >
+    <Text>
+      login.submitButton
+    </Text>
+  </Pressable>,
+  <View
+    className="my-md flex-row items-center"
+  >
+    <View
+      className="h-px flex-1 bg-white/20"
+    />
+    <Text
+      className="mx-md text-white/70"
+      variant="caption"
+    >
+      social.orLoginWith
+    </Text>
+    <View
+      className="h-px flex-1 bg-white/20"
+    />
+  </View>,
+  <View
+    className="flex-row gap-sm"
+  >
+    <Pressable
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      onPress={[Function]}
+      testID="login-google-button"
+    />
+    <Pressable
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      onPress={[MockFunction spy]}
+      testID="login-apple-button"
+    />
+  </View>,
+]
+`;
+
+exports[`LoginScreen — structural snapshot > matches the tree with the reset-success banner 1`] = `
+[
+  <Text
+    className="mb-lg text-center uppercase text-white"
+    variant="h1"
+  >
+    login.title
+  </Text>,
+  <Pressable
+    testID="alert-success"
+  >
+    <Text>
+      login.resetSuccess
+    </Text>
+  </Pressable>,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-email-input"
+    value=""
+  />,
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="login-password-input"
+    value=""
+  />,
+  <View
+    className="mb-md flex-row items-center justify-end"
+  >
+    <Pressable
+      accessibilityRole="link"
+      className="touch-target justify-center"
+      onPress={[Function]}
+      testID="login-forgot-password"
+    >
+      <Text
+        className="text-white underline"
+        variant="caption"
+      >
+        login.forgotPassword
+      </Text>
+    </Pressable>
+  </View>,
+  <Text
+    className="mb-lg text-left text-2xs text-white/70"
+    variant="caption"
+  >
+    login.terms
+  </Text>,
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="login-submit-button"
+  >
+    <Text>
+      login.submitButton
+    </Text>
+  </Pressable>,
+]
+`;

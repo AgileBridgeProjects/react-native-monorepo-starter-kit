@@ -1,0 +1,100 @@
+/* ─── Animated gradient border (continuous colour-trace around the perimeter) ─
+   Uses @property to animate the conic-gradient start angle so all colours move
+   continuously with no transparent gaps.                                     */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ─── Gradient border classes ────────────────────────────────────────────────
+   The ring is painted by a single ::before overlay masked to the border area
+   (content-box mask XOR full-box mask). Because the ring is derived from ONE
+   element's own geometry, thickness is mathematically identical on every side
+   at any display scaling factor.
+
+   --gb-outer-radius  outer corner radius (default 12px)
+   --gb-padding       ring thickness (default 2px)
+   --gb-inner-radius  inner corner radius = outer − padding (default 10px)  */
+.gradient-border-outer {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--gb-outer-radius, 12px);
+  padding: var(--gb-padding, 2px);
+  box-shadow:
+    0 0 6px 0px color-mix(in srgb, var(--color-brand-gradient-from) 12%, transparent),
+    0 0 14px 1px color-mix(in srgb, var(--color-brand-gradient-to) 8%, transparent);
+}
+
+.gradient-border-outer::before,
+.gradient-border-outer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--gb-outer-radius, 12px);
+  padding: var(--gb-padding, 2px);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Layer 1 — static base ring. Full-strength brand gradient on every side. */
+.gradient-border-outer::before {
+  background: linear-gradient(
+    115deg,
+    var(--color-brand-gradient-from),
+    var(--color-brand-gradient-via) 45%,
+    var(--color-brand-gradient-to)
+  );
+}
+
+/* Layer 2 — progress comet orbiting the ring. */
+.gradient-border-outer::after {
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0turn,
+    transparent 0.62turn,
+    color-mix(in srgb, #fff 45%, var(--color-brand-gradient-via)) 0.82turn,
+    color-mix(in srgb, #fff 85%, var(--color-brand-gradient-from)) 0.9turn,
+    transparent 1turn
+  );
+  animation: border-angle-spin 1.8s linear infinite;
+}
+
+.gradient-border-content {
+  border-radius: var(--gb-inner-radius, 10px);
+}
+
+/* ─── Skeleton row shimmer ───────────────────────────────────────────────────
+   Used as the innerBg on AnimatedGradientBorder during generation skeleton rows.
+   The brand gradient sweeps across the surface at very low opacity.          */
+.skeleton-row-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-elevated)                               0%,
+    var(--color-surface-elevated)                              25%,
+    color-mix(in srgb, var(--color-brand-gradient-from)  6%, var(--color-surface-elevated)) 40%,
+    color-mix(in srgb, var(--color-brand-gradient-via)    8%, var(--color-surface-elevated)) 55%,
+    color-mix(in srgb, var(--color-brand-gradient-to)    5%, var(--color-surface-elevated)) 68%,
+    var(--color-surface-elevated)                              80%,
+    var(--color-surface-elevated)                             100%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-row-sweep 2s ease-in-out infinite;
+}
+
+@keyframes skeleton-row-sweep {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+
+@keyframes border-angle-spin {
+  to { --border-angle: 360deg; }
+}

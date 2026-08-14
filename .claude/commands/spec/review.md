@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-review.md` and follow its instructions.

@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DownloadStateButton > matches the downloaded snapshot 1`] = `
+<Pressable
+  accessibilityRole="button"
+  className="items-center justify-center"
+  onPress={[Function]}
+  testID="remove-btn"
+>
+  <View
+    testID="icon-checkmark.circle.fill"
+  />
+</Pressable>
+`;
+
+exports[`DownloadStateButton > matches the downloading snapshot 1`] = `
+<View
+  className="items-center justify-center rounded-xl px-md py-md bg-white"
+>
+  <Pressable
+    onPress={[Function]}
+    testID="progress-button"
+  />
+</View>
+`;
+
+exports[`DownloadStateButton > matches the not-downloaded snapshot 1`] = `
+<Pressable
+  accessibilityRole="button"
+  className="items-center justify-center rounded-xl px-md py-md bg-white"
+  onPress={[Function]}
+  testID="download-btn"
+>
+  <View
+    testID="icon-arrow.down.circle.fill"
+  />
+</Pressable>
+`;

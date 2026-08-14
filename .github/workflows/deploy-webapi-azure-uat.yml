@@ -1,0 +1,146 @@
+name: Deploy WebApi to Azure (uat)
+
+on:
+  push:
+    branches: [uat]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag override (defaults to short SHA)
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-webapi-azure-uat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: uat
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME_WEBAPI }}
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      WEBAPI_BASE_URL: ${{ vars.WEBAPI_BASE_URL }}
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      MANAGED_IDENTITY_CLIENT_ID: ${{ vars.MANAGED_IDENTITY_CLIENT_ID }}
+      IMAGE_NAME: starterkit-webapi
+      DOCKERFILE_PATH: apps/backend/src/StarterKit.WebApi/Dockerfile
+      DOCKER_BUILD_CONTEXT: apps/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        shell: bash
+        run: |
+          test -n "$AZURE_RESOURCE_GROUP"
+          test -n "$AZURE_WEBAPP_NAME"
+          test -n "$ACR_NAME"
+          test -n "$WEBAPI_BASE_URL"
+          test -n "$KEYVAULT_NAME"
+          test -n "$MANAGED_IDENTITY_CLIENT_ID"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Enable maintenance mode
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ vars.AZURE_WEBAPP_NAME_WEB }}" \
+            --settings MAINTENANCE_MODE=true
+
+      - name: Login to ACR
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Resolve image tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ github.event.inputs.image_tag }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_URI=${ACR_NAME}.azurecr.io/${IMAGE_NAME}:$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        shell: bash
+        run: |
+          IMAGE_URI="${{ steps.tag.outputs.IMAGE_URI }}"
+          docker build -f "$DOCKERFILE_PATH" -t "$IMAGE_URI" -t "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:uat" "$DOCKER_BUILD_CONTEXT"
+          docker push "$IMAGE_URI"
+          docker push "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:uat"
+
+      - name: Update WebApi App container image
+        run: |
+          az webapp config container set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --docker-custom-image-name "${{ steps.tag.outputs.IMAGE_URI }}" \
+            --docker-registry-server-url "https://${ACR_NAME}.azurecr.io"
+
+      - name: Ensure WebApi runtime app settings
+        shell: bash
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --settings \
+              WEBSITES_PORT=8080 \
+              ASPNETCORE_URLS=http://+:8080 \
+              ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+              WEBSITE_WARMUP_STATUSES=200,404 \
+              KeyVault__Name="$KEYVAULT_NAME" \
+              AZURE_CLIENT_ID="$MANAGED_IDENTITY_CLIENT_ID"
+          # Supabase (GoTrue) auth settings are not set here — the app reads them
+          # from Key Vault at startup (Supabase--JwtSecret, Supabase--ApiExternalUrl,
+          # Supabase--ServiceRoleKey, Supabase--AnonKey; tagged app=backend).
+
+      - name: Restart WebApi App
+        run: az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
+
+      - name: Verify WebApi health endpoint
+        shell: bash
+        run: |
+          HEALTH_URL="${WEBAPI_BASE_URL%/}/healthz"
+          echo "Checking ${HEALTH_URL}"
+          for i in {1..20}; do
+            code=$(curl -s -o /tmp/health.txt -w "%{http_code}" "$HEALTH_URL" || true)
+            if [ "$code" = "200" ]; then
+              echo "WebApi healthy"
+              cat /tmp/health.txt
+              exit 0
+            fi
+            echo "Attempt $i/20: status=${code:-none}, waiting..."
+            sleep 10
+          done
+          echo "WebApi health check failed"
+          cat /tmp/health.txt || true
+          exit 1
+
+      - name: Disable maintenance mode
+        if: success() || failure()
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ vars.AZURE_WEBAPP_NAME_WEB }}" \
+            --settings MAINTENANCE_MODE=false
+
+      - name: Print deployed URL
+        shell: bash
+        run: |
+          echo "Configured WebApi URL: $WEBAPI_BASE_URL"

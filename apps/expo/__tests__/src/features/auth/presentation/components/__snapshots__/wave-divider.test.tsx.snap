@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WaveDivider — snapshots > matches the default tree 1`] = `
+<View
+  className="absolute left-0 -top-[79px]"
+  testID="auth-wave-divider"
+>
+  <Svg
+    height={80}
+    viewBox="0 0 375 80"
+    width={375}
+  >
+    <Path
+      d="M0,12 C112.5,-28 243.75,92 375,56 L375,80 L0,80 Z"
+      fill="#ffffff"
+    />
+  </Svg>
+</View>
+`;

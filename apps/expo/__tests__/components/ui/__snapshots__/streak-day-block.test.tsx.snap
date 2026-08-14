@@ -1,0 +1,209 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DayBlock > matches the active-day snapshot 1`] = `
+<View
+  className="flex-1 items-center gap-xs"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#f97316",
+        "borderRadius": 12,
+        "height": 52,
+        "justifyContent": "center",
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        }
+      }
+    >
+      <View
+        testID="icon-checkmark.circle.fill"
+      />
+    </View>
+    <View
+      pointerEvents="none"
+      style={
+        [
+          {
+            "borderColor": "#ffffff",
+            "borderRadius": 12,
+            "borderWidth": 2.5,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": 0,
+            "transform": [
+              {
+                "scale": 0.5,
+              },
+              {
+                "rotateZ": "-90deg",
+              },
+            ],
+          },
+        ]
+      }
+    />
+  </View>
+  <Text
+    style={
+      {
+        "color": "#aaaaaa",
+      }
+    }
+  >
+    Wed
+  </Text>
+</View>
+`;
+
+exports[`DayBlock > matches the past-missed-day snapshot 1`] = `
+<View
+  className="flex-1 items-center gap-xs"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#dddddd",
+        "borderRadius": 12,
+        "height": 52,
+        "justifyContent": "center",
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      pointerEvents="none"
+      style={
+        [
+          {
+            "borderColor": "#ffffff",
+            "borderRadius": 12,
+            "borderWidth": 2.5,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": 0,
+            "transform": [
+              {
+                "scale": 0.5,
+              },
+              {
+                "rotateZ": "-90deg",
+              },
+            ],
+          },
+        ]
+      }
+    />
+  </View>
+  <Text
+    style={
+      {
+        "color": "#aaaaaa",
+      }
+    }
+  >
+    Wed
+  </Text>
+</View>
+`;
+
+exports[`DayBlock > matches the upcoming-day snapshot 1`] = `
+<View
+  className="flex-1 items-center gap-xs"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#eeeeee",
+        "borderRadius": 12,
+        "height": 52,
+        "justifyContent": "center",
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      className="items-center"
+    >
+      <Text
+        style={
+          {
+            "color": "#999999",
+          }
+        }
+      >
+        75
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#aaaaaa",
+          }
+        }
+      >
+        XP
+      </Text>
+    </View>
+    <View
+      pointerEvents="none"
+      style={
+        [
+          {
+            "borderColor": "#ffffff",
+            "borderRadius": 12,
+            "borderWidth": 2.5,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": 0,
+            "transform": [
+              {
+                "scale": 0.5,
+              },
+              {
+                "rotateZ": "-90deg",
+              },
+            ],
+          },
+        ]
+      }
+    />
+  </View>
+  <Text
+    style={
+      {
+        "color": "#aaaaaa",
+      }
+    }
+  >
+    Wed
+  </Text>
+</View>
+`;

@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NotificationBadge > matches the capped 9+ snapshot 1`] = `
+<View
+  className="absolute min-w-4.5 h-4.5 items-center justify-center rounded-full bg-error px-1 -right-1.5 -top-1"
+>
+  <Text
+    className="text-[10px] font-bold text-white leading-none text-center"
+  >
+    9+
+  </Text>
+</View>
+`;
+
+exports[`NotificationBadge > matches the single-digit snapshot 1`] = `
+<View
+  className="absolute min-w-4.5 h-4.5 items-center justify-center rounded-full bg-error px-1 -right-1.5 -top-1"
+>
+  <Text
+    className="text-[10px] font-bold text-white leading-none text-center"
+  >
+    3
+  </Text>
+</View>
+`;

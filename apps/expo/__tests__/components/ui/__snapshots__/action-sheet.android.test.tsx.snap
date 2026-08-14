@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ActionSheet (Android) > renders the modal bottom sheet with children when visible 1`] = `
+<View
+  accessibilityState={
+    {
+      "checked": true,
+    }
+  }
+  onTouchEnd={[MockFunction spy]}
+  testID="compose-modal-sheet"
+>
+  <View
+    className="gap-lg px-lg pb-xl pt-xs bg-surface"
+  >
+    <View
+      testID="sheet-body"
+    />
+  </View>
+</View>
+`;

@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PhoneSignInButton — snapshots > matches the default tree 1`] = `
+<Pressable
+  accessibilityLabel="phone.signInWithPhone"
+  accessibilityState={
+    {
+      "busy": false,
+    }
+  }
+  data-hasbrand={false}
+  data-icon="phone.fill"
+  onPress={[MockFunction spy]}
+  testID="phone"
+>
+  <Text>
+    phone.signInWithPhone
+  </Text>
+</Pressable>
+`;

@@ -1,0 +1,19 @@
+# Reusable sub-flow: fill login form fields.
+# Accepts: ${EMAIL}, ${PASSWORD}
+#
+# Usage in a flow:
+#   - runFlow:
+#       file: ../shared/fill-login-form.yaml
+#       env:
+#         EMAIL: "user@example.com"
+#         PASSWORD: "password123"
+appId: host.exp.exponent
+
+---
+
+- tapOn:
+    id: "login-email-input"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${PASSWORD}

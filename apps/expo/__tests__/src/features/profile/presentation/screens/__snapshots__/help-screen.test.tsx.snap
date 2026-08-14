@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HelpScreen — structural snapshots > matches the form (default) render 1`] = `
+<View>
+  <KeyboardAvoidingView
+    behavior="padding"
+    className="flex-1"
+    testID="help-screen"
+  >
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="gap-lg px-lg py-lg w-full self-center md:max-w-reading"
+      keyboardShouldPersistTaps="handled"
+    >
+      <View
+        className="gap-md"
+      >
+        <TextInput
+          accessibilityLabel="helpSubject"
+          onChangeText={[Function]}
+          testID="help-subject-input"
+          value=""
+        />
+        <TextInput
+          accessibilityLabel="helpBody"
+          onChangeText={[Function]}
+          testID="help-body-input"
+          value=""
+        />
+      </View>
+      <Pressable
+        accessibilityState={
+          {
+            "disabled": false,
+          }
+        }
+        onPress={[Function]}
+        testID="help-send-button"
+      >
+        <Text>
+          helpSend
+        </Text>
+      </Pressable>
+    </ScrollView>
+  </KeyboardAvoidingView>
+</View>
+`;
+
+exports[`HelpScreen — structural snapshots > matches the success render 1`] = `
+<View
+  className="items-center justify-center gap-lg px-xl"
+  testID="help-success-view"
+>
+  <View
+    className="items-center justify-center rounded-full bg-white/10 p-xl"
+  />
+  <View
+    className="items-center gap-sm"
+  >
+    <Text
+      className="text-center"
+      variant="h2"
+    >
+      helpSentTitle
+    </Text>
+    <Text
+      className="text-center text-text-secondary"
+      variant="body"
+    >
+      helpSentMessage
+    </Text>
+  </View>
+  <Pressable
+    accessibilityState={
+      {
+        "disabled": false,
+      }
+    }
+    onPress={[Function]}
+    testID="help-done-button"
+  >
+    <Text>
+      helpDone
+    </Text>
+  </Pressable>
+</View>
+`;

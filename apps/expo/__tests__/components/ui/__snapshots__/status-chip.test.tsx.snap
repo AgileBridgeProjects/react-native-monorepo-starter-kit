@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StatusChip > renders the icon (in white) when iconName is provided 1`] = `
+<View
+  className="flex-row items-center gap-1 rounded-full px-2 py-0.5"
+  testID="chip"
+>
+  <View
+    accessibilityLabel="white"
+    testID="icon-star.fill"
+  />
+  <Text
+    className="font-body text-xs font-semibold text-white"
+    testID="mastered"
+  >
+    Mastered
+  </Text>
+</View>
+`;
+
+exports[`StatusChip > renders the label text 1`] = `
+<View
+  className="flex-row items-center gap-1 rounded-full px-2 py-0.5"
+  testID="chip"
+>
+  <Text
+    className="font-body text-xs font-semibold text-white"
+    testID="new"
+  >
+    New
+  </Text>
+</View>
+`;

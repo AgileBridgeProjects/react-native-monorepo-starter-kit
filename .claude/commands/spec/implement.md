@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-implement.md` and follow its instructions.

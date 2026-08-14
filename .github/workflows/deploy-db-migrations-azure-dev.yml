@@ -1,0 +1,103 @@
+name: Deploy DB Migrations to Supabase (dev)
+
+# Applies EF Core migrations + seed data to the hosted "StarterKit Dev" Supabase
+# Postgres. Unlike an Azure PostgreSQL Flexible Server, Supabase is a public
+# endpoint reached over SSL + credentials — there is no Azure firewall to open,
+# so this job only needs the connection string (pulled from Key Vault) and the
+# migrator. Azure login is used solely to read the Key Vault secret.
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - apps/backend/src/StarterKit.Data/**/Migrations/**
+      - apps/backend/src/StarterKit.Migrator/**
+      - .github/workflows/deploy-db-migrations-azure-dev.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      DB_CONNECTION_SECRET_NAME: ${{ vars.DB_CONNECTION_SECRET_NAME }}
+      VECTOR_CONNECTION_SECRET_NAME: ${{ vars.VECTOR_CONNECTION_SECRET_NAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        shell: bash
+        run: |
+          test -n "$KEYVAULT_NAME"
+          test -n "$DB_CONNECTION_SECRET_NAME"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore migrator project
+        shell: bash
+        run: dotnet restore apps/backend/src/StarterKit.Migrator/StarterKit.Migrator.csproj
+
+      - name: Fetch Supabase connection strings from Key Vault
+        id: kv
+        shell: bash
+        run: |
+          DB_CONNECTION_STRING="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$DB_CONNECTION_SECRET_NAME" --query value -o tsv)"
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "Missing PostgreSQL connection string secret."
+            exit 1
+          fi
+          echo "::add-mask::$DB_CONNECTION_STRING"
+          echo "db_connection_string=$DB_CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$VECTOR_CONNECTION_SECRET_NAME" ]; then
+            VECTOR_CONNECTION_STRING="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$VECTOR_CONNECTION_SECRET_NAME" --query value -o tsv 2>/dev/null || true)"
+            if [ -n "$VECTOR_CONNECTION_STRING" ]; then
+              echo "::add-mask::$VECTOR_CONNECTION_STRING"
+              echo "vector_connection_string=$VECTOR_CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+          # The migrator also ensures every blob container in BlobContainersOptions
+          # exists. Without an account name it skips that block entirely, which is why
+          # containers have only ever existed on dev because someone made them by hand —
+          # and why a new one 500'd on first upload.
+          #
+          # Deliberately NOT `2>/dev/null || true` like the optional secrets above: swallowing
+          # the error here would hand the migrator an empty account name, it would skip
+          # provisioning exactly as before, and the job would still go green — reinstating the
+          # silent skip this block exists to remove, with the diagnostic hidden as well. A
+          # missing secret is a deployment fault and must fail the step.
+          STORAGE_ACCOUNT_NAME="$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "AzureStorage--AccountName" --query value -o tsv)"
+          if [ -z "$STORAGE_ACCOUNT_NAME" ]; then
+            echo "::error::AzureStorage--AccountName is empty in $KEYVAULT_NAME; blob containers would not be provisioned."
+            exit 1
+          fi
+          echo "storage_account_name=$STORAGE_ACCOUNT_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Apply migrations and seed data
+        env:
+          ConnectionStrings__DefaultConnection: ${{ steps.kv.outputs.db_connection_string }}
+          ConnectionStrings__VectorConnection: ${{ steps.kv.outputs.vector_connection_string }}
+          # Lets the migrator provision blob containers via DefaultAzureCredential,
+          # which picks up the OIDC login above through its Azure CLI credential.
+          AzureStorage__AccountName: ${{ steps.kv.outputs.storage_account_name }}
+        run: |
+          dotnet run \
+            --project apps/backend/src/StarterKit.Migrator/StarterKit.Migrator.csproj \
+            --configuration Release

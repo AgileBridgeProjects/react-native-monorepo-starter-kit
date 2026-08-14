@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-requirements.md` and follow its instructions.

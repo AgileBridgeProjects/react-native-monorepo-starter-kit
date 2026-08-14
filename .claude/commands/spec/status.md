@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-status.md` and follow its instructions.

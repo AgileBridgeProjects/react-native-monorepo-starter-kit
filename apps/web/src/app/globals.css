@@ -1,0 +1,1774 @@
+@import 'tailwindcss';
+@import '@starterkit/shared/tokens.css';
+
+/*
+ * Semantic design tokens for the admin portal.
+ *
+ * Raw hex values live in @starterkit/shared/tokens.css (--starterkit-* variables).
+ * This file maps those primitives to app-level semantic tokens (--color-*)
+ * and configures Tailwind v4 via @theme inline.
+ *
+ * ─── Brand ───────────────────────────────────────────────────────────────────
+ * The portal carries the *starterkit.com marketing site* identity — volt (#aaff00)
+ * on onyx black — via the --starterkit-volt-* / --starterkit-onyx-* primitives. The
+ * mobile app (apps/expo) keeps the StarterKit Blue identity from the Figma library
+ * (--starterkit-primary-* / --starterkit-accent-*). The two consume disjoint primitive
+ * ramps on purpose: neither can be rebranded into the other by accident.
+ *
+ * Only this file may read a --starterkit-* colour primitive. Everything downstream
+ * — components, DevExtreme overrides, gradient classes — goes through the
+ * --color-* names below, so a future rebrand is a single-file edit.
+ *
+ * ─── Theme ───────────────────────────────────────────────────────────────────
+ * The portal is dark-only. There is no light variant and no theme toggle: the
+ * brand is defined on black, and a light counterpart would be a second design
+ * system to maintain. `color-scheme: dark` below tells the browser to render
+ * native UI (scrollbars, form controls, autofill, date pickers) dark to match.
+ *
+ * If a light theme is ever needed, reintroduce it as a `html.light` block that
+ * overrides the same --color-* names — do not fork this file.
+ * ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --color-text:              var(--starterkit-onyx-50);
+  --color-text-secondary:    var(--starterkit-onyx-200);
+  --color-text-muted:        var(--starterkit-onyx-300);
+  --color-background:        var(--starterkit-onyx-950);
+  --color-surface:           var(--starterkit-onyx-900);
+  --color-surface-hover:     var(--starterkit-onyx-800);
+  /* Elevated reads *lighter* than surface on dark — the inverse of the usual
+     light-theme instinct, where elevation means "closer to white paper". */
+  --color-surface-elevated:  var(--starterkit-onyx-850);
+  --color-border:            var(--starterkit-onyx-hairline);
+  --color-border-strong:     var(--starterkit-onyx-hairline-strong);
+  --color-primary:           var(--starterkit-volt-500);
+  --color-primary-foreground: var(--starterkit-onyx-1000);
+  --color-accent:            var(--starterkit-volt-300);
+  --color-icon:              var(--starterkit-onyx-300);
+  --color-icon-active:       var(--starterkit-volt-500);
+  --color-input:             var(--starterkit-onyx-800);
+  --color-input-text:        var(--starterkit-onyx-100);
+  --color-input-hover:       var(--starterkit-onyx-700);
+
+  /* On-primary — content overlaid on primary-coloured surfaces (sidebar, banners) */
+  --color-on-primary:              var(--starterkit-on-primary);
+  --color-on-primary-muted:        var(--starterkit-on-primary-muted);
+  --color-on-primary-subtle:       var(--starterkit-on-primary-subtle);
+  --color-on-primary-hover:        var(--starterkit-on-primary-hover);
+  --color-on-primary-surface:      var(--starterkit-on-primary-surface);
+  --color-on-primary-surface-hover: var(--starterkit-on-primary-surface-hover);
+  --color-on-primary-border:       var(--starterkit-on-primary-border);
+  --color-on-primary-overlay:      var(--starterkit-on-primary-overlay);
+  /* Active nav is a volt wash rather than a white one — on a near-black
+     sidebar a white overlay reads as "disabled", not "selected". */
+  --color-sidebar-nav-active:      rgb(170 255 0 / 0.14);
+  --color-sidebar-nav-hover:       rgb(255 255 255 / 0.07);
+
+  /* Sidebar */
+  --color-sidebar-dark:            var(--starterkit-onyx-925);
+  --sidebar-dot-size:              var(--starterkit-sidebar-dot-size);
+  --sidebar-dot-radius:            var(--starterkit-sidebar-dot-radius);
+
+  /* ── Brand gradients ──────────────────────────────────────────────────────
+     Two sets, both in the flat {from,via,to} shape the gradient classes below
+     already consume. `brand-gradient-*` is the volt sweep for small surfaces
+     (CTA buttons, progress fills, AI wave); `hero-gradient-*` is the quiet
+     volt-tinted black for large decorative panels (auth split screen), where a
+     full-height volt sweep would be unreadable. */
+  --color-brand-gradient-from: var(--starterkit-admin-gradient-start);
+  --color-brand-gradient-via:  var(--starterkit-admin-gradient-mid);
+  --color-brand-gradient-to:   var(--starterkit-admin-gradient-end);
+  --color-hero-gradient-from:  var(--starterkit-admin-hero-start);
+  --color-hero-gradient-via:   var(--starterkit-admin-hero-mid);
+  --color-hero-gradient-to:    var(--starterkit-admin-hero-end);
+
+  /* DX Accordion chevron positioning */
+  --dx-accordion-chevron-offset: 12px;
+  --dx-accordion-chevron-size:   18px;
+  --dx-accordion-title-gap:      12px;
+
+  /* Game category card column minimum widths */
+  --game-category-col-name-min:   160px;
+  --game-category-col-types-min:  140px;
+  --game-category-col-ratios-min: 160px;
+}
+
+/* ─── Base surface ───────────────────────────────────────────────────────────
+ * Paint the document itself so overscroll, the area behind fixed layouts, and
+ * any gap a route shell leaves stay on-brand rather than flashing white.
+ * ─────────────────────────────────────────────────────────────────────────── */
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* ─── Sidebar scrollbar ─────────────────────────────────────────────────────── */
+/* Keep track transparent so dynamic sidebar gradients remain visible. */
+
+.sidebar-scroll {
+  scrollbar-color: var(--color-sidebar-nav-active) transparent;
+}
+
+.sidebar-scroll:hover {
+  scrollbar-color: var(--color-sidebar-nav-hover) transparent;
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-sidebar-nav-active);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sidebar-nav-hover);
+}
+
+.sidebar-scroll::-webkit-scrollbar-button {
+  background: var(--color-sidebar-nav-active);
+}
+
+/* ─── Tailwind v4 @theme ────────────────────────────────────────────────────── */
+@theme inline {
+  /* Semantic colors — adaptive (resolve via :root above) */
+  --color-text:              var(--color-text);
+  --color-text-secondary:    var(--color-text-secondary);
+  --color-text-muted:        var(--color-text-muted);
+  --color-background:        var(--color-background);
+  --color-surface:           var(--color-surface);
+  --color-surface-hover:     var(--color-surface-hover);
+  --color-surface-elevated:  var(--color-surface-elevated);
+  --color-border:            var(--color-border);
+  --color-border-strong:     var(--color-border-strong);
+  --color-primary:           var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-accent:            var(--color-accent);
+  --color-icon:              var(--color-icon);
+  --color-icon-active:       var(--color-icon-active);
+  --color-input:             var(--color-input);
+  --color-input-text:        var(--color-input-text);
+  --color-input-hover:       var(--color-input-hover);
+
+  /* On-primary surface tokens */
+  --color-on-primary:              var(--color-on-primary);
+  --color-on-primary-muted:        var(--color-on-primary-muted);
+  --color-on-primary-subtle:       var(--color-on-primary-subtle);
+  --color-on-primary-hover:        var(--color-on-primary-hover);
+  --color-on-primary-surface:      var(--color-on-primary-surface);
+  --color-on-primary-surface-hover: var(--color-on-primary-surface-hover);
+  --color-on-primary-border:       var(--color-on-primary-border);
+  --color-on-primary-overlay:      var(--color-on-primary-overlay);
+
+  /* Brand gradient stops — exposed so they are reachable as utilities
+     (from-brand-gradient-from, etc.) as well as from the classes below. */
+  --color-brand-gradient-from: var(--color-brand-gradient-from);
+  --color-brand-gradient-via:  var(--color-brand-gradient-via);
+  --color-brand-gradient-to:   var(--color-brand-gradient-to);
+  --color-hero-gradient-from:  var(--color-hero-gradient-from);
+  --color-hero-gradient-via:   var(--color-hero-gradient-via);
+  --color-hero-gradient-to:    var(--color-hero-gradient-to);
+
+  /* Status colors — the dark-tuned admin set. The --starterkit-{success,warning,
+     error,info} primitives are mid-tone hues picked for white backgrounds and
+     fall below 4.5:1 on onyx; these are their on-black counterparts. */
+  --color-success: var(--starterkit-admin-success);
+  --color-warning: var(--starterkit-admin-warning);
+  --color-error:   var(--starterkit-admin-error);
+  --color-info:    var(--starterkit-admin-info);
+  /* 10% of a saturated hue disappears against near-black — needs more weight
+     here than it did over white. */
+  --color-destructive-surface: color-mix(in srgb, var(--color-error) 18%, transparent);
+
+  /* Chart series — starterkit.com's --chart-1..5 */
+  --color-chart-1: var(--starterkit-admin-chart-1);
+  --color-chart-2: var(--starterkit-admin-chart-2);
+  --color-chart-3: var(--starterkit-admin-chart-3);
+  --color-chart-4: var(--starterkit-admin-chart-4);
+  --color-chart-5: var(--starterkit-admin-chart-5);
+
+  /* Spacing — from primitives */
+  --spacing-xs:  var(--starterkit-spacing-xs);
+  --spacing-sm:  var(--starterkit-spacing-sm);
+  --spacing-md:  var(--starterkit-spacing-md);
+  --spacing-lg:  var(--starterkit-spacing-lg);
+  --spacing-xl:  var(--starterkit-spacing-xl);
+  --spacing-2xl: var(--starterkit-spacing-2xl);
+  --spacing-3xl: var(--starterkit-spacing-3xl);
+
+  /* Layout widths — Tailwind's --container-* namespace, so these are reachable
+     as max-w-* / w-* utilities instead of arbitrary pixel values.
+
+     auth-card is the centered sign-in card shared by every auth screen (login,
+     forgot-password, OTP) and the maintenance page. It is a deliberate reading
+     measure, not a spacing step, which is why it lives here rather than on the
+     --spacing-* scale. */
+  --container-auth-card: 440px;
+
+  /* Font sizes — from primitives */
+  --text-2xs:  var(--starterkit-text-2xs);
+  --text-xs:   var(--starterkit-text-xs);
+  --text-sm:   var(--starterkit-text-sm);
+  --text-base: var(--starterkit-text-base);
+  --text-lg:   var(--starterkit-text-lg);
+  --text-xl:   var(--starterkit-text-xl);
+  --text-2xl:  var(--starterkit-text-2xl);
+  --text-3xl:  var(--starterkit-text-3xl);
+  --text-4xl:  var(--starterkit-text-4xl);
+
+  /* Border radius — the admin scale (starterkit.com's near-square look), not the
+     rounder --starterkit-radius-* scale the mobile app keeps. */
+  --radius-sm: var(--starterkit-admin-radius-sm);
+  --radius-md: var(--starterkit-admin-radius-md);
+  --radius-lg: var(--starterkit-admin-radius-lg);
+  --radius-xl: var(--starterkit-admin-radius-xl);
+
+  /* Font weights — from primitives */
+  --font-weight-normal:   var(--starterkit-font-weight-normal);
+  --font-weight-medium:   var(--starterkit-font-weight-medium);
+  --font-weight-semibold: var(--starterkit-font-weight-semibold);
+  --font-weight-bold:     var(--starterkit-font-weight-bold);
+
+  /* Line heights — from primitives */
+  --leading-tight:   var(--starterkit-line-height-tight);
+  --leading-normal:  var(--starterkit-line-height-normal);
+  --leading-relaxed: var(--starterkit-line-height-relaxed);
+
+  /* Z-index — from primitives */
+  --z-base:     var(--starterkit-z-base);
+  --z-dropdown: var(--starterkit-z-dropdown);
+  --z-sticky:   var(--starterkit-z-sticky);
+  --z-overlay:  var(--starterkit-z-overlay);
+  --z-modal:    var(--starterkit-z-modal);
+  --z-toast:    var(--starterkit-z-toast);
+
+  /* Icon sizes — from primitives (use size-icon-* for icon wrapper divs) */
+  --size-icon-xs: var(--starterkit-icon-xs);
+  --size-icon-sm: var(--starterkit-icon-sm);
+  --size-icon-md: var(--starterkit-icon-md);
+  --size-icon-lg: var(--starterkit-icon-lg);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* StarterKit brand fonts — Bebas Neue (headings) + Poppins (body). */
+  --font-heading: var(--font-bebas-neue);
+  --font-body:    var(--font-poppins);
+}
+
+/* ─── Reward badge duotone ───────────────────────────────────────────────────
+ * Applies the club-colour duotone to preset reward badges. The SVG <filter>
+ * with id="duotone-reward" is injected inline by RewardDuotoneImage. A real
+ * class (rather than a Tailwind arbitrary value) is used because Tailwind v4
+ * does not reliably generate `[filter:url(#id)]` utilities, and it also avoids
+ * the inline-style rule violation.
+ */
+.reward-duotone-mask {
+  filter: url(#duotone-reward);
+}
+
+/* ─── Auth layout helpers ────────────────────────────────────────────────────
+ * Extracted from inline styles — avoids the inline-style rule violation.
+ * Used by AuthLayout (gradient hero panel + pattern overlay) and the
+ * gradient CTA submit button on auth pages.
+ */
+.auth-hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    var(--color-hero-gradient-from),
+    var(--color-hero-gradient-via) 55%,
+    var(--color-hero-gradient-to)
+  );
+}
+
+.auth-hero-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  background-image: radial-gradient(
+    circle at 25% 25%,
+    rgba(255, 255, 255, 0.2) 1px,
+    transparent 1px
+  );
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* The class owns its foreground: the gradient is volt, so the label must be
+   onyx. Callers must not set a text colour — a `text-white` here would be
+   ~1.2:1 and effectively invisible. */
+.btn-gradient-cta {
+  color: var(--color-primary-foreground);
+  background: linear-gradient(
+    110deg,
+    var(--color-brand-gradient-from)  0%,
+    var(--color-brand-gradient-via)   40%,
+    var(--color-brand-gradient-to)    65%,
+    var(--color-brand-gradient-from)  100%
+  );
+  background-size: 250% 100%;
+  background-position: left center;
+  transition:
+    background-position 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.btn-gradient-cta:hover:not(:disabled) {
+  background-position: right center;
+}
+
+/* ─── Generation progress bar fill ──────────────────────────────────────────
+   Reuses the same gradient tokens as btn-gradient-cta but breathes
+   continuously so the bar feels alive during polling.                       */
+.gradient-progress-fill {
+  background: linear-gradient(
+    110deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-via) 40%,
+    var(--color-brand-gradient-to) 65%,
+    var(--color-brand-gradient-from) 100%
+  );
+  background-size: 250% 100%;
+  animation: gradient-breathe 3s ease-in-out infinite;
+}
+
+@keyframes gradient-breathe {
+  0%,
+  100% {
+    background-position: left center;
+  }
+  50% {
+    background-position: right center;
+  }
+}
+
+
+/* ─── Skeleton shimmer sweep ─────────────────────────────────────────────────
+   A light band that sweeps left→right across a placeholder group, layered over
+   the pulsing Skeleton blocks so the generating state feels like content is
+   forming. Apply to a `position: relative; overflow: hidden` container.        */
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-brand-gradient-via) 22%, transparent),
+    transparent
+  );
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+/* ─── AI gradient wave (generating status text + icon) ───────────────────────
+   The status label and sparkle icon both gently pulse while a wave of the AI
+   gradient cycles through them. The text clips the gradient to its glyphs; the
+   icon (an inline SVG using currentColor) cycles its colour through the same
+   gradient stops so the two read as one synchronised effect.                   */
+.gradient-wave-text {
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-gradient-from),
+    var(--color-brand-gradient-via),
+    var(--color-brand-gradient-to),
+    var(--color-brand-gradient-from)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation:
+    gradient-wave-move 3s linear infinite,
+    gradient-wave-pulse 2s ease-in-out infinite;
+}
+
+.gradient-wave-icon {
+  color: var(--color-brand-gradient-via);
+  animation:
+    gradient-wave-color 3s linear infinite,
+    gradient-wave-pulse 2s ease-in-out infinite;
+}
+
+@keyframes gradient-wave-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes gradient-wave-color {
+  0%,
+  100% {
+    color: var(--color-brand-gradient-from);
+  }
+  33% {
+    color: var(--color-brand-gradient-via);
+  }
+  66% {
+    color: var(--color-brand-gradient-to);
+  }
+}
+
+@keyframes gradient-wave-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-wave-text,
+  .gradient-wave-icon {
+    animation: none;
+  }
+}
+
+/* ─── Transparency checkerboard ──────────────────────────────────────────────
+ * Backdrop for image previews where transparency matters (e.g. logos after
+ * background removal). The classic checker pattern makes a transparent
+ * background visually obvious — on a plain white surface a removed background
+ * is indistinguishable from a white one. Real CSS class (not a Tailwind
+ * arbitrary value) per the inline-style rule.
+ */
+.checkerboard-surface {
+  background-color: var(--color-surface-elevated);
+  background-image:
+    linear-gradient(45deg, var(--color-border-strong) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-border-strong) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-border-strong) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-border-strong) 75%);
+  background-size: var(--spacing-md) var(--spacing-md);
+  background-position:
+    0 0,
+    0 var(--spacing-sm),
+    var(--spacing-sm) calc(var(--spacing-sm) * -1),
+    calc(var(--spacing-sm) * -1) 0;
+}
+
+/* ─── Image processing shimmer ───────────────────────────────────────────────
+ * Used by logo uploads while the server removes backgrounds and prepares mask
+ * candidates. A full-preview dark overlay is rendered by DropZone; this class
+ * provides the sliding highlight pass without inline styles or JS timers.
+ */
+.image-processing-shimmer {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 62%;
+  animation: image-processing-shimmer-slide 1.45s ease-in-out infinite;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.06) 24%,
+    rgb(255 255 255 / 0.34) 48%,
+    rgb(255 255 255 / 0.06) 72%,
+    transparent 100%
+  );
+  filter: blur(0.5px);
+  transform: translate3d(-115%, 0, 0);
+  will-change: transform;
+}
+
+.image-processing-progress {
+  width: 38%;
+  animation: image-processing-progress-slide 1.2s ease-in-out infinite;
+  transform: translate3d(-115%, 0, 0);
+  will-change: transform;
+}
+
+@keyframes image-processing-shimmer-slide {
+  0% {
+    transform: translate3d(-115%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(215%, 0, 0);
+  }
+}
+
+@keyframes image-processing-progress-slide {
+  0% {
+    transform: translate3d(-115%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(285%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-processing-shimmer,
+  .image-processing-progress {
+    animation: none;
+  }
+
+  .image-processing-shimmer {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .image-processing-progress {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+/* ─── Sonner toast — align with design tokens ───────────────────────────────
+ * Without richColors, Sonner uses --normal-* as the fallback for all types.
+ * Type-specific --*-text variables add semantic colour to the text while
+ * keeping the neutral surface/border (no brightly coloured backgrounds).    */
+[data-sonner-toaster] {
+  --normal-bg: var(--color-surface-elevated);
+  --normal-border: var(--color-border);
+  --normal-text: var(--color-text);
+  --error-bg: var(--color-surface-elevated);
+  --error-border: var(--color-border);
+  --error-text: var(--color-error);
+  --success-bg: var(--color-surface-elevated);
+  --success-border: var(--color-border);
+  --success-text: var(--color-success);
+  --warning-bg: var(--color-surface-elevated);
+  --warning-border: var(--color-border);
+  --warning-text: var(--color-warning);
+  --border-radius: var(--radius-md);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 14px;
+}
+
+/* ─── DevExtreme — align component surfaces with design tokens ──────────────
+ * DX ships dx.light.css with hardcoded hex values (no built-in dark mode).
+ * These overrides replace key surfaces so DX components adapt automatically
+ * when the .dark class is applied to <html>.
+ *
+ * All values reference semantic --color-* tokens defined in :root above.
+ * Those tokens switch between light and dark values via the .dark class,
+ * so these rules are mode-agnostic.
+ *
+ * Specificity notes:
+ *   • DX uses compound selectors like `.dx-datagrid>.dx-datagrid-rowsview`
+ *     (2-class specificity). Where needed we mirror this pattern or use
+ *     !important to ensure our tokens always win.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Shared widget surfaces ─────────────────────────────────────────────── */
+.dx-widget,
+.dx-widget input,
+.dx-widget textarea {
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* DX generic "surface" utility — used as a container bg in several widgets */
+.dx-surface {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ── DataGrid ────────────────────────────────────────────────────────────── */
+.dx-datagrid {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+/*
+ * Mirror DX's own selector `.dx-datagrid>.dx-child` (2-class specificity)
+ * so our token value wins over the hardcoded #fff in dx.light.css.
+ */
+.dx-datagrid > .dx-datagrid-headers,
+.dx-datagrid > .dx-datagrid-rowsview,
+.dx-datagrid > .dx-datagrid-total-footer {
+  background-color: var(--color-surface-elevated);
+}
+
+/* Cell borders — remove body row lines; keep header bottom only */
+.dx-datagrid-headers .dx-datagrid-table .dx-row > td {
+  border-color: var(--color-border);
+}
+.dx-datagrid-rowsview .dx-datagrid-table .dx-row > td {
+  border-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+/* Kill the rowsview container border and any remaining row/cell borders */
+.dx-datagrid-rowsview .dx-row,
+.dx-datagrid-rowsview .dx-row > td,
+.dx-datagrid-rowsview .dx-row > tr > td,
+.dx-datagrid-rowsview .dx-data-row,
+.dx-datagrid-rowsview .dx-data-row > td,
+.dx-datagrid-rowsview .dx-freespace-row > td,
+.dx-datagrid-rowsview .dx-virtual-row > td {
+  border-bottom: none !important;
+  border-top: none !important;
+}
+/* Remove the border between header and body */
+.dx-datagrid-rowsview {
+  border-top: none !important;
+}
+
+/*
+ * DX hardcodes a 100px height on the empty rowsview (`.dx-datagrid-rowsview.dx-empty`)
+ * regardless of `noDataText`. EntityDataGrid marks its wrapper `.dx-grid-empty-collapsed`
+ * when it suppresses the built-in message (empty `noDataText`) in favour of a custom
+ * empty-state block rendered right after the grid — without this override, DX's own
+ * 100px reserves a blank gap above that custom block. Scoped so grids that still rely on
+ * DX's native `noDataText` (Users, Roles, Audit Logs) keep their normal empty height.
+ *
+ * `flex: none` is required alongside `height: 0` — the base `.dx-datagrid-rowsview` rule
+ * sets `flex: auto` (flex-grow: 1), which re-stretches the row to fill the flex
+ * container's available height regardless of an explicit `height` override.
+ */
+.dx-grid-empty-collapsed .dx-datagrid-rowsview.dx-empty {
+  height: 0 !important;
+  flex: none !important;
+  min-height: 0 !important;
+}
+
+/* Actions column left-border divider — applied via column cssClass */
+.dx-datagrid td.actions-divider {
+  border-left: 1px solid var(--color-border) !important;
+}
+
+/* Header row cell text */
+.dx-datagrid-headers .dx-datagrid-table .dx-header-row > td {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Alternating rows — mirrors accordion odd:bg-surface / even:bg-surface-elevated.
+ * Scoped to .standard-dx-grid so other DX widgets are unaffected.
+ * Regular data rows get the lighter surface; alt rows get the elevated surface. */
+.standard-dx-grid .dx-datagrid-rowsview .dx-data-row:not(.dx-row-alt) > td {
+  background-color: var(--color-surface) !important;
+}
+.standard-dx-grid .dx-datagrid-rowsview .dx-data-row.dx-row-alt > td,
+.standard-dx-grid .dx-datagrid .dx-row-alt > td,
+.standard-dx-grid .dx-datagrid .dx-row-alt > tr > td {
+  background-color: var(--color-surface-elevated) !important;
+}
+
+/*
+ * DX hover uses a JS-added .dx-state-hover class with an extremely wide
+ * :not() chain — easier to override with !important than to match.
+ */
+.dx-datagrid-table .dx-data-row.dx-state-hover > td,
+.dx-datagrid-rowsview .dx-row:not(.dx-header-row):hover > td {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+/* Sticky / fixed columns use the elevated surface bg at rest */
+.dx-datagrid .dx-datagrid-sticky-column,
+.dx-datagrid .dx-datagrid-sticky-column-left,
+.dx-datagrid .dx-datagrid-sticky-column-right,
+.dx-datagrid .dx-datagrid-content-fixed .dx-datagrid-table .dx-col-fixed {
+  background-color: var(--color-surface-elevated) !important;
+}
+/* On hover the sticky column must match the row hover colour */
+.dx-datagrid-table .dx-data-row.dx-state-hover > td.dx-datagrid-sticky-column-right,
+.dx-datagrid-rowsview .dx-row:not(.dx-header-row):hover > td.dx-datagrid-sticky-column-right {
+  background-color: var(--color-surface-hover) !important;
+}
+
+/* Vertical divider between scrollable and fixed-right columns — full height.
+ * Uses an inset box-shadow instead of border-left because DX blanket-clears
+ * all cell border-colors with !important, making borders unreliable. */
+.dx-datagrid .dx-datagrid-content-fixed {
+  box-shadow: inset 1px 0 0 0 var(--color-border);
+}
+/* Remove the vertical divider shadow from the fixed-right column header only */
+.dx-datagrid-headers .dx-datagrid-content-fixed {
+  box-shadow: none;
+}
+/* Hide selection checkboxes when selectionMode='none' (dx-grid-select-hidden class) */
+.dx-grid-select-hidden .dx-command-select {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+}
+/* Remove right-border on the actions column header cell */
+.dx-datagrid-headers td.actions-col {
+  border-left: none !important;
+  border-right: none !important;
+}
+.dx-datagrid-headers td.actions-col::before,
+.dx-datagrid-headers td.actions-col::after {
+  display: none !important;
+}
+
+/* Narrow the selection-checkbox column */
+.dx-datagrid .dx-command-select {
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  padding-left: 8px !important;
+  padding-right: 4px !important;
+}
+/* Remove the vertical border-right DX adds on the checkbox header cell */
+.dx-datagrid-headers .dx-command-select {
+  border-right: none !important;
+}
+
+/*
+ * Hover-to-reveal checkboxes (.dx-grid-select-hover)
+ *
+ * Default: checkbox is invisible (column space is reserved so layout never
+ * shifts). Revealed by: row hover, checked state, or .has-selection (≥1 row).
+ */
+.dx-grid-select-hover .grid-checkbox-wrapper {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.dx-grid-select-hover .dx-data-row:hover .grid-checkbox-wrapper {
+  opacity: 1;
+}
+.dx-grid-select-hover .dx-header-row .grid-checkbox-wrapper {
+  opacity: 1;
+}
+.dx-grid-select-hover .grid-checkbox-wrapper:has(.grid-checkbox-input:checked) {
+  opacity: 1;
+}
+.dx-grid-select-hover.has-selection .grid-checkbox-wrapper {
+  opacity: 1;
+}
+/* Checked/indeterminate fill — stays appearance-none so rounded-sm corners match the unchecked box */
+.grid-checkbox-input:checked,
+.grid-checkbox-input:indeterminate {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+/* Show icon overlays based on checkbox state */
+.grid-checkbox-wrapper:has(.grid-checkbox-input:checked) .grid-checkbox-check {
+  display: flex;
+}
+.grid-checkbox-wrapper:has(.grid-checkbox-input:indeterminate) .grid-checkbox-dash {
+  display: flex;
+}
+
+/* Selected row: light-blue tint driven by the checked checkbox state */
+.standard-dx-grid .dx-data-row:has(.grid-checkbox-input:checked) td {
+  background-color: color-mix(in srgb, var(--color-primary) 6%, transparent) !important;
+}
+
+/* Hide the DX adaptive-column expand button (horizontal ellipsis dot) */
+.dx-datagrid .dx-command-adaptive,
+.dx-datagrid .dx-command-adaptive-hidden,
+.dx-datagrid .dx-datagrid-adaptive-more,
+.dx-datagrid td[class*='command-adaptive'] {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+}
+
+/* Edit form inside the grid */
+.dx-datagrid .dx-datagrid-rowsview .dx-datagrid-edit-form {
+  background-color: var(--color-surface-elevated);
+}
+
+/* Row whitespace — generous vertical padding replaces row lines */
+.dx-datagrid-rowsview .dx-datagrid-table .dx-row > td {
+  padding-top: 14px;
+  padding-bottom: 14px;
+  border-bottom: none !important;
+}
+
+/* Pointer cursor on grids that have row-click navigation */
+.dx-row-clickable .dx-data-row > td {
+  cursor: pointer;
+}
+
+/* Search input + button in grid toolbar — fused pill appearance */
+.dx-search-button.dx-button {
+  border-left: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+/* Flatten the right border-radius of the TextBox that precedes the search button */
+.dx-texteditor.dx-editor-outlined:has(+ .dx-search-button) {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+/* ── Toolbar / search panel ─────────────────────────────────────────────── */
+.dx-toolbar {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.dx-datagrid .dx-toolbar {
+  padding: 8px 12px;
+}
+
+/* ── Pager ──────────────────────────────────────────────────────────────── */
+.dx-datagrid-pager {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* ── Text inputs (TextBox, SelectBox) ───────────────────────────────────── */
+.dx-texteditor.dx-editor-outlined {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border-strong);
+  border-radius: var(--starterkit-admin-radius-sm);
+}
+
+.dx-texteditor.dx-editor-outlined.dx-state-focused {
+  border-color: var(--color-primary);
+}
+
+.dx-texteditor-input {
+  color: var(--color-text);
+  background-color: transparent;
+}
+
+/* ── DateRangeBox subtle surface ────────────────────────────────────────── */
+.date-range-box-subtle .dx-texteditor.dx-editor-outlined {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+.date-range-box-subtle .dx-texteditor.dx-editor-outlined.dx-state-hover {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+.date-range-box-subtle .dx-texteditor.dx-editor-outlined.dx-state-focused,
+.date-range-box-subtle .dx-texteditor.dx-editor-outlined.dx-state-active {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+.date-range-box-subtle .dx-texteditor-container,
+.date-range-box-subtle .dx-texteditor-input-container,
+.date-range-box-subtle .dx-texteditor-buttons-container,
+.date-range-box-subtle .dx-dropdowneditor-button,
+.date-range-box-subtle .dx-dropdowneditor-icon,
+.date-range-box-subtle .dx-icon-clear {
+  background-color: transparent !important;
+}
+
+
+/* ── Country phone input — fused country selector + number field ────────── */
+/* Strip each inner DX editor's own border/radius/shadow so the wrapper draws
+   a single fused border. Divider between the two segments is a 1px border on
+   the country selector's wrapper (set via Tailwind). */
+.country-phone-group .dx-texteditor.dx-editor-outlined {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+.country-phone-group .dx-texteditor {
+  height: 100%;
+}
+
+/* Make room for the overlaid country flag before the dial code text. */
+.country-phone-group .country-select .dx-texteditor-input {
+  padding-left: 2.25rem;
+  cursor: pointer;
+}
+
+
+
+.action-menu-item-destructive {
+  color: var(--color-error);
+}
+
+.action-menu-item-destructive:is(:hover, :focus, :focus-visible) {
+  background-color: var(--color-destructive-surface);
+}
+
+/* ── SelectBox / DropDown list ──────────────────────────────────────────── */
+.dx-dropdownlist-popup-wrapper .dx-overlay-content,
+.dx-selectbox-popup-wrapper .dx-overlay-content {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border);
+}
+
+.dx-list-item {
+  color: var(--color-text);
+}
+
+.dx-list-item.dx-state-hover {
+  background-color: var(--color-surface);
+}
+
+/* Keyboard-focused and selected dropdown items — DX's default theme paints
+   these solid blue (visible when search auto-focuses the first match);
+   keep them on neutral surface tones like hover instead. */
+.dx-dropdownlist-popup-wrapper .dx-list-item.dx-state-focused,
+.dx-selectbox-popup-wrapper .dx-list-item.dx-state-focused {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+.dx-dropdownlist-popup-wrapper .dx-list-item.dx-list-item-selected,
+.dx-selectbox-popup-wrapper .dx-list-item.dx-list-item-selected {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  font-weight: 500;
+}
+
+/* ── Popup modal ────────────────────────────────────────────────────────── */
+.dx-popup-wrapper .dx-overlay-content {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--starterkit-admin-radius-lg);
+}
+
+.dx-popup-title.dx-toolbar {
+  background-color: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.dx-popup-title .dx-toolbar-label {
+  color: var(--color-text);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+/* Contained default — primary actions (Add, Save) */
+.dx-button.dx-button-mode-contained.dx-button-default {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+.dx-button.dx-button-mode-contained.dx-button-default .dx-button-text,
+.dx-button.dx-button-mode-contained.dx-button-default .dx-icon {
+  color: var(--color-primary-foreground) !important;
+}
+.dx-button.dx-button-mode-contained.dx-button-default.dx-state-hover {
+  background-color: var(--color-primary) !important;
+  filter: brightness(1.1);
+}
+
+/* Contained normal — secondary contained actions */
+.dx-button.dx-button-mode-contained.dx-button-normal {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text-secondary) !important;
+}
+.dx-button.dx-button-mode-contained.dx-button-normal .dx-button-text,
+.dx-button.dx-button-mode-contained.dx-button-normal .dx-icon {
+  color: var(--color-text-secondary) !important;
+}
+.dx-button.dx-button-mode-contained.dx-button-normal.dx-state-hover {
+  background-color: var(--color-border) !important;
+}
+
+/* Outlined normal — secondary outlined actions (Cancel) */
+.dx-button.dx-button-mode-outlined.dx-button-normal {
+  border-color: var(--color-border-strong) !important;
+  background-color: transparent !important;
+}
+.dx-button.dx-button-mode-outlined.dx-button-normal .dx-button-text,
+.dx-button.dx-button-mode-outlined.dx-button-normal .dx-icon {
+  color: var(--color-text-secondary) !important;
+}
+.dx-button.dx-button-mode-outlined.dx-button-normal.dx-state-hover {
+  background-color: var(--color-border) !important;
+}
+
+/* Text default — row Edit action */
+.dx-button.dx-button-mode-text.dx-button-default .dx-icon {
+  color: var(--color-primary) !important;
+}
+.dx-button.dx-button-mode-text.dx-button-default.dx-state-hover {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+}
+
+/* Text danger — row Delete action */
+.dx-button.dx-button-mode-text.dx-button-danger .dx-icon {
+  color: var(--color-error) !important;
+}
+.dx-button.dx-button-mode-text.dx-button-danger.dx-state-hover {
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent) !important;
+}
+
+/* Logout button on primary-coloured sidebar */
+.dx-btn-on-primary .dx-button-text,
+.dx-btn-on-primary .dx-icon {
+  color: var(--color-on-primary-muted) !important;
+}
+.dx-btn-on-primary.dx-state-hover .dx-button-text,
+.dx-btn-on-primary.dx-state-hover .dx-icon {
+  color: var(--color-on-primary) !important;
+}
+.dx-btn-on-primary.dx-state-hover {
+  background-color: var(--color-on-primary-overlay) !important;
+}
+
+/* DevExtreme SelectBox/TextEditor on primary-coloured background.
+   Apply via elementAttr={{ class: 'dx-on-primary' }}. Reusable for any
+   DX text editor placed on a dark/primary surface (sidebar, banners, etc.). */
+.dx-on-primary,
+.dx-on-primary.dx-state-hover,
+.dx-on-primary.dx-state-focused {
+  background-color: var(--color-on-primary-surface) !important;
+  border-color: var(--color-on-primary-border) !important;
+  border-radius: var(--starterkit-admin-radius-md) !important;
+}
+.dx-on-primary.dx-state-hover {
+  background-color: var(--color-on-primary-surface-hover) !important;
+}
+.dx-on-primary .dx-texteditor-input {
+  color: var(--color-on-primary) !important;
+  background-color: transparent !important;
+}
+.dx-on-primary .dx-placeholder::before {
+  color: var(--color-on-primary-subtle) !important;
+}
+.dx-on-primary .dx-dropdowneditor-icon::before,
+.dx-on-primary .dx-dropdowneditor-icon {
+  color: var(--color-on-primary-subtle) !important;
+}
+.dx-on-primary .dx-dropdowneditor-button {
+  background-color: transparent !important;
+  border-radius: 0 var(--starterkit-admin-radius-md) var(--starterkit-admin-radius-md) 0 !important;
+}
+/* Override DX grey hover/active on the dropdown icon */
+.dx-on-primary.dx-state-hover .dx-dropdowneditor-icon,
+.dx-on-primary.dx-state-active .dx-dropdowneditor-icon,
+.dx-on-primary.dx-dropdowneditor-active .dx-dropdowneditor-icon,
+.dx-on-primary .dx-dropdowneditor-button.dx-state-active .dx-dropdowneditor-icon {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--color-on-primary-hover) !important;
+}
+
+/* Team dropdown popup list — selected & hover states.
+   A volt wash rather than a volt fill: a solid primary row would out-shout the
+   rest of the popup, so the tint carries the state and the text stays legible. */
+.team-dropdown-popup .dx-list-item.dx-list-item-selected {
+  background-color: color-mix(in srgb, var(--color-primary) 16%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+.team-dropdown-popup .dx-list-item.dx-state-hover {
+  background-color: var(--color-surface-hover) !important;
+  color: var(--color-text) !important;
+}
+.team-dropdown-popup .dx-list-item.dx-list-item-selected.dx-state-hover {
+  background-color: color-mix(in srgb, var(--color-primary) 24%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+/* ── Load panel overlay ─────────────────────────────────────────────────── */
+.dx-loadpanel-content {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border);
+}
+
+.dx-loadpanel-message {
+  color: var(--color-text-secondary);
+}
+
+/* ── Confirm / Alert dialog ─────────────────────────────────────────────── */
+.dx-dialog .dx-overlay-content {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--starterkit-admin-radius-lg);
+  color: var(--color-text);
+}
+
+.dx-dialog .dx-toolbar {
+  background-color: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Dialog action buttons (OK / Cancel inside confirm) */
+.dx-dialog-button .dx-button {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text) !important;
+}
+.dx-dialog-button .dx-button .dx-button-text {
+  color: var(--color-text) !important;
+}
+
+/* ── Notify toast ───────────────────────────────────────────────────────── */
+.dx-toast-content {
+  border-radius: var(--starterkit-admin-radius-md);
+}
+
+/* ── Switch (toggle) ────────────────────────────────────────────────────── */
+/* Tailwind preflight resets border-radius to 0; restore the pill shape. */
+.dx-switch .dx-switch-container {
+  border-radius: 999px !important;
+  overflow: hidden !important;
+}
+
+.dx-switch .dx-switch-handle {
+  border-radius: 50% !important;
+}
+
+/* Hide On/Off text labels */
+.dx-switch .dx-switch-on,
+.dx-switch .dx-switch-off {
+  font-size: 0 !important;
+}
+
+/* Track colours */
+.dx-switch.dx-switch-on-value .dx-switch-container {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.dx-switch:not(.dx-switch-on-value) .dx-switch-container {
+  background-color: var(--color-border-strong) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+/* Handle */
+/* Handle inverts with the track. White on the dark "off" track; black on the
+   volt "on" track — a white knob on volt is ~1.2:1 and effectively invisible,
+   which is why this can't be a single colour. */
+.dx-switch .dx-switch-handle::before {
+  border-radius: 50% !important;
+  background-color: var(--color-text) !important;
+}
+
+.dx-switch.dx-switch-on-value .dx-switch-handle::before {
+  background-color: var(--color-primary-foreground) !important;
+}
+
+/* ── Accordion — chevron on the left ───────────────────────────────────── */
+
+/* ── Tabs (starterkit-tabs wrapper) ─────────────────────────────────────────── */
+/*
+ * Override DX Tabs secondary styling to match the design-system look:
+ * no outer container border, transparent tab backgrounds, primary underline
+ * on the selected tab, proper font weight and colours.
+ */
+.starterkit-tabs .dx-tabs,
+.starterkit-tabs .dx-tabs-container,
+.starterkit-tabs .dx-widget,
+.starterkit-tabs .dx-tabs-nav-buttons-container,
+.starterkit-tabs .dx-tabs-scrollable,
+.starterkit-tabs .dx-scrollable,
+.starterkit-tabs .dx-scrollable-wrapper,
+.starterkit-tabs .dx-scrollable-content {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/*
+ * Scrollable container: kept separate from the compound selector above so
+ * that Lightning CSS does NOT deduplicate/merge the overflow-x override away.
+ * DX sets overflow:hidden on this element; we need overflow-x:auto for
+ * native horizontal scroll.
+ */
+.starterkit-tabs .dx-scrollable-container {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none; /* Firefox */
+}
+
+.starterkit-tabs .dx-scrollable-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Catch-all: any element DX injects inside the wrapper */
+.starterkit-tabs > * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+.starterkit-tabs .dx-tabs-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0;
+  background-color: transparent !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-block-start: none !important;
+  border-block-end: none !important;
+  border-inline-start: none !important;
+  border-inline-end: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* DX draws the container border via ::after on both dx-tabs-wrapper and
+   dx-tabs-scrollable — kill both.
+   We repeat selectors with .dx-tabs in the chain so our specificity (0,3,1)
+   matches DX 24.x's own .dx-tabs:not(.dx-tabs-nav-buttons) .dx-tabs-scrollable::after
+   rule and the !important flag then wins unconditionally. */
+.starterkit-tabs .dx-tabs-wrapper::after,
+.starterkit-tabs .dx-tabs .dx-tabs-wrapper::after,
+.starterkit-tabs .dx-tabs-scrollable::after,
+.starterkit-tabs .dx-tabs .dx-tabs-scrollable::after,
+.starterkit-tabs .dx-scrollable::after,
+.starterkit-tabs .dx-scrollable-wrapper::after,
+.starterkit-tabs .dx-scrollable-content::after {
+  content: none !important;
+  display: none !important;
+  border: none !important;
+  border-block-start: none !important;
+  border-block-end: none !important;
+  border-inline-start: none !important;
+  border-inline-end: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/*
+ * When DX adds .dx-tabs-nav-buttons to the outer .dx-tabs element (because
+ * nav buttons are present) it triggers a DX rule that adds border-block-start.
+ * Override that here.
+ */
+.starterkit-tabs .dx-tabs.dx-tabs-nav-buttons .dx-tabs-wrapper,
+.starterkit-tabs .dx-tabs-nav-buttons .dx-tabs-wrapper {
+  border: none !important;
+  border-block-start: none !important;
+  border-block-end: none !important;
+  border-inline-start: none !important;
+  border-inline-end: none !important;
+}
+
+/* Hide DX scroll nav buttons (left/right arrows) */
+.starterkit-tabs .dx-tabs-nav-button {
+  display: none !important;
+}
+
+/* Hide the outer nav-buttons container so it doesn't add spacing */
+.starterkit-tabs .dx-tabs-nav-buttons-container {
+  display: none !important;
+}
+.starterkit-tabs .dx-tab {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  min-height: 44px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.starterkit-tabs .dx-tab:hover {
+  color: var(--color-text);
+}
+.starterkit-tabs .dx-tab.dx-tab-selected {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom-color: var(--color-primary) !important;
+  box-shadow: none !important;
+  color: var(--color-text) !important;
+}
+.starterkit-tabs .dx-tab::before,
+.starterkit-tabs .dx-tab::after,
+.starterkit-tabs .dx-tab.dx-tab-selected::before,
+.starterkit-tabs .dx-tab.dx-tab-selected::after {
+  content: none !important;
+  display: none !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+/* Remove DX secondary-mode bottom indicator (it draws its own line) */
+.starterkit-tabs .dx-tabs-styling-mode-secondary .dx-tab-selected::after {
+  display: none !important;
+}
+/* Suppress DX focus outline on mouse click */
+.starterkit-tabs .dx-tab.dx-state-focused {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Accordion — chevron on the left ───────────────────────────────────── */
+/*
+ * DX renders the expand chevron as a ::before pseudo-element on
+ * .dx-accordion-item-title with `position:absolute; inset-inline-end:12px`.
+ * We reposition it to the left and adjust the title padding accordingly.
+ */
+.dx-accordion .dx-accordion-item-title::before {
+  inset-inline-end: auto !important;
+  inset-inline-start: var(--dx-accordion-chevron-offset) !important;
+  transform: rotate(-90deg) !important;
+}
+
+.dx-accordion .dx-accordion-item-opened .dx-accordion-item-title::before {
+  transform: rotate(0deg) !important;
+}
+
+.dx-accordion .dx-accordion-item-title {
+  /* chevron-offset + chevron-size + title-gap */
+  padding-inline-start: calc(
+    var(--dx-accordion-chevron-offset) + var(--dx-accordion-chevron-size) +
+      var(--dx-accordion-title-gap)
+  ) !important;
+  padding-inline-end: var(--dx-accordion-title-gap) !important;
+}
+
+/* Suppress DX blue border on mouse click — keep mouse focus neutral */
+.dx-accordion-item.dx-state-focused {
+  border-color: var(--color-border) !important;
+}
+
+/* Restore visible keyboard focus indicator for the title */
+.dx-accordion .dx-accordion-item-title:focus-visible {
+  outline: none;
+}
+
+.dx-accordion .dx-accordion-item:has(.dx-accordion-item-title:focus-visible) {
+  border-color: var(--color-primary) !important;
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px;
+}
+
+/* Single-category games: hide chevron, keep consistent left padding, default cursor */
+.dx-accordion-item-single .dx-accordion-item-title::before {
+  display: none !important;
+}
+
+.dx-accordion-item-single .dx-accordion-item-title {
+  cursor: default !important;
+}
+
+/* ── Scheduler ──────────────────────────────────────────────────────────── */
+
+/* Rounded container */
+.dx-scheduler {
+  border: 1px solid var(--color-border);
+  border-radius: var(--starterkit-admin-radius-lg);
+  overflow: hidden;
+  background-color: var(--color-surface-elevated);
+}
+
+/* Remove the grey toolbar background — make it transparent/white */
+.dx-scheduler .dx-scheduler-header {
+  background-color: var(--color-surface-elevated) !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Hide the DX built-in view switcher — we provide our own SegmentedButton */
+.dx-scheduler .dx-scheduler-view-switcher {
+  display: none !important;
+}
+
+/* Navigator (month picker) — borderless, chevrons grouped together */
+.dx-scheduler .dx-scheduler-navigator {
+  background-color: transparent !important;
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-button {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: var(--starterkit-admin-radius-sm) !important;
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-button .dx-button-text {
+  color: var(--color-text) !important;
+  font-weight: var(--font-weight-medium);
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-button .dx-icon {
+  color: var(--color-text-secondary) !important;
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-button.dx-state-hover {
+  background-color: var(--color-surface) !important;
+}
+
+/* Pull chevrons together: remove gap between prev/next and collapse caption margin */
+.dx-scheduler .dx-scheduler-navigator .dx-scheduler-navigator-previous {
+  margin-inline-end: 0 !important;
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-scheduler-navigator-next {
+  margin-inline-start: 0 !important;
+}
+
+.dx-scheduler .dx-scheduler-navigator .dx-scheduler-navigator-caption {
+  margin-inline-start: var(--spacing-sm) !important;
+}
+
+/* Calendar body cells */
+.dx-scheduler-date-table-cell,
+.dx-scheduler-header-panel-cell {
+  border-color: var(--color-border) !important;
+}
+
+/* ── Month view: let the date table expand naturally so the page scrolls ── */
+.dx-scheduler-work-space-month .dx-scrollable {
+  height: auto !important;
+}
+
+.dx-scheduler-work-space-month .dx-scrollable-wrapper,
+.dx-scheduler-work-space-month .dx-scrollable-container {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.dx-scheduler-work-space-month .dx-scrollable-content {
+  height: auto !important;
+}
+
+/* Month view cells — tall enough to show appointments comfortably */
+.dx-scheduler-date-table-cell {
+  height: 180px !important;
+  min-height: 180px !important;
+}
+
+.dx-scheduler-date-table-row {
+  height: 180px !important;
+  min-height: 180px !important;
+}
+
+/* Week/day view cells can be slightly smaller */
+.dx-scheduler-view-week .dx-scheduler-date-table-cell,
+.dx-scheduler-view-week .dx-scheduler-date-table-row,
+.dx-scheduler-view-day .dx-scheduler-date-table-cell,
+.dx-scheduler-view-day .dx-scheduler-date-table-row {
+  height: auto !important;
+  min-height: var(--starterkit-spacing-xl) !important;
+}
+
+.dx-scheduler-header-panel-cell {
+  color: var(--color-text-secondary) !important;
+  background-color: var(--color-surface-elevated) !important;
+}
+
+/* Today highlight */
+.dx-scheduler-date-table-cell.dx-scheduler-date-table-current-date {
+  background-color: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface-elevated)) !important;
+}
+
+/* ─── Appointment category colours ──────────────────────────────────────────
+   Each [data-color-index] maps to the dark-tuned category tokens from
+   tokens.css. The --starterkit-category-* set is the light-background counterpart
+   (pale fill, dark text) and inverts to mud on onyx — hence the admin- set. */
+[data-color-index='0'] { --appt-bg: var(--starterkit-admin-category-indigo-bg); --appt-border: var(--starterkit-admin-category-indigo-border); --appt-text: var(--starterkit-admin-category-indigo-text); }
+[data-color-index='1'] { --appt-bg: var(--starterkit-admin-category-green-bg);  --appt-border: var(--starterkit-admin-category-green-border);  --appt-text: var(--starterkit-admin-category-green-text); }
+[data-color-index='2'] { --appt-bg: var(--starterkit-admin-category-orange-bg); --appt-border: var(--starterkit-admin-category-orange-border); --appt-text: var(--starterkit-admin-category-orange-text); }
+[data-color-index='3'] { --appt-bg: var(--starterkit-admin-category-pink-bg);   --appt-border: var(--starterkit-admin-category-pink-border);   --appt-text: var(--starterkit-admin-category-pink-text); }
+[data-color-index='4'] { --appt-bg: var(--starterkit-admin-category-sky-bg);    --appt-border: var(--starterkit-admin-category-sky-border);    --appt-text: var(--starterkit-admin-category-sky-text); }
+[data-color-index='5'] { --appt-bg: var(--starterkit-admin-category-purple-bg); --appt-border: var(--starterkit-admin-category-purple-border); --appt-text: var(--starterkit-admin-category-purple-text); }
+[data-color-index='6'] { --appt-bg: var(--starterkit-admin-category-cyan-bg);   --appt-border: var(--starterkit-admin-category-cyan-border);   --appt-text: var(--starterkit-admin-category-cyan-text); }
+[data-color-index='7'] { --appt-bg: var(--starterkit-admin-category-yellow-bg); --appt-border: var(--starterkit-admin-category-yellow-border); --appt-text: var(--starterkit-admin-category-yellow-text); }
+
+/* Appointment pills */
+.dx-scheduler-appointment {
+  border-radius: var(--starterkit-admin-radius-sm) !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Reduced (compact) appointment pills — shown when space is tight */
+.dx-scheduler-appointment-reduced {
+  background-color: transparent !important;
+  border-radius: var(--starterkit-admin-radius-sm) !important;
+}
+
+/* Hide the default reduced arrow indicators */
+.dx-scheduler-appointment-head,
+.dx-scheduler-appointment-tail {
+  display: none !important;
+}
+
+/* Ensure hover/focused states don't reintroduce default blue */
+.dx-scheduler-appointment.dx-state-hover,
+.dx-scheduler-appointment.dx-state-focused {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.dx-scheduler-appointment-content {
+  padding: 0 !important;
+}
+
+/* "+N more" link */
+.dx-scheduler-appointment-collector {
+  color: var(--color-primary) !important;
+  background-color: transparent !important;
+  border: none !important;
+  font-size: var(--text-xs) !important;
+}
+
+/* ─── Cover image banner — full-bleed utility ─────────────────────────────── */
+/*
+ * Bleeds the banner to the edge of the DrawerPanel scroll area.
+ * The content sits inside two layers of horizontal padding (px-lg each = 48px total)
+ * and two vertical layers: DrawerPanel pt-sm (8px) + EntityFormShell p-lg (24px) = 32px.
+ * margin-inline cancels the 48px horizontal padding on each side.
+ * margin-top cancels the 32px vertical padding so the banner reaches the scroll top.
+ * Width stretches to fill via the negative-margin trick.
+ */
+.full-bleed-banner {
+  margin-inline: -48px;
+  margin-top: -32px;
+  width: calc(100% + 96px);
+}
+
+/* ── HtmlEditor — toolbar ───────────────────────────────────────────────── */
+/* Muted bar above the white writing surface: flat ghost buttons, slim visible
+   group separators, a primary tint on formats active at the cursor, and a
+   compact ghost paragraph-style dropdown. */
+.dx-htmleditor .dx-htmleditor-toolbar-wrapper {
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dx-htmleditor .dx-toolbar {
+  background: transparent !important;
+  min-height: calc(var(--spacing-xl) + (var(--spacing-xs) * 2)) !important;
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-toolbar-items-container {
+  min-height: var(--spacing-xl) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-toolbar-item {
+  align-items: center !important;
+  min-height: var(--spacing-xl) !important;
+  padding-inline: 1px !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-button {
+  min-width: var(--spacing-xl) !important;
+  height: var(--spacing-xl) !important;
+  border-radius: var(--radius-sm) !important;
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-button .dx-icon {
+  font-size: var(--text-sm) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-button.dx-state-hover,
+.dx-htmleditor .dx-toolbar .dx-button.dx-state-active,
+.dx-htmleditor .dx-toolbar .dx-button.dx-state-focused {
+  background-color: var(--color-surface-elevated) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-button.dx-state-hover .dx-icon,
+.dx-htmleditor .dx-toolbar .dx-button.dx-state-focused .dx-icon {
+  color: var(--color-text) !important;
+}
+
+/* Format applied at the cursor position */
+.dx-htmleditor .dx-toolbar .dx-button.dx-format-active {
+  background-color: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-button.dx-format-active .dx-icon {
+  color: var(--color-primary) !important;
+}
+
+/* Slim visible separators between logical groups */
+.dx-htmleditor .dx-toolbar .dx-toolbar-separator {
+  width: 1px !important;
+  height: var(--spacing-md) !important;
+  margin-block: auto !important;
+  margin-inline: var(--spacing-xs) !important;
+  border: none !important;
+  background: var(--color-border) !important;
+  opacity: 1 !important;
+}
+
+/* Paragraph-style dropdown — ghost field, compact */
+.dx-htmleditor .dx-toolbar .dx-texteditor.dx-editor-outlined {
+  width: 7.5rem !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-texteditor.dx-editor-outlined.dx-state-hover,
+.dx-htmleditor .dx-toolbar .dx-texteditor.dx-editor-outlined.dx-state-focused {
+  background: var(--color-surface-elevated) !important;
+}
+
+.dx-htmleditor .dx-toolbar .dx-texteditor-input {
+  font-size: var(--text-sm) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── HtmlEditor — surface + heading hierarchy (all rich text editors) ─────── */
+/* White (elevated) surface so the editor stands out from the grey card behind it.
+   Uses a token rather than literal white so it adapts in dark mode. */
+.dx-htmleditor,
+.dx-htmleditor-content {
+  background: var(--color-surface-elevated);
+}
+
+/* Restore heading hierarchy — Markdown ## / ### map to h2 / h3, so content reads
+   as a structured micro-lesson rather than a flat wall of text. */
+.dx-htmleditor-content h1,
+.dx-htmleditor-content h2,
+.dx-htmleditor-content h3 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.85em 0 0.35em;
+}
+
+.dx-htmleditor-content h1 {
+  font-size: var(--text-xl);
+}
+
+.dx-htmleditor-content h2 {
+  font-size: var(--text-lg);
+}
+
+.dx-htmleditor-content h3 {
+  font-size: var(--text-base);
+}
+
+.dx-htmleditor-content > :first-child {
+  margin-top: 0;
+}
+
+/* ── Indeterminate progress bar ─────────────────────────────────────────── */
+@keyframes indeterminate-progress {
+  0%   { transform: translateX(-100%) scaleX(0.6); }
+  50%  { transform: translateX(80%)   scaleX(0.9); }
+  100% { transform: translateX(280%)  scaleX(0.6); }
+}
+
+/* ── Standard DataGrid — accordion-matching styles ───────────────────────── */
+/*
+ * The shared standard grid (.standard-dx-grid) matches the AccordionGrid visual style:
+ *   • Header cells: px-4 py-3 (12 px vertical) + border-b border-border
+ *   • Data cells:   px-4 py-4 (16 px vertical) + border-b border-border separator
+ *   • Hover:        var(--color-surface-hover) instead of the default surface
+ *
+ * All selectors carry the .standard-dx-grid scope prefix so they only apply
+ * to grids using <StandardDataGrid> and don't affect any other DataGrid.
+ */
+
+/* Header cell padding */
+.standard-dx-grid .dx-datagrid-headers .dx-header-row > td {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Data cell padding */
+.standard-dx-grid .dx-datagrid-rowsview .dx-data-row > td {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  /* Vertically centre cells so single-line columns align with multi-line cells
+     (e.g. the name + identifier and date + time stacked columns). */
+  vertical-align: middle !important;
+}
+
+/* No row separators — alternating shading provides visual row separation */
+
+/* Hover state — match accordion hover:bg-surface-hover */
+.standard-dx-grid .dx-datagrid-table .dx-data-row.dx-state-hover > td,
+.standard-dx-grid .dx-datagrid-rowsview .dx-row:not(.dx-header-row):hover > td {
+  background-color: var(--color-surface-hover) !important;
+}
+
+/* Sticky / fixed columns follow the same hover bg as all other cells */
+.standard-dx-grid .dx-datagrid-rowsview .dx-row:not(.dx-header-row):hover > td.dx-datagrid-sticky-column-right,
+.standard-dx-grid .dx-datagrid-table .dx-data-row.dx-state-hover > td.dx-datagrid-sticky-column-right {
+  background-color: var(--color-surface-hover) !important;
+}
+
+/* Hide native scrollbars in the standard grid — content is still scrollable */
+.standard-dx-grid .dx-scrollable-container,
+.standard-dx-grid .dx-datagrid-scroll-container {
+  scrollbar-width: none;          /* Firefox */
+}
+.standard-dx-grid .dx-scrollable-container::-webkit-scrollbar,
+.standard-dx-grid .dx-datagrid-scroll-container::-webkit-scrollbar {
+  display: none;                  /* Chrome, Edge, Safari */
+}
+
+/* Prevent overflow indicators on the fixed action column and centre the button */
+.standard-dx-grid .dx-datagrid-table td.actions-col {
+  overflow: hidden !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+/* Add left breathing room to the first data column header and cells */
+.standard-dx-grid .dx-datagrid-headers .dx-datagrid-table td:first-child,
+.standard-dx-grid .dx-datagrid-rowsview .dx-datagrid-table td:first-child {
+  padding-left: 14px !important;
+}
+
+/* ── Reports grids — stretch the table to fill the page width ────────────────
+ * DevExtreme can size the grid <table> to the SUM of its column widths, so columns
+ * pinned to a minWidth leave a right-hand gap whenever that sum is narrower than
+ * the page (worst on sparse grids like Leagues with only 4 columns). Forcing the
+ * header + rows tables to 100% makes the fixed-layout columns distribute the slack
+ * so the table fills its container on wide screens, while the columns' own minWidth
+ * still lets the grid scroll on screens narrower than the columns need. Scoped to
+ * the reports page so other grids keep their natural width + horizontal scroll. */
+[data-testid='reports-page'] .standard-dx-grid .dx-datagrid-headers .dx-datagrid-table,
+[data-testid='reports-page'] .standard-dx-grid .dx-datagrid-rowsview .dx-datagrid-table {
+  width: 100% !important;
+}

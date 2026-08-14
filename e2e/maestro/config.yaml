@@ -1,0 +1,18 @@
+# Maestro shared configuration — all flows inherit from this.
+# See: https://maestro.mobile.dev/reference/configuration
+#
+# appId varies by build type:
+#   - Expo Go (local dev):    host.exp.exponent
+#   - Custom dev client:      com.example.starterkit
+#   - Production:             com.example.starterkit
+#
+# For local development with Expo Go, change appId to host.exp.exponent
+appId: host.exp.exponent
+
+# Include flows from subdirectories
+flows:
+  - "auth/*"
+  - "messages/*"
+  - "journal/*"
+  - "check-ins/*"
+  - "create/*"

@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ActionSheet (web) > renders the dialog overlay and children when visible 1`] = `
+<div
+  aria-modal="true"
+  onClick={[MockFunction spy]}
+  onKeyDown={[Function]}
+  role="dialog"
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "rgba(0,0,0,0.5)",
+      "display": "flex",
+      "inset": 0,
+      "justifyContent": "center",
+      "padding": 16,
+      "position": "fixed",
+      "zIndex": 50,
+    }
+  }
+>
+  <div
+    onClick={[Function]}
+    role="presentation"
+    style={
+      {
+        "maxWidth": 480,
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      className="gap-lg rounded-2xl bg-surface p-xl shadow-2xl"
+    >
+      <View
+        testID="sheet-body"
+      />
+    </View>
+  </div>
+</div>
+`;

@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InfoBanner > renders the message and the default clock icon in the primary variant 1`] = `
+<View
+  className="flex-row items-center justify-center gap-sm px-lg py-sm min-h-9 bg-primary/10"
+  testID="banner"
+>
+  <View
+    accessibilityLabel="#0A3D91"
+    testID="icon-clock.fill"
+  />
+  <Text
+    className="font-body text-xs font-medium text-primary"
+    testID="heads-up"
+  >
+    Heads up
+  </Text>
+</View>
+`;
+
+exports[`InfoBanner > renders the muted variant with the surface background 1`] = `
+<View
+  className="flex-row items-center justify-center gap-sm px-lg py-sm min-h-9 bg-surface"
+  testID="banner"
+>
+  <View
+    accessibilityLabel="#ADB5BD"
+    testID="icon-wifi.slash"
+  />
+  <Text
+    className="font-body text-xs font-medium text-text-muted"
+    testID="you-are-offline"
+  >
+    You are offline
+  </Text>
+</View>
+`;

@@ -1,0 +1,106 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LogoutButton > default (full-width Button) variant > matches the default snapshot 1`] = `
+<View
+  className=""
+  style={
+    {
+      "transform": [
+        {
+          "scale": 1,
+        },
+      ],
+    }
+  }
+>
+  <Pressable
+    accessibilityLabel="logoutButton"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": false,
+        "disabled": false,
+      }
+    }
+    className="flex-row items-center justify-center active:opacity-80 border border-primary bg-transparent rounded-xl px-lg py-sm"
+    disabled={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    testID="logout"
+  >
+    <Text
+      className="font-semibold text-primary text-base"
+      numberOfLines={1}
+    >
+      logoutButton
+    </Text>
+  </Pressable>
+</View>
+`;
+
+exports[`LogoutButton > nav variant > matches the dark nav snapshot 1`] = `
+<View
+  className="border-t p-sm border-white/10"
+>
+  <Pressable
+    accessibilityLabel="logoutButton"
+    accessibilityRole="button"
+    className="flex flex-row items-center gap-sm rounded-md px-sm py-xs opacity-100 disabled:opacity-50 hover:bg-white/10"
+    disabled={false}
+    onPress={[Function]}
+    testID="logout-nav"
+  >
+    <FontAwesome
+      color="#FFFFFF99"
+      name="logout"
+      size={16}
+      style={
+        [
+          {},
+          undefined,
+        ]
+      }
+    />
+    <Text
+      className="font-body text-sm font-medium text-white/60"
+      testID="logoutbutton"
+    >
+      logoutButton
+    </Text>
+  </Pressable>
+</View>
+`;
+
+exports[`LogoutButton > nav variant > matches the nav snapshot 1`] = `
+<View
+  className="border-t p-sm border-border"
+>
+  <Pressable
+    accessibilityLabel="logoutButton"
+    accessibilityRole="button"
+    className="flex flex-row items-center gap-sm rounded-md px-sm py-xs opacity-100 disabled:opacity-50 hover:bg-border"
+    disabled={false}
+    onPress={[Function]}
+    testID="logout-nav"
+  >
+    <FontAwesome
+      color="#868E96"
+      name="logout"
+      size={16}
+      style={
+        [
+          {},
+          undefined,
+        ]
+      }
+    />
+    <Text
+      className="font-body text-sm font-medium text-text-secondary"
+      testID="logoutbutton"
+    >
+      logoutButton
+    </Text>
+  </Pressable>
+</View>
+`;

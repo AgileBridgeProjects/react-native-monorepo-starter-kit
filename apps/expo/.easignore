@@ -1,0 +1,16 @@
+# Local Expo cache — not needed for the build
+.expo/
+
+# Native build output (EAS generates these)
+android/
+ios/
+
+# AI / agent tooling (contain Windows symlinks → EPERM in tarballs)
+.agents/
+.agents/**
+**/.agents/
+**/.agents/**
+.claude/
+.claude/**
+**/.claude/
+**/.claude/**

@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# StarterKit — single parent dev stack.
+#
+# One Compose project ("starterkit") that ties together every containerised piece via
+# Compose `include`, so Docker Desktop shows ONE group instead of scattered
+# containers:
+#   • Supabase (self-hosted): db (Postgres+pgvector), auth (GoTrue), kong gateway
+#     — infra/supabase/docker-compose.supabase.yml
+#   • Backend: migrator (one-shot EF migrations), mobileapi, webapi, azurite
+#     — apps/backend/docker-compose.yml
+#   • web: the Next.js admin portal (opt-in, `--profile web` — it's a production
+#     image build; day-to-day use `npm run dev:web` for hot reload)
+#
+# Run it all:
+#   npm run dev:backend      # supabase + backend APIs (web off)
+#   npm run dev:stack        # + the web portal (--profile web)
+#   npm run rebuild:backend  # rebuild images then up --wait
+#
+# Secrets/interpolation come from infra/supabase/.env (via --env-file in the npm
+# scripts). See infra/supabase/README.md and docs/standards/supabase.md.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: starterkit
+
+include:
+  - infra/supabase/docker-compose.supabase.yml
+  - apps/backend/docker-compose.yml
+
+services:
+  # Next.js admin portal. Opt-in via `--profile web` — this is a production build
+  # (Next bakes NEXT_PUBLIC_* at build time from apps/web/.env.local, same as CI).
+  # For local development prefer `npm run dev:web` (hot reload) instead.
+  web:
+    container_name: starterkit-web
+    profiles: ["web"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      webapi:
+        condition: service_started
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: on-failure

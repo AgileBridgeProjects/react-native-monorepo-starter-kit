@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MarkdownRenderer > wraps plain text in a paragraph tag 1`] = `
+<View
+  className=""
+>
+  <View
+    accessibilityHint="#1C2333"
+    accessibilityLabel="#212529"
+    accessibilityValue={
+      {
+        "now": 375,
+        "text": "<p>Hello world</p>",
+      }
+    }
+    testID="render-html"
+  />
+</View>
+`;

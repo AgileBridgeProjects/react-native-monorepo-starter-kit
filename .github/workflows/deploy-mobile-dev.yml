@@ -1,0 +1,250 @@
+name: Deploy Mobile (dev)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build and submit
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC Azure login
+
+concurrency:
+  group: deploy-mobile-dev
+  cancel-in-progress: false
+
+jobs:
+  sync-eas-secrets:
+    # EAS builds run on Expo's servers and cannot reach Azure Key Vault directly.
+    # This job fetches all secrets tagged app=expo from Key Vault and pushes them
+    # to the EAS "preview" environment. EAS env-var environments are a fixed set
+    # (development/preview/production); the "dev" build profile consumes this one
+    # via its `environment: preview` field in eas.json, so the cloud builder picks
+    # the secrets up automatically at build time.
+    # To add a new secret: az keyvault secret set --vault-name $KV \
+    #   --name <kebab-name> --value <val> --tags app=expo env=dev
+    # No pipeline changes required.
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sync expo secrets from Key Vault to EAS
+        shell: bash
+        run: |
+          KV="${{ vars.KEYVAULT_NAME }}"
+          SECRET_NAMES=$(az keyvault secret list --vault-name "$KV" \
+            --query "[?tags.app=='expo'].name" -o tsv)
+          > .env.eas-sync
+          for name in $SECRET_NAMES; do
+            value=$(az keyvault secret show --vault-name "$KV" --name "$name" --query value -o tsv)
+            var_name=$(echo "$name" | tr '[:lower:]-' '[:upper:]_')
+            echo "$var_name=$value" >> .env.eas-sync
+            echo "::add-mask::$value"
+          done
+          eas env:push preview --path .env.eas-sync --force
+          rm .env.eas-sync
+
+  build-ios:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
+    needs: sync-eas-secrets
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      # The build needs Apple auth, not just the submit: when a build profile resolves an
+      # app identity EAS has never built (as the the identity split identity split did), non-interactive
+      # credential setup must create/validate the provisioning profile against Apple — and
+      # without an ASC API key it dies with "Distribution Certificate is not validated for
+      # non-interactive builds". These are the same secrets the submit job already uses;
+      # EXPO_ASC_* is how the EAS CLI accepts them for credential provisioning.
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
+
+      - name: Build iOS IPA (EAS cloud)
+        env:
+          EXPO_ASC_API_KEY_PATH: ./keys/asc-api-key.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          # Apple team for credential ops — team IDs aren't secret; this is the org's.
+          EXPO_APPLE_TEAM_ID: 94ZVAPCDFW
+          EXPO_APPLE_TEAM_TYPE: COMPANY_OR_ORGANIZATION
+        run: eas build --platform ios --profile dev --non-interactive
+
+  build-android:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}
+    needs: sync-eas-secrets
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      - name: Build Android APK (EAS cloud)
+        run: eas build --platform android --profile dev --non-interactive
+
+      - name: Post build link to job summary
+        run: |
+          echo "### Android build ready" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 [View latest build](https://expo.dev/accounts/agilebridge/projects/starterkit/builds?platform=android)" >> $GITHUB_STEP_SUMMARY
+
+  submit-android:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}
+    needs: build-android
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode Google Play service account key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > keys/google-play-service-account.json
+
+      - name: Submit Android to Play Store (internal testing)
+        run: eas submit --platform android --profile dev --non-interactive --latest
+
+  submit-ios:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
+    needs: build-ios
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
+
+      - name: Submit iOS to TestFlight
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        run: eas submit --platform ios --profile dev --non-interactive --latest
+
+

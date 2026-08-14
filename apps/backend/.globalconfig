@@ -1,0 +1,42 @@
+is_global = true
+
+# ── Roslyn Analyser Severity Overrides ───────────────────────
+# Full rule list: https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules
+
+# Require cancellation tokens to be passed through
+dotnet_diagnostic.CA2016.severity = warning
+
+# Flag async methods that don't use await
+dotnet_diagnostic.CS1998.severity = warning
+
+# Prefer Task.FromResult over returning null for async
+dotnet_diagnostic.CA2012.severity = warning
+
+# Dispose objects correctly
+dotnet_diagnostic.CA2000.severity = warning
+
+# Do not expose generic lists — use IReadOnlyList etc.
+dotnet_diagnostic.CA1002.severity = suggestion
+
+# Mark members as static where possible
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# Avoid uninstantiated internal classes
+dotnet_diagnostic.CA1812.severity = suggestion
+
+# Use string.Contains(char) instead of string.Contains(string) for single chars
+dotnet_diagnostic.CA1847.severity = warning
+
+# Async methods should have Async suffix
+dotnet_diagnostic.VSTHRD200.severity = warning
+
+# Use await instead of .Result or .Wait()
+dotnet_diagnostic.VSTHRD002.severity = error
+dotnet_diagnostic.VSTHRD104.severity = error
+
+# ── Suppressed rules ─────────────────────────────────────────
+# Disable: require AssemblyInfo attributes (handled by SDK)
+dotnet_diagnostic.CA1014.severity = none
+
+# Disable: mark assemblies with CLSCompliant
+dotnet_diagnostic.CA1017.severity = none

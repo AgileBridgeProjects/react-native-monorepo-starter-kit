@@ -1,0 +1,14 @@
+# Code Owners
+# These owners are automatically requested for review on PRs.
+# Last person listed takes precedence for overlapping paths.
+
+# Default: all files
+* @Keelan-Matthews
+
+# Design system — extra care needed, changes affect the whole app
+constants/tokens.ts @Keelan-Matthews
+constants/theme.ts @Keelan-Matthews
+tailwind.config.js @Keelan-Matthews
+
+# CI/CD changes need explicit review
+.github/ @Keelan-Matthews

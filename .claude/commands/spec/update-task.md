@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-update-task.md` and follow its instructions.

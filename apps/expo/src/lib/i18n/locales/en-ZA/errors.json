@@ -1,0 +1,25 @@
+{
+  "auth": {
+    "invalidCredentials": "Invalid email or password.",
+    "invalidEmail": "\"{{email}}\" is not a valid email address.",
+    "tokenExpired": "Your session has expired. Please sign in again.",
+    "userNotFound": "User not found.",
+    "emailAlreadyInUse": "{{email}} is already registered.",
+    "weakPassword": "Password is too weak. Use at least 8 characters.",
+    "microsoftDiscoveryNotReady": "Microsoft sign-in is not available yet. Please try again.",
+    "microsoftCodeVerifierNotReady": "Microsoft sign-in request could not be prepared. Please try again.",
+    "microsoftNoIdToken": "Microsoft sign-in did not return a valid token. Please try again.",
+    "microsoftAccountNotLinked": "Your Microsoft account has not been linked to a StarterKit club.",
+    "accountNotFound": "We couldn't find a StarterKit account for these details. Please contact your administrator.",
+    "providerConflict": "This email is already registered with a different sign-in method.",
+    "unknown": "Something went wrong. Please try again."
+  },
+  "messages": {
+    "sendFailed": "Your message could not be sent. Please try again.",
+    "offline": "Your message couldn't be sent. Please check your connection and try again.",
+    "unsupportedAttachment": "That attachment type isn't supported. Please use a photo, video or PDF.",
+    "attachmentTooLarge": "That attachment is too large to send. Please choose a smaller file.",
+    "notPermitted": "You don't have permission to send messages in this conversation.",
+    "blocked": "Hmm, that message didn't go through.\nSomething in it may not be appropriate to send. Try rewording it and send again."
+  }
+}

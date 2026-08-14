@@ -1,0 +1,25 @@
+{
+  "name": "@starterkit/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "pull:env": "node scripts/pull-env.mjs",
+    "playwright:install": "npx playwright install --with-deps chromium",
+    "playwright": "npx playwright test",
+    "playwright:web": "npx playwright test --project=web",
+    "playwright:expo": "npx playwright test --project=expo-web",
+    "playwright:ui": "npx playwright test --ui",
+    "playwright:headed": "npx playwright test --headed",
+    "playwright:web:headed": "npx playwright test --project=web --headed",
+    "playwright:expo:headed": "npx playwright test --project=expo-web --headed",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^20.19.37",
+    "dotenv": "^17.4.2",
+    "serve": "^14.2.4",
+    "tsx": "^4.19.0",
+    "wait-on": "^8.0.1"
+  }
+}

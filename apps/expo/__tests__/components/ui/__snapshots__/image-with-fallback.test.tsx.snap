@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ImageWithFallback > matches the null-uri fallback snapshot 1`] = `
+<View
+  accessibilityLabel="Empty"
+  accessible={true}
+  className="items-center justify-center overflow-hidden bg-border/40"
+  onLayout={[Function]}
+/>
+`;
+
+exports[`ImageWithFallback > matches the remote-image snapshot 1`] = `
+<View
+  accessibilityLabel="Cover"
+  accessible={true}
+  className="items-center justify-center overflow-hidden bg-border/40"
+  onLayout={[Function]}
+>
+  <Image
+    cachePolicy="memory-disk"
+    contentFit="cover"
+    onError={[Function]}
+    onLoad={[Function]}
+    recyclingKey="https://cdn/test.png"
+    source={
+      {
+        "uri": "https://cdn/test.png",
+      }
+    }
+    style={
+      {
+        "height": "100%",
+        "left": 0,
+        "position": "absolute",
+        "top": 0,
+        "width": "100%",
+      }
+    }
+    transition={200}
+  />
+</View>
+`;

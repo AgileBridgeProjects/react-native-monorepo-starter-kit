@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/createFileMap-fork.js b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/createFileMap-fork.js
+index dde1cbb..04fcc4a 100644
+--- a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/createFileMap-fork.js
++++ b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/createFileMap-fork.js
+@@ -155,7 +155,7 @@ function createFileMap(config, options) {
+         plugins,
+         retainAllFiles: true,
+         resetCache: config.resetCache,
+-        rootDir: projectRoot,
++        rootDir: serverRoot ?? projectRoot,
+         roots: config.watchFolders,
+         useWatchman: config.resolver.useWatchman ?? false,
+         watch,

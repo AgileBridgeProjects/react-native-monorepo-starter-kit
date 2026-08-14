@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`IconSymbol (iOS SF Symbols) > matches the default snapshot 1`] = `
+<SymbolView
+  name="house.fill"
+  resizeMode="scaleAspectFit"
+  style={
+    [
+      {
+        "height": 28,
+        "width": 28,
+      },
+      undefined,
+    ]
+  }
+  tintColor="#111"
+  weight="regular"
+/>
+`;

@@ -1,0 +1,19 @@
+{
+  "add": "Add",
+  "back": "Back",
+  "cancel": "Cancel",
+  "done": "Done",
+  "new": "New",
+  "next": "Next",
+  "addClub": "Add Club",
+  "addGame": "Add Game",
+  "createCategory": "Create Category",
+  "createClub": "Create Club",
+  "createGame": "Create Game",
+  "edit": "Edit",
+  "generate": "Generate",
+  "comingSoon": "Coming soon",
+  "create": "Create",
+  "saveChanges": "Save Changes",
+  "tryAgain": "Try Again"
+}

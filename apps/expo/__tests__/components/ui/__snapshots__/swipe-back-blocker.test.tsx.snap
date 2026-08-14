@@ -1,0 +1,95 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SwipeBackBlocker > matches the snapshot 1`] = `
+<GestureDetector
+  gesture={
+    {
+      "activeOffsetX": [MockFunction spy] {
+        "calls": [
+          [
+            [
+              -5,
+              5,
+            ],
+          ],
+          [
+            [
+              -5,
+              5,
+            ],
+          ],
+          [
+            [
+              -5,
+              5,
+            ],
+          ],
+          [
+            [
+              -5,
+              5,
+            ],
+          ],
+        ],
+        "results": [
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+        ],
+      },
+      "onStart": [MockFunction spy] {
+        "calls": [
+          [
+            [Function],
+          ],
+          [
+            [Function],
+          ],
+          [
+            [Function],
+          ],
+          [
+            [Function],
+          ],
+        ],
+        "results": [
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+          {
+            "type": "return",
+            "value": [Circular],
+          },
+        ],
+      },
+    }
+  }
+  testID="gesture-detector"
+>
+  <View
+    testID="blocked-content"
+  />
+</GestureDetector>
+`;

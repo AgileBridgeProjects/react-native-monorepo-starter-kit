@@ -1,0 +1,35 @@
+# ── node_modules (EAS installs its own) ─────────────────────
+node_modules/
+apps/expo/node_modules/
+apps/web/node_modules/
+packages/*/node_modules/
+tools/*/node_modules/
+
+# ── Non-Expo apps (not needed for the mobile build) ─────────
+apps/backend/
+apps/web/
+e2e/
+tools/
+
+# ── Build / dist artefacts ───────────────────────────────────
+dist/
+apps/expo/.expo/
+apps/expo/android/
+apps/expo/ios/
+
+# ── AI / agent tooling (also contain Windows symlinks) ───────
+.agents/
+.claude/
+.codex/
+_bmad/
+_bmad-output/
+
+# ── IDE, CI, and local config ────────────────────────────────
+.vscode/
+.idea/
+.github/
+.husky/
+.playwright-mcp/
+
+# ── Docs and other non-source content ────────────────────────
+docs/

@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BackButton > renders an icon-only button by default with the translated accessibility label 1`] = `
+<Pressable
+  accessibilityLabel="Back"
+  accessibilityRole="button"
+  accessible={true}
+  className="touch-target -ml-xs self-center flex-row items-center justify-center gap-xs"
+  onPress={[Function]}
+  testID="back"
+>
+  <View
+    accessibilityLabel="#0A3D91"
+    testID="icon-chevron.left"
+  />
+</Pressable>
+`;
+
+exports[`BackButton > renders the label text alongside the chevron when label is provided 1`] = `
+<Pressable
+  accessibilityLabel="Go back"
+  accessibilityRole="button"
+  accessible={true}
+  className="touch-target -ml-xs self-center flex-row items-center justify-center gap-xs"
+  onPress={[Function]}
+  testID="back"
+>
+  <View
+    accessibilityLabel="#0A3D91"
+    testID="icon-chevron.left"
+  />
+  <Text
+    className="font-body text-sm text-primary"
+    testID="go-back"
+  >
+    Go back
+  </Text>
+</Pressable>
+`;

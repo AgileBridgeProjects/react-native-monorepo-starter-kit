@@ -1,0 +1,203 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# StarterKit self-hosted Supabase — SLIMMED stack (DB + Auth + Kong).
+#
+# Derived from Supabase's upstream docker/docker-compose.yml, cut down to only
+# what StarterKit uses:
+#   • db    — Postgres (Supabase image; ships pgvector + the `auth` schema/roles)
+#   • auth  — GoTrue (JWT auth API for sign-up / login / refresh)
+#   • kong  — API gateway exposing ONLY /auth/v1/* on :8000
+#
+# Deliberately OMITTED (StarterKit uses its own .NET endpoints, never the Data API):
+#   rest (PostgREST), realtime, storage, imgproxy, functions, supavisor, analytics.
+# `studio` + `meta` are available for local DB inspection via `--profile tools`.
+#
+# This file is `include`d by the root ./docker-compose.yml (one parent project) — run
+# the whole stack with `npm run dev:backend` (or `docker compose up` from the repo root).
+# Paths below are relative to THIS file's directory (Compose `include` resolves them per
+# included file). Secrets come from infra/supabase/.env — copy .env.example and generate
+# real values first (see infra/supabase/README.md). EF Core owns the `public` schema;
+# GoTrue owns `auth`. See docs/standards/supabase.md.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The root compose's project name (starterkit) wins when included; this name only applies
+# if this file is ever run standalone.
+name: starterkit
+
+services:
+
+  # ── Postgres (Supabase image: pgvector + auth schema/roles baked in) ─────────
+  db:
+    container_name: starterkit-supabase-db
+    image: supabase/postgres:17.6.1.136
+    restart: unless-stopped
+    ports:
+      # Exposed on the host so the psql CLI / EF tooling can connect directly.
+      - "5432:5432"
+    volumes:
+      # Init scripts run once on an empty data dir (after the image's own bootstrap
+      # migrations create the standard roles). roles.sql sets role passwords from
+      # POSTGRES_PASSWORD; jwt.sql stores the JWT secret as a DB setting.
+      - ./volumes/db/init/99-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ./volumes/db/init/99-jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
+      - supabase_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY:-3600}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    command:
+      - postgres
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
+      - "-c"
+      - "log_min_messages=fatal"
+
+  # ── GoTrue (Auth) ────────────────────────────────────────────────────────────
+  auth:
+    container_name: starterkit-supabase-auth
+    image: supabase/gotrue:v2.189.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      timeout: 5s
+      interval: 5s
+      retries: 5
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-http://localhost:8000}
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
+
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
+      GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
+
+      # The .NET SupabaseAuthHandler validates against these exactly.
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL:-http://localhost:8000}/auth/v1
+
+      # Email sign-up. Local dev auto-confirms so no SMTP server is required.
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
+      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-true}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
+
+      # Phone sign-up (OTP) — off unless an SMS provider is configured.
+      GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP:-false}
+      GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM:-false}
+
+      # ── OAuth providers (Google, Apple) ─────────────────────────────────────
+      # Inert until you set the *_ENABLED=true + credentials in infra/supabase/.env.
+      # Native mobile uses the ID-token flow (signInWithIdToken); web uses the redirect
+      # flow (signInWithOAuth). CLIENT_ID accepts a COMMA-SEPARATED list so the web,
+      # iOS and Android client IDs can all be accepted as valid token audiences.
+      # See infra/supabase/README.md § OAuth for the exact console setup.
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET:-}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL:-http://localhost:8000}/auth/v1/callback
+
+      GOTRUE_EXTERNAL_APPLE_ENABLED: ${APPLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_APPLE_SECRET: ${APPLE_SECRET:-}
+      GOTRUE_EXTERNAL_APPLE_REDIRECT_URI: ${API_EXTERNAL_URL:-http://localhost:8000}/auth/v1/callback
+
+      # Mobile Google/Apple native sign-in sends an ID token minted for the native client;
+      # skip GoTrue's nonce check so those tokens validate. Safe for the ID-token flow.
+      GOTRUE_EXTERNAL_SKIP_NONCE_CHECK: ${SKIP_NONCE_CHECK:-true}
+
+  # ── Kong API gateway (exposes ONLY /auth/v1/*) ───────────────────────────────
+  kong:
+    container_name: starterkit-supabase-kong
+    image: kong/kong:3.9.1
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "${KONG_HTTP_PORT:-8000}:8000/tcp"
+      - "${KONG_HTTPS_PORT:-8443}:8443/tcp"
+    volumes:
+      - ./volumes/api/kong.yml:/home/kong/temp.yml:ro
+      - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_DNS_NOT_FOUND_TTL: 1
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction,post-function
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      KONG_PROXY_ACCESS_LOG: /dev/stdout combined
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    entrypoint: ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
+
+  # ── Optional local-only DB tooling (docker compose --profile tools up) ───────
+  meta:
+    container_name: starterkit-supabase-meta
+    image: supabase/postgres-meta:v0.96.6
+    profiles: ["tools"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+  studio:
+    container_name: starterkit-supabase-studio
+    image: supabase/studio:2026.06.03-sha-0bca601
+    profiles: ["tools"]
+    restart: unless-stopped
+    depends_on:
+      meta:
+        condition: service_started
+    ports:
+      - "${STUDIO_PORT:-54323}:3000"
+    environment:
+      HOSTNAME: "0.0.0.0"
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-StarterKit}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-StarterKit}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-http://localhost:8000}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      ENABLED_FEATURES_LOGS_ALL: "false"
+
+volumes:
+  supabase_db_data:

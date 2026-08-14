@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EditProfileScreen — structural snapshots > matches the non-password (SSO) render 1`] = `
+<View>
+  <KeyboardAvoidingView
+    behavior="padding"
+    className="flex-1"
+    testID="edit-profile-screen"
+  >
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="gap-lg px-lg py-lg w-full self-center md:max-w-reading"
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text
+        variant="h4"
+      >
+        profileSection
+      </Text>
+      <Pressable
+        accessibilityLabel="changeProfilePicture"
+        accessibilityRole="button"
+        className="items-center gap-sm py-sm"
+        disabled={false}
+        onPress={[Function]}
+        testID="edit-profile-avatar-button"
+      >
+        <View
+          className="relative"
+        >
+          <View
+            accessibilityLabel="avatar:Alex Johnson:none"
+            testID="avatar"
+          />
+          <View
+            className="absolute bottom-0 right-0 rounded-full bg-primary p-xs"
+          />
+        </View>
+        <Text
+          className="font-semibold text-primary"
+          variant="body"
+        >
+          changeProfilePicture
+        </Text>
+      </Pressable>
+      <TextInput
+        onChangeText={[Function]}
+        testID="edit-profile-display-name-input"
+        value="Alex Johnson"
+      />
+      <Pressable
+        accessibilityState={
+          {
+            "disabled": true,
+          }
+        }
+        testID="edit-profile-save-button"
+      >
+        <Text>
+          save
+        </Text>
+      </Pressable>
+    </ScrollView>
+  </KeyboardAvoidingView>
+</View>
+`;
+
+exports[`EditProfileScreen — structural snapshots > matches the password-user render 1`] = `
+<View>
+  <KeyboardAvoidingView
+    behavior="padding"
+    className="flex-1"
+    testID="edit-profile-screen"
+  >
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="gap-lg px-lg py-lg w-full self-center md:max-w-reading"
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text
+        variant="h4"
+      >
+        profileSection
+      </Text>
+      <Pressable
+        accessibilityLabel="changeProfilePicture"
+        accessibilityRole="button"
+        className="items-center gap-sm py-sm"
+        disabled={false}
+        onPress={[Function]}
+        testID="edit-profile-avatar-button"
+      >
+        <View
+          className="relative"
+        >
+          <View
+            accessibilityLabel="avatar:Alex Johnson:none"
+            testID="avatar"
+          />
+          <View
+            className="absolute bottom-0 right-0 rounded-full bg-primary p-xs"
+          />
+        </View>
+        <Text
+          className="font-semibold text-primary"
+          variant="body"
+        >
+          changeProfilePicture
+        </Text>
+      </Pressable>
+      <TextInput
+        onChangeText={[Function]}
+        testID="edit-profile-display-name-input"
+        value="Alex Johnson"
+      />
+      <Pressable
+        accessibilityState={
+          {
+            "disabled": true,
+          }
+        }
+        testID="edit-profile-save-button"
+      >
+        <Text>
+          save
+        </Text>
+      </Pressable>
+      <View
+        className="border-t border-white/10"
+      />
+      <Text
+        variant="h4"
+      >
+        passwordSection
+      </Text>
+      <View
+        testID="change-password-section"
+      />
+    </ScrollView>
+  </KeyboardAvoidingView>
+</View>
+`;

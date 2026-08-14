@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-switch.md` and follow its instructions.

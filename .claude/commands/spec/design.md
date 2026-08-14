@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-design.md` and follow its instructions.

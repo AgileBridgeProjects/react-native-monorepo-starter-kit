@@ -1,0 +1,121 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.6/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "warn",
+        "noUnusedVariables": "warn",
+        "useExhaustiveDependencies": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "warn",
+        "useConst": "error",
+        "useImportType": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noConsole": "warn",
+        "noArrayIndexKey": "warn"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "json": {
+    "formatter": {
+      "indentWidth": 2
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/src/proxy/**"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["**/infrastructure/datasources/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@lib/http": "Datasources must use generated proxy functions from @/src/proxy/, not raw apiClient. See docs/standards/frontend.md § Proxy type safety.",
+                  "@lib/http/api-client": "Datasources must use generated proxy functions from @/src/proxy/, not raw apiClient. See docs/standards/frontend.md § Proxy type safety."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["e2e/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["e2e/maestro/scripts/delete-firebase-user.js"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ],
+  "files": {
+    "includes": [
+      "apps/**",
+      "packages/**",
+      "e2e/**",
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx",
+      "*.json",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.next",
+      "!**/.expo",
+      "!**/coverage",
+      "!**/next-env.d.ts",
+      "!**/openapi",
+      "!apps/backend/src/StarterKit.Core/Notifications/Templates"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "root": false,
+  "extends": ["../../biome.json"],
+  "files": {
+    "includes": ["**/*.{ts,tsx,js,jsx,json}", "!uniwind-types.d.ts"]
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noUnknownAtRules": "off"
+      }
+    },
+    "domains": {
+      "react": "recommended"
+    }
+  }
+}

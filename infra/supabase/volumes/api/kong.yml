@@ -1,0 +1,125 @@
+_format_version: '2.1'
+_transform: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# StarterKit slimmed Kong gateway — AUTH ONLY.
+#
+# This is a deliberately trimmed version of Supabase's upstream kong.yml. We run
+# a DB + Auth (GoTrue) stack only and expose NOTHING else. The upstream routes
+# for PostgREST (/rest/v1), GraphQL, Realtime, Storage, Edge Functions, pg-meta
+# and the Studio dashboard have all been removed on purpose:
+#
+#   StarterKit uses its OWN .NET endpoints for all data access. The Supabase
+#   auto-generated Data API (PostgREST) is never exposed. See docs/standards/supabase.md.
+#
+# Env var substitution ($SUPABASE_ANON_KEY, $LUA_AUTH_EXPR, …) is performed by
+# kong-entrypoint.sh at container start. To inspect the database locally, run the
+# optional `meta`/`studio` profile and reach Studio on its own mapped port.
+# ─────────────────────────────────────────────────────────────────────────────
+
+###
+### Consumers / Users
+###
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: $SUPABASE_ANON_KEY
+  - username: service_role
+    keyauth_credentials:
+      - key: $SUPABASE_SERVICE_KEY
+
+###
+### Access Control List
+###
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+###
+### API Routes — Auth (GoTrue) only
+###
+services:
+  ## Open Auth routes (no apikey required)
+  - name: auth-v1-open
+    _comment: 'Auth: /auth/v1/verify* -> http://auth:9999/verify*'
+    url: http://auth:9999/verify
+    routes:
+      - name: auth-v1-open
+        strip_path: true
+        paths:
+          - /auth/v1/verify
+    plugins:
+      - name: cors
+  - name: auth-v1-open-callback
+    _comment: 'Auth: /auth/v1/callback* -> http://auth:9999/callback*'
+    url: http://auth:9999/callback
+    routes:
+      - name: auth-v1-open-callback
+        strip_path: true
+        paths:
+          - /auth/v1/callback
+    plugins:
+      - name: cors
+  - name: auth-v1-open-authorize
+    _comment: 'Auth: /auth/v1/authorize* -> http://auth:9999/authorize*'
+    url: http://auth:9999/authorize
+    routes:
+      - name: auth-v1-open-authorize
+        strip_path: true
+        paths:
+          - /auth/v1/authorize
+    plugins:
+      - name: cors
+  - name: auth-v1-open-jwks
+    _comment: 'Auth: /auth/v1/.well-known/jwks.json -> http://auth:9999/.well-known/jwks.json'
+    url: http://auth:9999/.well-known/jwks.json
+    routes:
+      - name: auth-v1-open-jwks
+        strip_path: true
+        paths:
+          - /auth/v1/.well-known/jwks.json
+    plugins:
+      - name: cors
+
+  ## Secure Auth routes (apikey required — supabase-js always sends the anon key)
+  - name: auth-v1
+    _comment: 'Auth: /auth/v1/* -> http://auth:9999/*'
+    url: http://auth:9999/
+    routes:
+      - name: auth-v1-all
+        strip_path: true
+        paths:
+          - /auth/v1/
+    plugins:
+      - name: cors
+      - name: key-auth
+        config:
+          hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+      - name: acl
+        config:
+          hide_groups_header: true
+          allow:
+            - admin
+            - anon
+
+  ## OAuth 2.0 Authorization Server Metadata (RFC 8414)
+  - name: well-known-oauth
+    _comment: 'Auth: /.well-known/oauth-authorization-server -> http://auth:9999/.well-known/oauth-authorization-server'
+    url: http://auth:9999/.well-known/oauth-authorization-server
+    routes:
+      - name: well-known-oauth
+        strip_path: true
+        paths:
+          - /.well-known/oauth-authorization-server
+    plugins:
+      - name: cors

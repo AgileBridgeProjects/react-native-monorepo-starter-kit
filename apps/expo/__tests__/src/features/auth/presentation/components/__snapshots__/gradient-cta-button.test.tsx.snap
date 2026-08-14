@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GradientCtaButton — snapshots > matches the default tree 1`] = `
+<View
+  className="rounded-pill overflow-hidden mb-md w-full self-stretch"
+>
+  <LinearGradient
+    colors={
+      [
+        "#012D74",
+        "#3BD7F6",
+      ]
+    }
+    end={
+      {
+        "x": 1,
+        "y": 0,
+      }
+    }
+    start={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+  >
+    <Pressable
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      onPress={[MockFunction spy]}
+      testID="cta"
+    >
+      <Text>
+        Continue
+      </Text>
+    </Pressable>
+  </LinearGradient>
+</View>
+`;

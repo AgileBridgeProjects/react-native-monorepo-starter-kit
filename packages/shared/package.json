@@ -1,0 +1,31 @@
+{
+  "name": "@starterkit/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {},
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./tokens.css",
+    "./lib/cn": "./src/lib/cn.ts",
+    "./lib/error-message": "./src/lib/error-message.ts",
+    "./lib/http": "./src/lib/http/index.ts",
+    "./lib/http/api-error": "./src/lib/http/api-error.ts",
+    "./lib/http/query-client": "./src/lib/http/query-client.ts",
+    "./lib/auth": "./src/lib/auth/index.ts",
+    "./lib/supabase": "./src/lib/supabase/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.110.0",
+    "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.6",
+    "clsx": "^2.1.1",
+    "libphonenumber-js": "^1.13.7",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}

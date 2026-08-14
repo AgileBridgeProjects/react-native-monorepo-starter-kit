@@ -1,0 +1,89 @@
+name: CI — Backend
+
+on:
+  push:
+    branches: [main, dev, uat]
+  pull_request:
+    branches: [main, dev, uat]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changes
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            backend:
+              - apps/backend/**
+
+  build-and-test:
+    name: Build & Test
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('apps/backend/**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Cache dotnet tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.dotnet/tools
+          key: ${{ runner.os }}-dotnet-tools-${{ hashFiles('apps/backend/.config/dotnet-tools.json') }}
+          restore-keys: ${{ runner.os }}-dotnet-tools-
+      - run: dotnet restore apps/backend/StarterKit.slnx
+      - name: Check CSharpier formatting
+        working-directory: apps/backend
+        run: dotnet tool restore && dotnet csharpier check src/ tests/
+      - run: dotnet build apps/backend/StarterKit.slnx --no-restore --configuration Release
+      - run: dotnet test apps/backend/StarterKit.slnx --no-build --verbosity normal --configuration Release
+
+  # Single always-reporting status check — mirrors the Web CI / Expo CI gates.
+  # build-and-test is path-filtered (skipped when apps/backend is untouched), so
+  # it can't be a required check directly — a skipped required check blocks the PR
+  # forever. This gate always runs and passes when the backend job succeeded OR
+  # was skipped, so "Backend CI" is safe to mark required in the branch ruleset.
+  gate:
+    name: Backend CI
+    needs: [changes, build-and-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the backend build/test passed (or was skipped)
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          BUILD_AND_TEST: ${{ needs.build-and-test.result }}
+        run: |
+          echo "changes=$CHANGES build-and-test=$BUILD_AND_TEST"
+          for r in "$CHANGES" "$BUILD_AND_TEST"; do
+            if [[ "$r" == "failure" || "$r" == "cancelled" ]]; then
+              echo "A required Backend job did not pass (result: $r)"
+              exit 1
+            fi
+          done
+          echo "Backend CI gate passed."
+

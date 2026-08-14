@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`IconSymbol (native/android fallback) > matches the community-variant snapshot 1`] = `
+<FontAwesome
+  color="#111"
+  name="trophy-outline"
+  size={28}
+  style={
+    [
+      {},
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`IconSymbol (native/android fallback) > matches the default snapshot 1`] = `
+<FontAwesome
+  color="#111"
+  name="home"
+  size={28}
+  style={
+    [
+      {},
+      undefined,
+    ]
+  }
+/>
+`;

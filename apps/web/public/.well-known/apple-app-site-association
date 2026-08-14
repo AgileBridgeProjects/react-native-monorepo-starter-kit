@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "94ZVAPCDFW.com.example.starterkit",
+          "94ZVAPCDFW.com.example.starterkit.dev",
+          "94ZVAPCDFW.com.example.starterkit.uat"
+        ],
+        "components": [
+          {
+            "/": "/mobile-setup-account*",
+            "comment": "Athlete/coach account setup deep link into the native app"
+          }
+        ]
+      }
+    ]
+  }
+}

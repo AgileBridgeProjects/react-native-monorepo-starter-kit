@@ -1,0 +1,25 @@
+# Normalize all text files to LF in the repo, check out as-is
+* text=auto eol=lf
+
+# Ensure C# files are always LF (matches CSharpier endOfLine config)
+*.cs text eol=lf
+*.csproj text eol=lf
+*.sln text eol=lf
+*.slnx text eol=lf
+*.props text eol=lf
+
+# Frontend files
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Keep Windows batch files as CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

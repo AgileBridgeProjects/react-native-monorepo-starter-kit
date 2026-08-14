@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.starterkit",
+      "sha256_cert_fingerprints": [
+        "46:B1:78:62:F8:E9:7A:AE:A6:97:4B:3A:D7:2A:0E:8C:64:5C:AB:90:0B:79:92:E1:59:7F:F0:D0:06:D5:DB:9F"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.starterkit.dev",
+      "sha256_cert_fingerprints": [
+        "56:B2:5D:9E:33:9C:4B:1D:71:1E:D0:8C:B6:B8:CA:8F:EB:6D:F5:91:65:F8:3A:2D:4C:5E:34:15:1D:25:00:4C"
+      ]
+    }
+  }
+]

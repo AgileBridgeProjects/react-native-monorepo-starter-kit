@@ -1,0 +1,62 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OAuthLoadingOverlay — snapshots > matches the visible tree 1`] = `
+<View
+  className="flex-1"
+  testID="oauth-loading-overlay"
+>
+  <LinearGradient
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      className="flex-1 items-center justify-center pb-lg"
+    >
+      <Image
+        accessibilityLabel="StarterKit"
+        className="w-[380px] h-[165px]"
+        resizeMode="contain"
+        source={1}
+      />
+    </View>
+    <View
+      className="relative"
+    >
+      <View
+        testID="wave-divider"
+      />
+      <View
+        className="bg-surface px-md pt-2xl pb-xl items-center"
+      >
+        <ActivityIndicator
+          className="mb-lg"
+          color="#b"
+          size="large"
+        />
+        <Text
+          className="mb-xs text-text-secondary text-center"
+          variant="body"
+        >
+          oauth.signingInWith
+        </Text>
+        <Pressable
+          accessibilityState={
+            {
+              "disabled": false,
+            }
+          }
+          onPress={[Function]}
+          testID="oauth-loading-overlay-cancel"
+        >
+          <Text>
+            oauth.cancel
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  </LinearGradient>
+</View>
+`;

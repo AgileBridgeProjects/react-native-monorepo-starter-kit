@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-tasks.md` and follow its instructions.

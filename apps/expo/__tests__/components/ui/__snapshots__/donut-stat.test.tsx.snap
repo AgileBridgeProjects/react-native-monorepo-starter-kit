@@ -1,0 +1,119 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DonutStat > renders the plain KPI (no ring) with optional icon when hideRing is set 1`] = `
+<View
+  accessibilityLabel="Total XP: 42"
+  accessibilityRole="none"
+  accessible={true}
+  className="flex-1 items-center gap-xs rounded-2xl px-md py-md bg-surface"
+  testID="donut"
+>
+  <View
+    className="items-center justify-center"
+    style={
+      {
+        "height": 68,
+        "width": 68,
+      }
+    }
+  >
+    <View
+      className="items-center justify-center gap-xxs"
+    >
+      <View
+        testID="icon-bolt.fill"
+      />
+      <Text
+        className="font-body text-text text-xl font-extrabold"
+        style={
+          {
+            "color": "#6d28d9",
+          }
+        }
+        testID="42"
+      >
+        42
+      </Text>
+    </View>
+  </View>
+  <Text
+    className="font-body text-xs text-text-secondary"
+    testID="total-xp"
+  >
+    Total XP
+  </Text>
+</View>
+`;
+
+exports[`DonutStat > renders the ring, value, label and a fraction accessibility label 1`] = `
+<View
+  accessibilityLabel="Games won: 3/10"
+  accessibilityRole="none"
+  accessible={true}
+  className="flex-1 items-center gap-xs rounded-2xl px-md py-md bg-surface"
+  testID="donut"
+>
+  <View
+    className="items-center justify-center"
+    style={
+      {
+        "height": 68,
+        "width": 68,
+      }
+    }
+  >
+    <Svg
+      height={68}
+      style={
+        {
+          "position": "absolute",
+        }
+      }
+      width={68}
+    >
+      <Circle
+        cx={34}
+        cy={34}
+        fill="none"
+        r={30.5}
+        stroke="#22c55e24"
+        strokeWidth={7}
+      />
+      <Circle
+        cx={34}
+        cy={34}
+        fill="none"
+        origin="34, 34"
+        r={30.5}
+        rotation={-90}
+        stroke="#22c55e"
+        strokeDasharray={191.63715186897738}
+        strokeDashoffset={134.14600630828417}
+        strokeLinecap="round"
+        strokeWidth={7}
+      />
+    </Svg>
+    <View
+      className="items-center justify-center"
+    >
+      <Text
+        className="font-body text-text text-xl font-extrabold"
+        style={
+          {
+            "color": "#22c55e",
+          }
+        }
+        testID="3"
+      >
+        3
+      </Text>
+    </View>
+  </View>
+  <Text
+    className="font-body text-xs text-text-secondary"
+    testID="games-won"
+  >
+    Games won
+  </Text>
+</View>
+`;

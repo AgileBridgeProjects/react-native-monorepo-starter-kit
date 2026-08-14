@@ -1,0 +1,18 @@
+name: Enforce Branch Policy
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-source-branch:
+    name: Source Branch Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR comes from uat
+        run: |
+          if [ "${{ github.head_ref }}" != "uat" ]; then
+            echo "::error::Only the 'uat' branch can be merged into main. This PR is from '${{ github.head_ref }}'."
+            exit 1
+          fi
+          echo "✓ PR is from 'uat' — allowed."

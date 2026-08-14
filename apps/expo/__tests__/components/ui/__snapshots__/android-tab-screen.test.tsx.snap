@@ -1,0 +1,57 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AndroidHomeTabScreen > matches the Android home snapshot 1`] = `
+<View
+  data-options={
+    {
+      "headerShadowVisible": false,
+      "headerShown": true,
+      "headerStyle": {
+        "backgroundColor": "transparent",
+        "borderBottomWidth": 0,
+        "elevation": 0,
+        "height": 76,
+        "shadowOpacity": 0,
+      },
+      "headerTintColor": "#FFFFFF",
+      "headerTitle": [Function],
+      "headerTitleAlign": "left",
+      "headerTransparent": true,
+    }
+  }
+  testID="stack"
+>
+  <View
+    data-name="index"
+    testID="stack-screen"
+  />
+</View>
+`;
+
+exports[`AndroidTabScreen > matches the Android snapshot 1`] = `
+<View
+  data-options={
+    {
+      "headerShadowVisible": false,
+      "headerShown": true,
+      "headerStyle": {
+        "backgroundColor": "#0A3D91",
+        "borderBottomWidth": 0,
+        "elevation": 0,
+        "height": 76,
+        "shadowOpacity": 0,
+      },
+      "headerTintColor": "#FFFFFF",
+      "headerTitle": [Function],
+      "headerTitleAlign": "left",
+      "headerTransparent": false,
+    }
+  }
+  testID="stack"
+>
+  <View
+    data-name="index"
+    testID="stack-screen"
+  />
+</View>
+`;

@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PeriodSwitcher > renders the label and both chevron buttons 1`] = `
+<View
+  className="flex-row items-center justify-center gap-md bg-surface"
+>
+  <Pressable
+    accessibilityLabel="Previous period"
+    accessibilityRole="button"
+    className="touch-target rounded-xl border border-border bg-surface px-sm py-sm"
+    onPress={[MockFunction spy]}
+  >
+    <View
+      testID="icon-chevron.left"
+    />
+  </Pressable>
+  <Text
+    className="font-body text-base text-text"
+    testID="june-2026"
+  >
+    June 2026
+  </Text>
+  <Pressable
+    accessibilityLabel="Next period"
+    accessibilityRole="button"
+    className="touch-target rounded-xl border border-border bg-surface px-sm py-sm"
+    onPress={[MockFunction spy]}
+  >
+    <View
+      testID="icon-chevron.right"
+    />
+  </Pressable>
+</View>
+`;

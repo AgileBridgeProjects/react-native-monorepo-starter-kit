@@ -1,0 +1,50 @@
+# Claude Code ignore file
+# Files and directories Claude should never read or index.
+# Same syntax as .gitignore.
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+.next/
+.expo/
+out/
+build/
+coverage/
+
+# .NET build artefacts
+**/bin/
+**/obj/
+**/*.user
+
+# Large generated/binary graphify files — not useful to read directly
+# GRAPH_REPORT.md and CHEAT_SHEET.md are intentionally NOT excluded — Claude reads those
+graphify-out/graph.json
+graphify-out/graph.html
+
+# Lock files — too large, no useful signal for Claude
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+**/packages.lock.json
+
+# Auto-generated proxy — never hand-edited, Orval owns it
+**/src/proxy/
+
+# Test snapshots
+**/__snapshots__/
+
+# Env files — secrets must never enter context
+.env
+.env.*
+!.env.example
+
+# IDE / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+*.suo
+*.user

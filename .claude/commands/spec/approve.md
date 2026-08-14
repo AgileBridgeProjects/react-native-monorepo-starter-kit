@@ -1,0 +1,1 @@
+Read `.agents/commands/spec-approve.md` and follow its instructions.

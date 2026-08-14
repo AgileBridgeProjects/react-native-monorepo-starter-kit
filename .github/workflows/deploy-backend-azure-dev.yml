@@ -1,0 +1,200 @@
+name: Deploy Backend to Azure (dev)
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - apps/backend/src/StarterKit.MobileApi/**
+      - apps/backend/src/StarterKit.Core/**
+      - apps/backend/src/StarterKit.Auth/**
+      - apps/backend/src/StarterKit.Data/**
+      - .github/workflows/deploy-backend-azure-dev.yml
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Optional image tag override (defaults to short SHA)
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-backend-azure-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME_API }}
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      API_BASE_URL: ${{ vars.API_BASE_URL }}
+      KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
+      MANAGED_IDENTITY_CLIENT_ID: ${{ vars.MANAGED_IDENTITY_CLIENT_ID }}
+      IMAGE_NAME: starterkit-api
+      DOCKERFILE_PATH: apps/backend/src/StarterKit.MobileApi/Dockerfile
+      DOCKER_BUILD_CONTEXT: apps/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        shell: bash
+        run: |
+          test -n "$AZURE_RESOURCE_GROUP"
+          test -n "$AZURE_WEBAPP_NAME"
+          test -n "$ACR_NAME"
+          test -n "$API_BASE_URL"
+          test -n "$KEYVAULT_NAME"
+          test -n "$MANAGED_IDENTITY_CLIENT_ID"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Enable maintenance mode
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ vars.AZURE_WEBAPP_NAME_WEB }}" \
+            --settings MAINTENANCE_MODE=true
+
+      - name: Login to ACR
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Resolve image tag
+        id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ github.event.inputs.image_tag }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_URI=${ACR_NAME}.azurecr.io/${IMAGE_NAME}:$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        shell: bash
+        run: |
+          IMAGE_URI="${{ steps.tag.outputs.IMAGE_URI }}"
+          docker build -f "$DOCKERFILE_PATH" -t "$IMAGE_URI" -t "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:dev" "$DOCKER_BUILD_CONTEXT"
+          docker push "$IMAGE_URI"
+          docker push "${ACR_NAME}.azurecr.io/${IMAGE_NAME}:dev"
+
+      - name: Update API App container image
+        run: |
+          az webapp config container set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --docker-custom-image-name "${{ steps.tag.outputs.IMAGE_URI }}" \
+            --docker-registry-server-url "https://${ACR_NAME}.azurecr.io"
+
+      - name: Remove legacy Email app settings (Key Vault is source of truth)
+        shell: bash
+        run: |
+          if ! az webapp config appsettings delete \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --setting-names Email__Enabled Email__ApiKey Email__FromEmail Email__FromName; then
+            echo "::warning::Failed to delete legacy Email__* app settings on $AZURE_WEBAPP_NAME — they may still be shadowing Key Vault. Check permissions/RBAC for appsettings delete and re-run if needed."
+          fi
+          # the identity split: this step is idempotent cleanup, not a one-off migration — it stays even
+          # after the dummy settings are gone so nothing can reintroduce them here. Historically
+          # this workflow's "Ensure API runtime app settings" step below set
+          # Email__Enabled=false / Email__ApiKey=dev-noop / Email__FromEmail / Email__FromName
+          # on every deploy. Program.cs adds AddEnvironmentVariables() AFTER AddAzureKeyVault(),
+          # so App Service app settings always shadow Key Vault secrets for the same key —
+          # meaning those dummy values permanently overrode any real Email--* secrets in
+          # kv-starterkit-dev, and `appsettings set` never removes a key once written, so a
+          # manual delete + Key Vault edit never survived the next deploy. Key Vault
+          # (kv-starterkit-dev) already holds real Email--ApiKey / Email--Enabled / Email--FromEmail
+          # secrets; Email--FromName is intentionally NOT in Key Vault (not a secret) and
+          # falls back to the "StarterKit" default in appsettings.json. The delete is non-blocking
+          # by design (a cleanup hiccup shouldn't block shipping a new container image), but a
+          # failure is surfaced via ::warning:: rather than silently swallowed — masking it here
+          # would let the exact bug this step fixes persist invisibly behind a green pipeline.
+
+      - name: Ensure API runtime app settings
+        shell: bash
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --settings \
+              WEBSITES_PORT=8080 \
+              ASPNETCORE_URLS=http://+:8080 \
+              ASPNETCORE_ENVIRONMENT=Development \
+              ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+              WEBSITE_WARMUP_STATUSES=200,404 \
+              KeyVault__Name="$KEYVAULT_NAME" \
+              AZURE_CLIENT_ID="$MANAGED_IDENTITY_CLIENT_ID" \
+              Support__HelpEmail=support@starterkit.local \
+              Supabase__Enabled=true \
+              AccountSetup__MobileBaseUrl=https://yourapp.example.com
+          # Supabase (GoTrue) auth is ENABLED in deployed envs. The shipped
+          # appsettings.json defaults Supabase:Enabled=false (for tests / local
+          # compose override), so without this the app uses NoOpSupabaseAuthService
+          # and rejects every token (401 on all logins). Token validation uses the
+          # hosted project's ES256 JWKS; JwtSecret / ApiExternalUrl / ServiceRoleKey /
+          # AnonKey come from Key Vault.
+          # Email is intentionally absent from this list — see the "Remove legacy Email
+          # app settings" step above. Twilio is also omitted so the SMS sender falls
+          # back to NoOp.
+          # Supabase (GoTrue) auth settings are not set here — the app reads them
+          # from Key Vault at startup (Supabase--JwtSecret, Supabase--ApiExternalUrl,
+          # Supabase--ServiceRoleKey, Supabase--AnonKey; tagged app=backend).
+          # ASPNETCORE_ENVIRONMENT=Development: without this, IHostEnvironment
+          # defaulted to "Production" here since it was never set, which silently broke
+          # env.IsDevelopment()-gated behavior on deployed dev — most notably
+          # UsersSetupController never returning the setup/password-reset link in the API
+          # response, so with Email:Enabled also historically false, signup had no working
+          # path to complete on deployed dev at all. This does NOT expose the Hangfire
+          # dashboard: that call site was changed to require DevClockGate.IsLocalDevelopment
+          # (true local machine only, per its own WEBSITE_SITE_NAME defense-in-depth check),
+          # specifically because dev is a public URL with no network restriction and the
+          # dashboard has Authorization = [] (no auth at all).
+
+      - name: Restart API App
+        run: az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
+
+      - name: Verify API health endpoint
+        shell: bash
+        run: |
+          HEALTH_URL="${API_BASE_URL%/}/healthz"
+          echo "Checking ${HEALTH_URL}"
+          for i in {1..20}; do
+            code=$(curl -s -o /tmp/health.txt -w "%{http_code}" "$HEALTH_URL" || true)
+            if [ "$code" = "200" ]; then
+              echo "API healthy"
+              cat /tmp/health.txt
+              exit 0
+            fi
+            echo "Attempt $i/20: status=${code:-none}, waiting..."
+            sleep 10
+          done
+          echo "API health check failed"
+          cat /tmp/health.txt || true
+          exit 1
+
+      - name: Disable maintenance mode
+        if: success() || failure()
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ vars.AZURE_WEBAPP_NAME_WEB }}" \
+            --settings MAINTENANCE_MODE=false
+
+      - name: Print deployed URL
+        shell: bash
+        run: |
+          echo "Configured API URL: $API_BASE_URL"

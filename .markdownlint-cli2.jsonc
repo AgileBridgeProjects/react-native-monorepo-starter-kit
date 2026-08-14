@@ -1,0 +1,42 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false, // line length — prose wraps freely
+    "MD024": { "siblings_only": true }, // allow repeated headings under different parents
+    "MD025": false, // multiple top-level headings tolerated (docs with front matter)
+    "MD033": false, // inline HTML allowed
+    "MD041": false, // first line need not be a top-level heading
+    "MD060": false
+  },
+  "ignores": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.expo/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/dist/**",
+    "**/coverage/**",
+    // Generated test artefacts. Playwright writes markdown error-context files into
+    // test-results/, which are gitignored but were still being linted.
+    "**/test-results/**",
+    "**/html-report/**",
+    "**/playwright-report/**",
+    "graphify-out/**",
+    "_bmad/**",
+    "_bmad-output/**",
+    // Git worktrees live under .claude/worktrees/ (see .gitignore). Without this the
+    // `**/*.md` glob descends into every worktree and re-lints the whole repo once
+    // per worktree — 666 real errors were reported as 3483.
+    ".claude/worktrees/**",
+    // Agent-tooling instruction trees. Not product documentation: they are mirrored
+    // across .claude/, .agents/ and .github/prompts/, and some skills are installed
+    // from upstream repos (see skills-lock.json), so local edits get overwritten.
+    // .claude/rules/** is deliberately NOT ignored — it is project-authored and
+    // routed from CLAUDE.md.
+    ".claude/skills/**",
+    ".claude/commands/**",
+    ".agents/skills/**",
+    ".agents/commands/**",
+    ".github/prompts/**"
+  ]
+}

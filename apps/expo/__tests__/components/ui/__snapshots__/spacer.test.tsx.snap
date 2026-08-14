@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Spacer > matches the custom-size snapshot 1`] = `
+<View
+  className="h-2xl"
+/>
+`;
+
+exports[`Spacer > matches the default snapshot 1`] = `
+<View
+  className="h-sm"
+/>
+`;

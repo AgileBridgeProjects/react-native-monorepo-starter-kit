@@ -1,0 +1,18 @@
+name: Enforce Branch Policy (dev → uat)
+
+on:
+  pull_request:
+    branches: [uat]
+
+jobs:
+  check-source-branch:
+    name: Source Branch Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR comes from dev
+        run: |
+          if [ "${{ github.head_ref }}" != "dev" ]; then
+            echo "::error::Only the 'dev' branch can be merged into uat. This PR is from '${{ github.head_ref }}'."
+            exit 1
+          fi
+          echo "✓ PR is from 'dev' — allowed."

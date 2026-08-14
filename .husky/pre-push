@@ -1,0 +1,21 @@
+#!/bin/sh
+# Pre-push: heavier gates that are too slow for every commit but should never
+# reach CI broken. Skip with --no-verify for emergency pushes.
+
+npm run typecheck || exit 1
+
+# Full-repo secret scan (pre-commit only sees staged files).
+npm run check:secrets || exit 1
+
+# Dead code / unused dependencies across all workspaces.
+# Intentional build-ahead exports are tagged `@knipignore` (baseline to burn down).
+npm run knip || exit 1
+
+# Repo-standards invariants (required docs, npm-only, biome guard-rails, hook wiring).
+npm run check:standards || exit 1
+
+# E2E: if the pushed commits touch spec-covered code, require a passing local run
+# recorded in e2e/.e2e-receipt.json. Skip deliberately with E2E_SKIP="reason".
+# Called directly (not via npm run) so git's `<local ref> <local sha> <remote ref>
+# <remote sha>` lines on stdin reach the script unmodified.
+node scripts/check-e2e-receipt.mjs || exit 1

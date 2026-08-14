@@ -1,0 +1,216 @@
+# Fixed project name so StarterKit's stack never collides with other repos that also
+# keep their compose at apps/backend/ (image names, network, and container prefixes
+# are all namespaced under "starterkit").
+#
+# The Postgres database lives in the self-hosted Supabase stack
+# (infra/supabase/docker-compose.supabase.yml, service `db`) — GoTrue owns the
+# `auth` schema, EF Core owns `public`. Run the two files together (same project
+# name = one network) via `npm run dev:backend` / `npm run rebuild:backend`.
+name: starterkit
+
+services:
+
+  # ── Migrator ─────────────────────────────────────────────────
+  # One-shot job: applies migrations + seeds, then exits. Must NOT restart
+  # on failure — webapi/mobileapi gate on `service_completed_successfully` so a
+  # stopped failed migrator is the correct signal. A restart loop hides the
+  # actual error in scrolling logs and leaves the dependent APIs waiting.
+  migrator:
+    container_name: starterkit-migrator
+    build:
+      context: .
+      dockerfile: src/StarterKit.Migrator/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      azurite:
+        condition: service_healthy
+      # Wait for the gateway (→ GoTrue) so the dev-admin auth user can be seeded.
+      kong:
+        condition: service_healthy
+    environment:
+      # The migrator is a generic Host, which reads DOTNET_ENVIRONMENT (not ASPNETCORE_ENVIRONMENT).
+      # IsDevelopment() gates the known-password dev-admin auth seed.
+      - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB:-postgres};Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      - AzureStorage__ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite
+      - Retry__MaxRetries=10
+      - Retry__RetryDelayMilliseconds=5000
+      # Supabase — used only to seed the dev admin GoTrue user (Development only).
+      - Supabase__Enabled=true
+      - Supabase__InternalUrl=http://kong:8000
+      - Supabase__ServiceRoleKey=${SERVICE_ROLE_KEY}
+      - Supabase__AnonKey=${ANON_KEY}
+    restart: "no"
+
+  # ── Azurite (Azure Storage emulator) ───────────────────────
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: starterkit-azurite
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --loose
+    ports:
+      - "11000:10000"
+      - "11001:10001"
+      - "11002:10002"
+    volumes:
+      - azurite_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(10000,'localhost',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));\""]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 3s
+
+  # ── Mobile API ───────────────────────────────────────────────
+  mobileapi:
+    container_name: starterkit-mobileapi
+    build:
+      context: .
+      dockerfile: src/StarterKit.MobileApi/Dockerfile
+    ports:
+      - "5001:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - KeyVault__Name=${AZURE_KEYVAULT_NAME:-}
+      - KeyVault__Enabled=${KEYVAULT_ENABLED:-true}
+      # DefaultAzureCredential — EnvironmentCredential picks these up inside the container
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - Cors__AllowedOrigins__0=http://localhost:3000
+      - Cors__AllowedOrigins__1=http://localhost:8081
+      # Azurite — point blob storage at the local emulator; real dev account is never touched
+      - AzureStorage__ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite
+      # Rewrite internal azurite SAS URLs to the LAN IP so mobile devices can fetch blobs
+      - AzureStorage__PublicBlobEndpoint=http://${HOST_LAN_IP:-localhost}:11000/devstoreaccount1
+    # Bind-mount (not baked into the image) so editing DevClock:OverrideUtc — or any other
+    # appsettings value — takes effect without a `docker-compose up --build` rebuild. Config
+    # hot-reloads via IOptionsMonitor; if the file watcher doesn't fire on your Docker Desktop
+    # backend, `docker compose restart mobileapi` re-reads it instantly (no rebuild either way).
+    volumes:
+      - ./src/StarterKit.MobileApi/appsettings.json:/app/appsettings.json:ro
+    # Command-line args have the highest config priority — they override Key Vault secrets.
+    # This ensures the local PostgreSQL is always used, even when Key Vault is configured.
+    command:
+      - "--ConnectionStrings:DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB:-postgres};Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+      - "--AzureStorage:ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite"
+      - "--Cors:AllowedOrigins:0=http://localhost:3000"
+      - "--Cors:AllowedOrigins:1=http://localhost:8081"
+      # LAN origin — the setup-account web fallback, opened in a phone browser at
+      # http://<HOST_LAN_IP>:8081, calls this API cross-origin to validate/complete setup.
+      - "--Cors:AllowedOrigins:2=http://${HOST_LAN_IP:-localhost}:8081"
+      # AccountSetup — portal links point to the local admin portal. The mobile base uses the
+      # app's custom URL scheme so the setup link opens the native app directly (the app is
+      # native-only; there is no mobile web). LAN IP (not localhost) so a link opened on a
+      # phone actually resolves back to this dev machine. Deployed envs override this to the
+      # https Universal Link host via CI. See docs/standards/notifications.md.
+      - "--AccountSetup:PortalBaseUrl=http://${HOST_LAN_IP:-localhost}:3000"
+      - "--AccountSetup:MobileBaseUrl=starterkit-mobile-dev://"
+      # Local dev: external providers run disabled / in NoOp mode. Their options are
+      # validated on startup, so dummy required values are supplied here. Configure real
+      # credentials via Key Vault (and set the matching *:Enabled=true) for working
+      # auth / email / SMS. (--Support:HelpEmail is only consumed by the Mobile API.)
+      # Supabase (GoTrue) auth. Secrets come from the merged infra/supabase/.env. The backend
+      # validates the token issuer against ApiExternalUrl and calls the Admin API via InternalUrl
+      # (Kong on the shared Docker network). See docs/standards/supabase.md.
+      - "--Supabase:Enabled=true"
+      - "--Supabase:ApiExternalUrl=${API_EXTERNAL_URL:-http://localhost:8000}"
+      - "--Supabase:InternalUrl=http://kong:8000"
+      - "--Supabase:JwtSecret=${JWT_SECRET}"
+      - "--Supabase:ServiceRoleKey=${SERVICE_ROLE_KEY}"
+      - "--Supabase:AnonKey=${ANON_KEY}"
+      - "--Email:Enabled=${EMAIL_ENABLED:-false}"
+      - "--Email:ApiKey=${EMAIL_API_KEY:-dev-noop}"
+      - "--Email:FromEmail=${EMAIL_FROM_EMAIL:-dev@starterkit.local}"
+      - "--Email:FromName=${EMAIL_FROM_NAME:-StarterKit Dev}"
+      - "--Twilio:AccountSid=dev-noop"
+      - "--Twilio:AuthToken=dev-noop"
+      - "--Twilio:FromNumber=+10000000000"
+      - "--Support:HelpEmail=support@starterkit.local"
+      # Anthropic (Claude) — journal distress-language scanning, MobileApi only. Falls
+      # back to the "#" placeholder when unset; the scan job fails at call time, not at startup.
+      - "--Anthropic:ApiKey=${ANTHROPIC_API_KEY:-#}"
+      # Journal content encryption at rest, MobileApi only — same fallback behavior as
+      # Anthropic above: encrypt/decrypt fails at call time (invalid base64), not at startup.
+      - "--JournalEncryption:Key=${JOURNAL_ENCRYPTION_KEY:-#}"
+    restart: on-failure
+
+  # ── Web API ──────────────────────────────────────────────────
+  webapi:
+    container_name: starterkit-webapi
+    build:
+      context: .
+      dockerfile: src/StarterKit.WebApi/Dockerfile
+    ports:
+      - "5002:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - KeyVault__Name=${AZURE_KEYVAULT_NAME:-}
+      - KeyVault__Enabled=${KEYVAULT_ENABLED:-true}
+      # DefaultAzureCredential — EnvironmentCredential picks these up inside the container
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      # Azurite — point blob storage at the local emulator; real dev account is never touched
+      - AzureStorage__ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite
+      # Rewrite internal azurite:10000 URIs to localhost so the browser can reach them
+      - AzureStorage__PublicBlobEndpoint=http://localhost:11000/devstoreaccount1
+    # Bind-mount so editing DevClock:OverrideUtc (or any appsettings value) takes effect without
+    # a rebuild — see the matching mobileapi comment above.
+    volumes:
+      - ./src/StarterKit.WebApi/appsettings.json:/app/appsettings.json:ro
+    # Command-line args have the highest config priority — they override Key Vault secrets.
+    # This ensures the local PostgreSQL is always used, even when Key Vault is configured.
+    command:
+      - "--ConnectionStrings:DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB:-postgres};Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+      - "--AzureStorage:ConnectionString=UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite"
+      # appsettings.json already declares localhost:3000/3001 (index 0/1) — this appends a
+      # third origin so the admin portal opened on a phone over LAN (npm run dev:web with
+      # NEXT_PUBLIC_API_URL pointed at HOST_LAN_IP) can still call this API cross-origin.
+      - "--Cors:AllowedOrigins:2=http://${HOST_LAN_IP:-localhost}:3000"
+      # AccountSetup — portal links point to the local admin portal. The mobile base uses the
+      # app's custom URL scheme so the setup link opens the native app directly (the app is
+      # native-only; there is no mobile web). LAN IP (not localhost) so a link opened on a
+      # phone actually resolves back to this dev machine. Deployed envs override this to the
+      # https Universal Link host via CI. See docs/standards/notifications.md.
+      - "--AccountSetup:PortalBaseUrl=http://${HOST_LAN_IP:-localhost}:3000"
+      - "--AccountSetup:MobileBaseUrl=starterkit-mobile-dev://"
+      # Local dev: external providers run disabled / in NoOp mode. Their options are
+      # validated on startup, so dummy required values are supplied here. Configure real
+      # credentials via Key Vault (and set the matching *:Enabled=true) for working
+      # auth / email / SMS. (--Support:HelpEmail is only consumed by the Mobile API.)
+      # Supabase (GoTrue) auth. Secrets come from the merged infra/supabase/.env. The backend
+      # validates the token issuer against ApiExternalUrl and calls the Admin API via InternalUrl
+      # (Kong on the shared Docker network). See docs/standards/supabase.md.
+      - "--Supabase:Enabled=true"
+      - "--Supabase:ApiExternalUrl=${API_EXTERNAL_URL:-http://localhost:8000}"
+      - "--Supabase:InternalUrl=http://kong:8000"
+      - "--Supabase:JwtSecret=${JWT_SECRET}"
+      - "--Supabase:ServiceRoleKey=${SERVICE_ROLE_KEY}"
+      - "--Supabase:AnonKey=${ANON_KEY}"
+      - "--Email:Enabled=${EMAIL_ENABLED:-false}"
+      - "--Email:ApiKey=${EMAIL_API_KEY:-dev-noop}"
+      - "--Email:FromEmail=${EMAIL_FROM_EMAIL:-dev@starterkit.local}"
+      - "--Email:FromName=${EMAIL_FROM_NAME:-StarterKit Dev}"
+      - "--Twilio:AccountSid=dev-noop"
+      - "--Twilio:AuthToken=dev-noop"
+      - "--Twilio:FromNumber=+10000000000"
+      - "--Support:HelpEmail=support@starterkit.local"
+    restart: on-failure
+
+volumes:
+  azurite_data:

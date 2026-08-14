@@ -1,0 +1,170 @@
+name: Deploy Mobile (uat)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build and submit
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC Azure login
+
+concurrency:
+  group: deploy-mobile-uat
+  cancel-in-progress: false
+
+jobs:
+  build-ios:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
+    runs-on: ubuntu-latest
+    environment: uat
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      - name: Build iOS IPA (EAS cloud)
+        run: eas build --platform ios --profile uat --non-interactive --clear-cache
+
+  build-android:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}
+    runs-on: ubuntu-latest
+    environment: uat
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      - name: Build Android AAB (EAS cloud)
+        run: eas build --platform android --profile uat --non-interactive --clear-cache
+
+      - name: Post build link to job summary
+        run: |
+          echo "### Android build ready" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 [View latest build](https://expo.dev/accounts/agilebridge/projects/starterkit/builds?platform=android)" >> $GITHUB_STEP_SUMMARY
+
+  submit-android:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}
+    needs: build-android
+    runs-on: ubuntu-latest
+    environment: uat
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode Google Play service account key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > keys/google-play-service-account.json
+
+      - name: Submit Android to Play Store (internal testing)
+        run: eas submit --platform android --profile uat --non-interactive --latest
+
+  submit-ios:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
+    needs: build-ios
+    runs-on: ubuntu-latest
+    environment: uat
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
+
+      - name: Submit iOS to TestFlight
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        run: eas submit --platform ios --profile uat --non-interactive --latest

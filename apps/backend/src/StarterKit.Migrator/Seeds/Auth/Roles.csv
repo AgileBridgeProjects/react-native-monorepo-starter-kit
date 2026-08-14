@@ -1,0 +1,7 @@
+Id,Name,Description,IsElevated,IsPortalRole,IsSystem,RequiresOnboarding
+00000000-0000-0000-0000-000000000001,SuperAdmin,Full platform access with all permissions. Assigned to platform administrators only.,true,true,true,false
+00000000-0000-0000-0000-000000000002,ClubAdmin,Full access within a club. Manages users and teams and club-level settings.,true,true,true,false
+00000000-0000-0000-0000-000000000005,Athlete,Player role. Accesses assigned games and reflection content via the mobile app.,false,false,true,true
+00000000-0000-0000-0000-000000000006,Parent,Guardian of one or more Athletes. Accesses linked athlete progress via the mobile app.,false,false,true,true
+00000000-0000-0000-0000-000000000007,Coach,Coaches one or more teams. Accesses team rosters and content via the mobile app.,false,false,true,true
+00000000-0000-0000-0000-000000000008,Director,Full access within a club. Distinguished from ClubAdmin as a separate club-elevated portal role.,true,true,true,true

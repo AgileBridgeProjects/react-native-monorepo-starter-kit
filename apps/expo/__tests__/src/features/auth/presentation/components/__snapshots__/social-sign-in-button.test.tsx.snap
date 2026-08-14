@@ -1,0 +1,53 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SocialSignInButton — snapshots > matches the default (icon + label) tree 1`] = `
+<Pressable
+  accessibilityLabel="Phone"
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": false,
+      "disabled": false,
+    }
+  }
+  className="h-11 flex-row items-center justify-center gap-2 rounded-[15px] border border-border-strong bg-surface-elevated active:opacity-70 disabled:opacity-50 flex-1"
+  disabled={false}
+  onPress={[MockFunction spy]}
+  testID="social-btn"
+>
+  <View
+    className="w-5 items-center justify-center"
+  >
+    <View
+      testID="icon-phone.fill"
+    />
+  </View>
+  <Text
+    className="font-body-semibold text-xs text-text-secondary"
+  >
+    Phone
+  </Text>
+</Pressable>
+`;
+
+exports[`SocialSignInButton — snapshots > matches the loading tree 1`] = `
+<Pressable
+  accessibilityLabel="Phone"
+  accessibilityRole="button"
+  accessibilityState={
+    {
+      "busy": true,
+      "disabled": true,
+    }
+  }
+  className="h-11 flex-row items-center justify-center gap-2 rounded-[15px] border border-border-strong bg-surface-elevated active:opacity-70 disabled:opacity-50 flex-1"
+  disabled={true}
+  onPress={[MockFunction spy]}
+  testID="social-btn"
+>
+  <ActivityIndicator
+    color="#111"
+    size="small"
+  />
+</Pressable>
+`;

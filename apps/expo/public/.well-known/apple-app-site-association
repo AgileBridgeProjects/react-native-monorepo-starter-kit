@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["94ZVAPCDFW.com.example.starterkit"],
+        "components": [
+          {
+            "/": "/setup-account*",
+            "comment": "Account setup deep link for employee onboarding (ABC-123)"
+          }
+        ]
+      }
+    ]
+  }
+}

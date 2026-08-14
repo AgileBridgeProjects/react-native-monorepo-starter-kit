@@ -1,0 +1,7 @@
+{
+  "greeting": "Welcome back",
+  "greetingName": "Welcome, {{name}}",
+  "placeholderTitle": "Your home screen",
+  "placeholderBody": "This starter kit ships with authentication, profile and settings already wired up. Replace this screen with your app's home content.",
+  "placeholderDocsHint": "See docs/standards/frontend-mobile.md for the screen conventions."
+}
