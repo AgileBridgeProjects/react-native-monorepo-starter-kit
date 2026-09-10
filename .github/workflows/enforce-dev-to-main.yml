@@ -10,6 +10,10 @@ permissions:
 
 jobs:
   check-source-branch:
+    # Automated dependency PRs branch from the target, not from the promotion source, so the
+    # policy would block every one of them forever. Skipping them is deliberate: they still
+    # have to pass CI and still need a human to merge.
+    if: github.event.pull_request.user.type != 'Bot'
     name: Source Branch Check
     runs-on: ubuntu-latest
     steps:

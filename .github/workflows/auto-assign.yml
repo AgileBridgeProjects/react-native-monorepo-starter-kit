@@ -6,6 +6,9 @@ on:
 
 jobs:
   assign:
+    # A bot cannot be an assignee: the API rejects the login and the job goes red on every
+    # Dependabot PR, which is noise on exactly the PRs nobody needs assigned.
+    if: github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -13,6 +16,8 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
+            // Best-effort: a login that cannot be assigned (an outside contributor, a
+            // deactivated account) should not fail the PR.
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
