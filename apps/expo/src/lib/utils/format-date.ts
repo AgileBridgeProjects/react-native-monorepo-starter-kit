@@ -1,26 +1,5 @@
 import { DEFAULT_LOCALE } from '@starterkit/shared';
 
-function toDate(value: Date | number | string): Date | null {
-  const date = value instanceof Date ? value : new Date(value as string | number);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-/**
- * True when the two timestamps fall in different calendar months — the month-header/separator
- * boundary shared by the Journal history list and the Calendar list.
- */
-export function isDifferentMonth(
-  a: Date | number | string,
-  b: Date | number | string | null | undefined,
-): boolean {
-  const first = toDate(a);
-  if (!first) return false;
-  if (b === null || b === undefined) return true;
-  const second = toDate(b);
-  if (!second) return true;
-  return first.getFullYear() !== second.getFullYear() || first.getMonth() !== second.getMonth();
-}
-
 /**
  * Formats a date as "d Mon 'yy" — e.g. "12 Sep '26".
  *

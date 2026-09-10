@@ -14,6 +14,8 @@ export const PROFILE_QUERY_KEY = ['profile'] as const;
  * mutation's `onSuccess` callback) and so can't call `useProfile()` directly. Goes
  * through the query cache like the hook does, so the result is available to the
  * next screen without a redundant refetch.
+ *
+ * @knipignore build-ahead: shipped for consumers of the kit, not called by the example app.
  */
 export function fetchProfile(queryClient: QueryClient) {
   return queryClient.fetchQuery({
