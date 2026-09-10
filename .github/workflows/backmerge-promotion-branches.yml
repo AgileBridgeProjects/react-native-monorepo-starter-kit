@@ -70,7 +70,7 @@ jobs:
             echo "::notice title=No downstream branch::'${{ steps.dir.outputs.into }}' does not exist, so there is nothing to back-merge into. See docs/standards/branching.md if you meant to use the dev/uat/main model."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.exists.outputs.found == 'true'
         with:
           ref: ${{ steps.dir.outputs.into }}

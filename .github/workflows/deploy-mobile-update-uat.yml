@@ -42,7 +42,7 @@ jobs:
         working-directory: apps/expo
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # check-ota-relevant-changes.mjs diffs against the pre-push SHA —
           # needs real history, not the default shallow single-commit clone.

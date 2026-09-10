@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # check:secrets:all scans everything, but knip and the architecture scan
           # benefit from full history being available for nothing in particular —

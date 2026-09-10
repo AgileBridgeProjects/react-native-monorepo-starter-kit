@@ -26,7 +26,7 @@ jobs:
     outputs:
       expo: ${{ steps.filter.outputs.expo }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: dorny/paths-filter@v4
@@ -50,7 +50,7 @@ jobs:
     if: needs.changes.outputs.expo == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history + tags — mobile-version.mjs needs the merge base and the mobile-v* release tags
       - uses: actions/setup-node@v4
@@ -93,7 +93,7 @@ jobs:
     if: needs.changes.outputs.expo == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
