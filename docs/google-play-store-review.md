@@ -39,10 +39,10 @@ Google's pre-submission checklist. Failing these causes the most common review r
 
 Apps featuring UGC **must**:
 
-- Proactively moderate content or provide robust moderation tools — [the identity split](https://linear.app/agilebridge/issue/the identity split): automated send-time screening (`ContentModerationService` / `TextScreeningEngine`), see `docs/moderation-taxonomy.md`
-- Include an in-app mechanism to report offensive or illegal content — [the identity split](https://linear.app/agilebridge/issue/the identity split) (report capture shipped in the identity split as `MessageReport`)
-- Respond to abuse reports in a timely manner — the Director/Club Admin review queue is [the identity split](https://linear.app/agilebridge/issue/the identity split), not yet built
-- Block known repeat offenders — [the identity split](https://linear.app/agilebridge/issue/the identity split), not yet built; `ModerationEvent` already records the repeat-offender signal this will consume
+- Proactively moderate content or provide robust moderation tools — [ABC-123](https://linear.app/your-workspace/issue/ABC-123): automated send-time screening (`ContentModerationService` / `TextScreeningEngine`), see `docs/moderation-taxonomy.md`
+- Include an in-app mechanism to report offensive or illegal content — [ABC-123](https://linear.app/your-workspace/issue/ABC-123) (report capture shipped as `MessageReport`)
+- Respond to abuse reports in a timely manner — the Director/Club Admin review queue is [ABC-123](https://linear.app/your-workspace/issue/ABC-123), not yet built
+- Block known repeat offenders — [ABC-123](https://linear.app/your-workspace/issue/ABC-123), not yet built; `ModerationEvent` already records the repeat-offender signal this will consume
 
 ### 1.3 Dangerous or Deceptive Apps
 

@@ -154,4 +154,3 @@ Do not generate steering documents — project context comes from `docs/standard
 | Audio/SFX | `docs/standards/audio.md` |
 
 **Do not load standards files that are not relevant to the current task.** This reduces context bloat and keeps responses faster and more accurate.
-

@@ -68,4 +68,3 @@ Update `docs/standards/` first — single source of truth for Claude, Copilot, C
 Do not generate steering documents — project context comes from `docs/standards/`.
 
 ---
-

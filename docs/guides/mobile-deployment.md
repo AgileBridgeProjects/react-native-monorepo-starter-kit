@@ -11,7 +11,7 @@ for the StarterKit mobile app using EAS Build + EAS Submit.
 - Android testers must enable **Install from unknown sources** on their device (one-time)
 - EAS CLI installed: `npm install -g eas-cli`
 - `EXPO_TOKEN` secret already configured in GitHub (repo settings > Environments > dev > Secrets)
-- EAS project linked: project ID `afdb800b-d0c8-47e1-9a52-db65bbac277a`, owner `agilebridge`
+- EAS project linked: project ID `YOUR-EAS-PROJECT-ID`, owner `YOUR-EXPO-ACCOUNT`
 
 ---
 

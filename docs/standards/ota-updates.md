@@ -357,7 +357,7 @@ this is expected, not a broken pipeline. Sequence:
 EAS resolves `runtimeVersion` **twice** — once on the machine that starts the build, once
 on the builder — and fails the build when the two disagree:
 
-```
+```text
 Runtime version calculated on local machine not equal to runtime version calculated during build.
 ```
 
@@ -416,5 +416,5 @@ interacts, the update applies on the next cold start regardless. Dev clients no-
    matches the latest builds (nothing is published).
 2. Publish for real (or push to `dev`), then on a device with the installed build:
    background → foreground the app, wait for the prompt, tap **Restart now**.
-3. Confirm on the [Expo updates dashboard](https://expo.dev/accounts/agilebridge/projects/starterkit/updates)
+3. Confirm on the [Expo updates dashboard](https://expo.dev/accounts/YOUR-EXPO-ACCOUNT/projects/starterkit/updates)
    that the update group's runtime equals the build's runtime.

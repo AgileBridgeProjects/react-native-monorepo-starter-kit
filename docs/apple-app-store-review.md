@@ -39,9 +39,9 @@ category (Guideline 2.1 — App Completeness, which accounts for >40% of unresol
 
 Apps with UGC **must** include:
 
-- A method for filtering objectionable material — [the identity split](https://linear.app/agilebridge/issue/the identity split): automated send-time screening (`ContentModerationService` / `TextScreeningEngine`), see `docs/moderation-taxonomy.md`
-- A mechanism to report offensive content with timely responses — [the identity split](https://linear.app/agilebridge/issue/the identity split) (report capture shipped in the identity split as `MessageReport`; the Director/Club Admin review queue is [the identity split](https://linear.app/agilebridge/issue/the identity split))
-- Ability to block abusive users — [the identity split](https://linear.app/agilebridge/issue/the identity split) (not yet built — flag this bullet as outstanding before submitting a build with in-app messaging enabled)
+- A method for filtering objectionable material — [ABC-123](https://linear.app/your-workspace/issue/ABC-123): automated send-time screening (`ContentModerationService` / `TextScreeningEngine`), see `docs/moderation-taxonomy.md`
+- A mechanism to report offensive content with timely responses — [ABC-123](https://linear.app/your-workspace/issue/ABC-123) (report capture shipped as `MessageReport`; the Director/Club Admin review queue is [ABC-123](https://linear.app/your-workspace/issue/ABC-123))
+- Ability to block abusive users — [ABC-123](https://linear.app/your-workspace/issue/ABC-123) (not yet built — flag this bullet as outstanding before submitting a build with in-app messaging enabled)
 - Published contact information — `Support:HelpEmail` (see `docs/standards/monorepo.md`)
 
 ### 1.3 Kids Category

@@ -146,4 +146,3 @@ Approvals must go through the dashboard — verbal approval is never accepted.
 | Audio/SFX | `docs/standards/audio.md` |
 
 **Do not load standards files that are not relevant to the current task.** This reduces context bloat and keeps responses faster and more accurate.
-

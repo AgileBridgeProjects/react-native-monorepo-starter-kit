@@ -172,7 +172,7 @@ jobs:
         run: |
           echo "### Android build ready" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📦 [View latest build](https://expo.dev/accounts/agilebridge/projects/starterkit/builds?platform=android)" >> $GITHUB_STEP_SUMMARY
+          echo "📦 [View latest build](https://expo.dev/accounts/YOUR-EXPO-ACCOUNT/projects/starterkit/builds?platform=android)" >> $GITHUB_STEP_SUMMARY
 
   submit-android:
     if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}

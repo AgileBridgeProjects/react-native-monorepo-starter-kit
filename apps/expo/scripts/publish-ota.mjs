@@ -294,7 +294,10 @@ summary(`### 🚀 OTA update published to \`${channel}\` (${compatible.join(' + 
 summary('');
 summary(`**Message:** ${updateMessage}`);
 summary('');
-summary('[View on the Expo dashboard](https://expo.dev/accounts/agilebridge/projects/starterkit/updates)');
+const expoAccount = process.env.EXPO_ACCOUNT ?? 'YOUR-EXPO-ACCOUNT';
+summary(
+    `[View on the Expo dashboard](https://expo.dev/accounts/${expoAccount}/projects/starterkit/updates)`,
+);
 
 if (compatible.length < platforms.length) {
     summary('');
