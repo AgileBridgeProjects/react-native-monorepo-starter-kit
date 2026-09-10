@@ -214,6 +214,21 @@ violations are recorded explicitly and **new** violations still fail:
 
 - **knip** — intentional build-ahead exports carry a `@knipignore` JSDoc tag
   (`tags: ["-knipignore"]` in `knip.json`). Grep `@knipignore` for the list.
+
+  Whole files and dependencies cannot carry a tag, so those are declared in `knip.json`
+  instead. Two groups are declared there deliberately, and both are a starter kit's
+  problem rather than a defect:
+
+  - `apps/expo` `ignore` — scaffolding the kit ships unwired (`placeholder-screen`,
+    `use-keyboard-visible`, `encrypted-mmkv-storage`, `lower-first`). Delete what you do
+    not want rather than leaving the gate red.
+  - `apps/expo` `ignoreDependencies` — packages backing capabilities the standards
+    describe (`@microsoft/signalr` for realtime, `@shopify/react-native-skia` for canvas,
+    `@10play/tentap-editor`, `expo-device`, `expo-document-picker`) that the example app
+    does not yet call. Prune the ones your product will not use.
+
+  Note that `knip.json` is strict JSON validated against a schema: a `"// comment"` key
+  fails the run with `unrecognized_keys`, which is why the reasoning lives here.
 - **check:architecture** — the `BASELINE` set at the top of the script lists each accepted
   debt as `path::rule` with the fix in a comment.
 

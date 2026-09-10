@@ -32,7 +32,6 @@
         "constants/**/*.{ts,tsx}",
         "scripts/**/*.{mjs,cjs}"
       ],
-      "// ignore": "Build-ahead scaffolding. A starter kit ships these unwired on purpose; delete what you do not want rather than leaving knip red.",
       "ignore": [
         "src/proxy/**",
         "components/ui/placeholder-screen.tsx",
@@ -40,7 +39,6 @@
         "src/lib/storage/encrypted-mmkv-storage.ts",
         "src/lib/utils/lower-first.ts"
       ],
-      "// ignoreDependencies": "Installed for the capabilities the standards docs describe (realtime, canvas, rich text, device info, file picking) but not yet called by the example app.",
       "ignoreDependencies": [
         "@expo/config",
         "babel-preset-expo",
@@ -55,7 +53,6 @@
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"],
       "entry": ["__tests__/**/*.test.ts"],
-      "// vitest": "Hoisted from the workspace root, which is where the config lives. Listing it here as well would duplicate the version in two places for no gain.",
       "ignoreDependencies": ["vitest"]
     },
     "packages/icons": {
