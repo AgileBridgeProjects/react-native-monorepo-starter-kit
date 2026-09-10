@@ -128,7 +128,7 @@ jobs:
           EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
           # Apple team for credential ops — team IDs aren't secret; this is the org's.
-          EXPO_APPLE_TEAM_ID: 94ZVAPCDFW
+          EXPO_APPLE_TEAM_ID: YOUR-APPLE-TEAM-ID
           EXPO_APPLE_TEAM_TYPE: COMPANY_OR_ORGANIZATION
         run: eas build --platform ios --profile dev --non-interactive
 

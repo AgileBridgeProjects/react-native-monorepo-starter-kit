@@ -22,8 +22,11 @@ on:
 permissions:
   contents: read
 
+# A push to a shared branch is a required check on that exact commit, so successive
+# merges must not cancel each other: the sha keeps each push in its own group. PR
+# refs are already per-PR, where superseding an older commit is what we want.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || '' }}
   cancel-in-progress: true
 
 jobs:

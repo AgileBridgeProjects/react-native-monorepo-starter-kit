@@ -1,0 +1,73 @@
+name: Tag mobile version
+
+# Records a mobile release: whenever apps/expo/version.json reaches `main`, tag the
+# commit `mobile-v<production>`. scripts/mobile-version.mjs anchors every later bump
+# on the highest such tag, so this is what makes ten `feat` PRs in a cycle produce
+# one minor bump instead of ten (docs/standards/ota-updates.md § Versioning).
+#
+# Tags are not branches, so no ruleset stands in the way of GITHUB_TOKEN here — the
+# branches themselves still require a PR, which is exactly why the bump lives inside
+# the PR and the tag lives here.
+#
+# Never moves an existing tag: a version that was built once stays pointed at the
+# commit it was built from.
+#
+# Bootstrap: a fresh fork has no tags, and mobile-version.mjs needs an anchor to count
+# from. Seed one by hand before the first Expo PR:
+#   git tag -a mobile-v1.0.0 -m "baseline" && git push origin mobile-v1.0.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/expo/version.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tag-mobile-version
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags — needed to see whether this version is already tagged
+
+      - name: Refuse anything but main
+        if: github.ref_name != 'main'
+        run: |
+          echo "::error title=Wrong branch::Release tags are cut from main only, not '${GITHUB_REF_NAME}'."
+          exit 1
+
+      - name: Tag the release
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          PRODUCTION=$(node -p "require('./apps/expo/version.json').production")
+          RUNTIME=$(node -p "require('./apps/expo/version.json').runtime")
+
+          # `node -p` prints "undefined" for a missing key and the tag would push green as
+          # mobile-vundefined, which highestReleaseTag() then skips forever.
+          if ! [[ "$PRODUCTION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error title=Bad version::apps/expo/version.json production is '${PRODUCTION}', not MAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          TAG="mobile-v${PRODUCTION}"
+
+          if EXISTING=$(git rev-parse -q --verify "refs/tags/${TAG}^{commit}"); then
+            echo "::notice title=Already tagged::${TAG} already points at ${EXISTING:0:9}; not moving it."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "StarterKit mobile ${PRODUCTION} reached main (runtime ${RUNTIME})" -m "Triggered by ${ACTOR} via ${GITHUB_EVENT_NAME}."
+          git push origin "refs/tags/${TAG}"
+          echo "::notice title=Tagged::${TAG} → ${GITHUB_SHA:0:9} (runtime ${RUNTIME})"

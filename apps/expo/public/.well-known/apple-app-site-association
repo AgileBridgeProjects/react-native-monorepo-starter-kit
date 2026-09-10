@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["94ZVAPCDFW.com.example.starterkit"],
+        "appIDs": ["YOUR-APPLE-TEAM-ID.com.example.starterkit"],
         "components": [
           {
             "/": "/setup-account*",

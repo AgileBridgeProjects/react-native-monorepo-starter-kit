@@ -11,8 +11,11 @@ permissions:
   contents: read
   pull-requests: read
 
+# A push to a shared branch is a required check on that exact commit, so successive
+# merges must not cancel each other: the sha keeps each push in its own group. PR
+# refs are already per-PR, where superseding an older commit is what we want.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || '' }}
   cancel-in-progress: true
 
 jobs:
@@ -38,6 +41,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    # A dead runner or a hung testhost should fail in minutes, not sit for the 6-hour default.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -53,14 +58,30 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.dotnet/tools
-          key: ${{ runner.os }}-dotnet-tools-${{ hashFiles('apps/backend/.config/dotnet-tools.json') }}
+          key: ${{ runner.os }}-dotnet-tools-${{ hashFiles('apps/backend/dotnet-tools.json') }}
           restore-keys: ${{ runner.os }}-dotnet-tools-
       - run: dotnet restore apps/backend/StarterKit.slnx
       - name: Check CSharpier formatting
         working-directory: apps/backend
         run: dotnet tool restore && dotnet csharpier check src/ tests/
       - run: dotnet build apps/backend/StarterKit.slnx --no-restore --configuration Release
-      - run: dotnet test apps/backend/StarterKit.slnx --no-build --verbosity normal --configuration Release
+      # --blame-hang turns a stalled run into a named culprit. A thread-starved testhost
+      # produces no output and no error, so the previous failure mode was 45 minutes of
+      # silence and a job GitHub could not even cancel. On hang this aborts, writes a
+      # sequence file naming the test that was in flight, and fails the step.
+      - name: Run tests
+        run: >-
+          dotnet test apps/backend/StarterKit.slnx --no-build --verbosity normal
+          --configuration Release --blame-hang --blame-hang-timeout 8m
+      - name: Upload hang dump
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-hang-dump
+          path: |
+            apps/backend/**/TestResults/**
+          if-no-files-found: ignore
+          retention-days: 7
 
   # Single always-reporting status check — mirrors the Web CI / Expo CI gates.
   # build-and-test is path-filtered (skipped when apps/backend is untouched), so

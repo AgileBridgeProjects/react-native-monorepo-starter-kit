@@ -3,9 +3,9 @@
     "details": [
       {
         "appIDs": [
-          "94ZVAPCDFW.com.example.starterkit",
-          "94ZVAPCDFW.com.example.starterkit.dev",
-          "94ZVAPCDFW.com.example.starterkit.uat"
+          "YOUR-APPLE-TEAM-ID.com.example.starterkit",
+          "YOUR-APPLE-TEAM-ID.com.example.starterkit.dev",
+          "YOUR-APPLE-TEAM-ID.com.example.starterkit.uat"
         ],
         "components": [
           {

@@ -129,7 +129,7 @@ custom URI scheme (`com.example.starterkit.huawei.<env>:/oauthredirect`) against
 
 ### 3.1 Register redirect URIs
 
-1. Azure Portal → App Registrations → `fd83002f-ae88-4028-817a-d9579ae44d20`
+1. Azure Portal → App Registrations → `YOUR-MICROSOFT-CLIENT-ID`
 2. Authentication → Platform configurations → Mobile and desktop applications
 3. Add: `starterkit-mobile-<env>://auth/microsoft`
 

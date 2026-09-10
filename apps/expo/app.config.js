@@ -23,40 +23,43 @@
  * the store app's record. The dev client has a fourth identity of its own because the
  * `dev` app owns `.dev`: when both claimed it, installing one replaced the other.
  *
- * Dev client builds (simulator, dev-client) disable expo-updates entirely, so a
- * fixed "dev-client" runtime label keeps the local CLI pre-check and the EAS
- * build server in agreement. Every other profile (dev/uat/production) shares the
- * manual RUNTIME_VERSION below; see its comment for the bump policy.
+ * Every profile shares version.json's runtime. Dev client builds (simulator, dev-client)
+ * disable expo-updates entirely rather than carrying a runtime label of their own; see
+ * RUNTIME_VERSION below for the bump policy and the `updates` spread near the bottom for
+ * why the label had to go.
  */
 
 /**
- * OTA runtime version — bump on EVERY native-surface change.
+ * Both version numbers come from ./version.json, which scripts/mobile-version.mjs
+ * derives and CI verifies — never edit them by hand (docs/standards/ota-updates.md
+ * § Versioning).
  *
- * An EAS Update is only delivered to installed builds whose runtimeVersion
- * matches this string exactly. Keeping it manual (instead of the fingerprint
- * policy) makes OTA deterministic: fingerprint hashes differ between the
- * machines that build binaries (EAS servers) and the machines that publish
- * updates (GitHub Actions / dev laptops), which silently killed every update.
+ * RUNTIME_VERSION — expo-updates runtimeVersion. An EAS Update is delivered only to
+ * installed builds whose runtimeVersion matches this string exactly. Keeping it a plain
+ * string (instead of the fingerprint policy) makes OTA deterministic: fingerprint hashes
+ * differ between the machines that build binaries (EAS servers) and the machines that
+ * publish updates (GitHub Actions / dev laptops), which silently killed every update.
  *
- * Bump the PATCH part when any of these change (CI enforces this via
- * scripts/check-runtime-version.mjs):
- *   - a dependency is added/removed/upgraded in apps/expo/package.json
- *   - app.json (plugins, permissions, icons, schemes, intent filters, …)
- *   - app.config.js native config (bundle IDs, plugins, googleServicesFile, …)
- *   - anything in apps/expo/plugins/ or apps/expo/modules/
- *   - google-services.json / GoogleService-Info*.plist
+ * mobile-version.mjs bumps the PATCH part when a PR touches the native surface: app.json,
+ * this file, eas.json, plugins/, modules/, any google-services*.json /
+ * GoogleService-Info*.plist, a dependency section of apps/expo/package.json, or a root
+ * patches/ file. After a bump a full EAS build must be cut per channel before OTA resumes
+ * for that channel — scripts/publish-ota.mjs refuses to publish to builds on an older
+ * runtime and says so.
  *
- * After bumping: a full EAS build must be cut per channel before OTA resumes
- * for that channel — scripts/publish-ota.mjs refuses to publish to builds on
- * an older runtime and tells you exactly that. See docs/standards/ota-updates.md.
+ * PRODUCTION_APP_VERSION — CFBundleShortVersionString / versionName for the store
+ * listings, applied to the `production` profile only (see the spread below). It moves
+ * per release from the branch's Conventional Commits; dev/uat/dev-client keep app.json's
+ * frozen 1.0.0 because they are separate app records whose build numbers autoIncrement.
  */
-const RUNTIME_VERSION = '1.0.18';
+const { production: PRODUCTION_APP_VERSION, runtime: RUNTIME_VERSION } = require('./version.json');
 
 const IS_DEV_CLIENT_BUILD =
   process.env.EAS_BUILD_PROFILE === 'simulator' || process.env.EAS_BUILD_PROFILE === 'dev-client';
 
 const IS_DEV_BUILD = process.env.EAS_BUILD_PROFILE === 'dev';
 const IS_UAT_BUILD = process.env.EAS_BUILD_PROFILE === 'uat';
+const IS_PRODUCTION_BUILD = process.env.EAS_BUILD_PROFILE === 'production';
 
 /**
  * Which environment this binary IS, exposed to the runtime through `extra` (read it via
@@ -125,6 +128,9 @@ module.exports = ({ config }) => {
   return {
     ...config,
     icon: appIcon,
+    // Store builds carry the derived version lineage; every other profile keeps app.json's
+    // 1.0.0. See PRODUCTION_APP_VERSION above.
+    ...(IS_PRODUCTION_BUILD && { version: PRODUCTION_APP_VERSION }),
     extra: {
       ...config.extra,
       appEnvironment: APP_ENVIRONMENT,
@@ -244,12 +250,18 @@ module.exports = ({ config }) => {
       }
       return plugin;
     }),
-    // Dev client builds disable expo-updates entirely — a fixed label keeps the
-    // local CLI pre-check and the EAS build server in agreement. Every other
-    // profile (dev/uat/production) shares the manual RUNTIME_VERSION above; see
-    // its comment for the bump policy. Do NOT switch back to the fingerprint
-    // policy: its hashes are not reproducible across build servers vs the
-    // machines that publish OTAs, which silently drops every update.
-    runtimeVersion: IS_DEV_CLIENT_BUILD ? 'dev-client' : RUNTIME_VERSION,
+    // Dev clients load their JS from Metro and are never an OTA target, so expo-updates
+    // is switched off outright. They used to carry a fixed `dev-client` runtimeVersion
+    // instead, which broke every dev-client build started from a machine whose eas-cli
+    // does not inject the profile env locally: EAS resolves runtimeVersion twice, once
+    // where the build starts and once on the builder, and aborts when the two disagree.
+    ...(IS_DEV_CLIENT_BUILD && {
+      updates: { ...config.updates, enabled: false },
+    }),
+    // One runtime for every profile, never conditional on EAS_BUILD_PROFILE — see the
+    // comment above. Do NOT switch back to the fingerprint policy either: its hashes are
+    // not reproducible across build servers vs the machines that publish OTAs, which
+    // silently drops every update.
+    runtimeVersion: RUNTIME_VERSION,
   };
 };

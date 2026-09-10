@@ -2,6 +2,23 @@
 # Pre-push: heavier gates that are too slow for every commit but should never
 # reach CI broken. Skip with --no-verify for emergency pushes.
 
+# Git hands the refs being pushed on stdin, one per line:
+#   <local ref> <local sha> <remote ref> <remote sha>
+# Read them once. check-e2e-receipt.mjs needs them unmodified, and the tag guard
+# below needs to see them first.
+PUSH_REFS=$(cat)
+
+# A tag push skips every gate, but only when the commits it publishes are already on a remote
+# branch, where they passed. scripts/pre-push-tag-skip.mjs decides and is unit-tested; running
+# the gates for a seed tag took the mobile-v1.0.0 push past a two-minute timeout twice, and
+# skipping unconditionally would let `git tag t <local-commit>` publish ungated code, since no
+# workflow triggers on tags.
+if printf '%s
+' "$PUSH_REFS" | node scripts/pre-push-tag-skip.mjs; then
+  echo "[pre-push] tag push of already-published commits — gates skipped."
+  exit 0
+fi
+
 npm run typecheck || exit 1
 
 # Full-repo secret scan (pre-commit only sees staged files).
@@ -16,6 +33,16 @@ npm run check:standards || exit 1
 
 # E2E: if the pushed commits touch spec-covered code, require a passing local run
 # recorded in e2e/.e2e-receipt.json. Skip deliberately with E2E_SKIP="reason".
-# Called directly (not via npm run) so git's `<local ref> <local sha> <remote ref>
-# <remote sha>` lines on stdin reach the script unmodified.
-node scripts/check-e2e-receipt.mjs || exit 1
+# Fed the captured ref lines so the script sees exactly what git sent.
+printf '%s
+' "$PUSH_REFS" | node scripts/check-e2e-receipt.mjs || exit 1
+
+# Mobile versions: apps/expo/version.json must carry the production bump the pushed
+# Conventional Commits owe, and a runtime bump for any native-surface change.
+# --if-mobile makes this a no-op for backend-, web- and docs-only branches, so it never
+# blocks a push it has no opinion about. Fails with the exact command to run.
+#   Hotfix branch off main:  MOBILE_VERSION_BASE=origin/main git push
+#   Verified JS-only change: JS_ONLY=true git push        ([js-only] in the PR title too)
+#                PowerShell: $env:JS_ONLY='true'; git push
+#   Deliberate escape:       MOBILE_VERSION_SKIP="reason" git push
+node apps/expo/scripts/mobile-version.mjs check --if-mobile || exit 1

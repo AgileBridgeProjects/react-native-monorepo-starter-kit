@@ -8,12 +8,14 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
+        "EXPO_USE_PRECOMPILED_MODULES": "1",
+        "EXPO_PRECOMPILED_MODULES_BASE_URL": "http://cocoapods.caches.eas-build.internal/storage.googleapis.com/eas-build-precompiled-modules/",
         "EAS_BUILD_PROFILE": "simulator",
         "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
-        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "YOUR-MICROSOFT-CLIENT-ID",
         "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
       },
       "ios": {
@@ -25,12 +27,14 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
+        "EXPO_USE_PRECOMPILED_MODULES": "1",
+        "EXPO_PRECOMPILED_MODULES_BASE_URL": "http://cocoapods.caches.eas-build.internal/storage.googleapis.com/eas-build-precompiled-modules/",
         "EAS_BUILD_PROFILE": "dev-client",
         "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
-        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "YOUR-MICROSOFT-CLIENT-ID",
         "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
       },
       "channel": "dev-client"
@@ -40,13 +44,15 @@
       "environment": "preview",
       "autoIncrement": true,
       "env": {
+        "EXPO_USE_PRECOMPILED_MODULES": "1",
+        "EXPO_PRECOMPILED_MODULES_BASE_URL": "http://cocoapods.caches.eas-build.internal/storage.googleapis.com/eas-build-precompiled-modules/",
         "EAS_BUILD_PROFILE": "dev",
         "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-dev",
         "EXPO_PUBLIC_API_URL": "https://yourapp.example.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
-        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "YOUR-MICROSOFT-CLIENT-ID",
         "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
       },
       "ios": {
@@ -60,11 +66,13 @@
       "channel": "uat",
       "autoIncrement": true,
       "env": {
+        "EXPO_USE_PRECOMPILED_MODULES": "1",
+        "EXPO_PRECOMPILED_MODULES_BASE_URL": "http://cocoapods.caches.eas-build.internal/storage.googleapis.com/eas-build-precompiled-modules/",
         "EAS_BUILD_PROFILE": "uat",
         "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile-uat",
         "EXPO_PUBLIC_API_URL": "https://app-starterkit-api-uat.azurewebsites.net",
-        "EXPO_PUBLIC_DEEP_LINK_HOST": "orange-mushroom-0a426670f.7.azurestaticapps.net",
-        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCpFlaYGBPkB0cv_KNjUDWu6MeYgbjx6CU",
+        "EXPO_PUBLIC_DEEP_LINK_HOST": "your-uat-web-host.example.net",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "YOUR-FIREBASE-API-KEY",
         "EXPO_PUBLIC_FIREBASE_APP_ID": "YOUR-FIREBASE-APP-ID",
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "starterkit-1a1e9.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "YOUR-PROJECT-NUMBER",
@@ -73,7 +81,7 @@
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
-        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "YOUR-MICROSOFT-CLIENT-ID",
         "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
       },
       "ios": {
@@ -87,13 +95,15 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
+        "EXPO_USE_PRECOMPILED_MODULES": "1",
+        "EXPO_PRECOMPILED_MODULES_BASE_URL": "http://cocoapods.caches.eas-build.internal/storage.googleapis.com/eas-build-precompiled-modules/",
         "EAS_BUILD_PROFILE": "production",
         "EXPO_PUBLIC_APP_SCHEME": "starterkit-mobile",
         "EXPO_PUBLIC_API_URL": "https://yourapp.example.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "YOUR-GOOGLE-OAUTH-CLIENT-ID.apps.googleusercontent.com",
-        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "fd83002f-ae88-4028-817a-d9579ae44d20",
+        "EXPO_PUBLIC_MICROSOFT_CLIENT_ID": "YOUR-MICROSOFT-CLIENT-ID",
         "EXPO_PUBLIC_MICROSOFT_TENANT_ID": "common"
       }
     }
@@ -126,13 +136,14 @@
     },
     "production": {
       "ios": {
+        "ascAppId": "YOUR-ASC-APP-ID",
         "ascApiKeyId": "$ASC_API_KEY_ID",
         "ascApiKeyIssuerId": "$ASC_API_KEY_ISSUER_ID",
         "ascApiKeyPath": "./keys/asc-api-key.p8"
       },
       "android": {
         "serviceAccountKeyPath": "./keys/google-play-service-account.json",
-        "track": "production"
+        "track": "internal"
       }
     }
   }

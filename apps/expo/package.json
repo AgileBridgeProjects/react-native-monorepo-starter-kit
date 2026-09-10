@@ -30,7 +30,8 @@
     "optimize:face-images": "node scripts/optimize-face-images.mjs",
     "optimize:face-images:check": "node scripts/optimize-face-images.mjs --check",
     "ota:publish": "node scripts/publish-ota.mjs",
-    "ota:check-runtime": "node scripts/check-runtime-version.mjs"
+    "version:check": "node scripts/mobile-version.mjs check",
+    "version:apply": "node scripts/mobile-version.mjs apply"
   },
   "dependencies": {
     "@10play/tentap-editor": "^1.0.1",
