@@ -354,7 +354,7 @@ Each feature's presentation layer must also have a `<feature>.copy.ts` file expo
 </Typography>
 
 // ✅ CORRECT: StatBlock example — locale has neutral text, component applies uppercase
-// Locale: { "streakLabel": "Streak" }
+// Locale: { "sessionsLabel": "Sessions" }
 // Component:
 <Typography variant="caption" className="uppercase text-text-secondary">
   {label}

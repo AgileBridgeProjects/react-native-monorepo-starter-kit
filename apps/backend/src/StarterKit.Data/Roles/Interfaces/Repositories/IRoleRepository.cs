@@ -81,7 +81,7 @@ public interface IRoleRepository
     /// Bulk variant of <see cref="GetPermissionsForUserAsync"/> — returns the subset of
     /// <paramref name="userIds"/> that currently hold <paramref name="permission"/>, in one
     /// query rather than one call per user. Backs re-checks against a batch of users (e.g.
-    /// <c>CheckInReminderJob</c> confirming access hasn't been revoked since a config was
+    /// a scheduled reminder job confirming access hasn't been revoked since a config was
     /// seeded/updated).
     /// </summary>
     Task<IReadOnlySet<Guid>> ListUserIdsWithPermissionAsync(

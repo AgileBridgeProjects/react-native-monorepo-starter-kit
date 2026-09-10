@@ -70,7 +70,7 @@ function EntitySharingPickerSkeleton() {
  *
  * Entity-agnostic by design: no datasource, i18n namespace, or entity-specific copy lives
  * here — the caller owns fetching (search debounce, `useQuery`, pagination state) and passes
- * every label as a prop. See `ClubSharingPicker` for the reflection-templates→clubs wrapper.
+ * every label as a prop. See `ClubSharingPicker` for a concrete wrapper.
  */
 export function EntitySharingPicker<T extends SharableEntity>({
   items,

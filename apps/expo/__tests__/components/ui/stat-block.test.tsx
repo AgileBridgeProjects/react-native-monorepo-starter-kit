@@ -29,7 +29,7 @@ describe('StatBlock', () => {
 
   it('stringifies a numeric value', () => {
     const renderer = renderTree(
-      <StatBlock icon="star.fill" value={0} label="Streak" color="#f59e0b" testID="stat" />,
+      <StatBlock icon="star.fill" value={0} label="Sessions" color="#f59e0b" testID="stat" />,
     );
 
     expect(textChildren(renderer.root)).toContain('0');
@@ -46,7 +46,7 @@ describe('StatBlock', () => {
 
   it('uses the default surface background when no cardColor is given', () => {
     const renderer = renderTree(
-      <StatBlock icon="star.fill" value={1} label="Streak" color="#f59e0b" testID="stat" />,
+      <StatBlock icon="star.fill" value={1} label="Sessions" color="#f59e0b" testID="stat" />,
     );
     const host = hostByTestId(renderer.root, 'stat');
 
@@ -59,7 +59,7 @@ describe('StatBlock', () => {
       <StatBlock
         icon="star.fill"
         value={1}
-        label="Streak"
+        label="Sessions"
         color="#f59e0b"
         cardColor="#ff0000"
         testID="stat"
@@ -76,7 +76,7 @@ describe('StatBlock', () => {
       <StatBlock
         icon="star.fill"
         value={1}
-        label="Streak"
+        label="Sessions"
         color="#f59e0b"
         className="w-32"
         testID="stat"

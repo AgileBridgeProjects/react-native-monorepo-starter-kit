@@ -32,7 +32,7 @@ Cross-cutting technical concerns shared across all features. Not business logic 
 **Rules:**
 
 - Sensitive data (auth tokens, credentials) → `secureStorage` (encrypted via expo-secure-store)
-- Sensitive but high-volume/large data (e.g. Journal drafts) → `encryptedMmkvStorage` (fast KV, encrypted at rest)
+- Sensitive but high-volume/large data (e.g. long-form drafts) → `encryptedMmkvStorage` (fast KV, encrypted at rest)
 - Non-sensitive data (preferences, onboarding) → `mmkvStorage` (fast KV via MMKV)
 - All keys are declared in `STORAGE_KEYS` — no string literals scattered through the codebase
 - `mmkvStorage` implements Zustand's `StateStorage` interface, so stores can use `persist` middleware directly:

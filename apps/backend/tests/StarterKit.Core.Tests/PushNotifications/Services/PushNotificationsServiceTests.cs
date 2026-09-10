@@ -145,7 +145,7 @@ public abstract class PushNotificationsServiceTests
         [Fact]
         public async Task WhenNoNotifications_DoesNotQueryDeviceTokens()
         {
-            await BulkSut.DeliverTransientBulkAsync([], PushNotificationType.CheckInReminder);
+            await BulkSut.DeliverTransientBulkAsync([], PushNotificationType.WeeklyNudge);
 
             _deviceTokenMock.Verify(
                 r =>
@@ -166,7 +166,7 @@ public abstract class PushNotificationsServiceTests
 
             await BulkSut.DeliverTransientBulkAsync(
                 [(userA, "Title A", "Body A"), (userB, "Title B", "Body B")],
-                PushNotificationType.CheckInReminder
+                PushNotificationType.WeeklyNudge
             );
 
             _deviceTokenMock.Verify(
@@ -210,7 +210,7 @@ public abstract class PushNotificationsServiceTests
 
             await BulkSut.DeliverTransientBulkAsync(
                 [(userA, "Title A", "Body A"), (userB, "Title B", "Body B")],
-                PushNotificationType.CheckInReminder
+                PushNotificationType.WeeklyNudge
             );
 
             _senderMock.Verify(
@@ -272,7 +272,7 @@ public abstract class PushNotificationsServiceTests
             var act = () =>
                 BulkSut.DeliverTransientBulkAsync(
                     [(failingUser, "Title", "Body"), (succeedingUser, "Title", "Body")],
-                    PushNotificationType.CheckInReminder
+                    PushNotificationType.WeeklyNudge
                 );
 
             await act.Should().NotThrowAsync();
@@ -296,7 +296,7 @@ public abstract class PushNotificationsServiceTests
             var act = () =>
                 BulkSut.DeliverTransientBulkAsync(
                     [(userWithNoTokens, "Title", "Body")],
-                    PushNotificationType.CheckInReminder
+                    PushNotificationType.WeeklyNudge
                 );
 
             await act.Should().NotThrowAsync();

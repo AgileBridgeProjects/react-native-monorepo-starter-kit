@@ -137,9 +137,6 @@ services:
       # Anthropic (Claude) — journal distress-language scanning, MobileApi only. Falls
       # back to the "#" placeholder when unset; the scan job fails at call time, not at startup.
       - "--Anthropic:ApiKey=${ANTHROPIC_API_KEY:-#}"
-      # Journal content encryption at rest, MobileApi only — same fallback behavior as
-      # Anthropic above: encrypt/decrypt fails at call time (invalid base64), not at startup.
-      - "--JournalEncryption:Key=${JOURNAL_ENCRYPTION_KEY:-#}"
     restart: on-failure
 
   # ── Web API ──────────────────────────────────────────────────

@@ -62,11 +62,11 @@ Every key method is the **single source of truth** for that key's shape.
 
 ```csharp
 // ✅ CORRECT
-var key = CacheKeys.ScoreboardRowsKey(evictionToken, metric, period);
+var key = CacheKeys.<Feature>RowsKey(evictionToken, metric, period);
 cache.GetOrCreateAsync(key, ...);
 
 // ❌ VIOLATION: magic string
-cache.GetOrCreateAsync($"scoreboard:{metric}:{period}", ...);
+cache.GetOrCreateAsync($"ranked-rows:{metric}:{period}", ...);
 ```
 
 When adding a new cached resource:
@@ -83,29 +83,29 @@ serve one company's data to another.
 
 ```csharp
 // ✅ CORRECT — tenant segments in key
-CacheKeys.ScoreboardRowsKey(evictionToken, metric, period)
-// key shape: scoreboard:rows:{evictionToken}:{metric}:{period}
+CacheKeys.<Feature>RowsKey(evictionToken, metric, period)
+// key shape: ranked-rows:rows:{evictionToken}:{metric}:{period}
 // (evictionToken is scoped to companyId:departmentId — see below)
 
 // ❌ VIOLATION — no tenant segment
-$"scoreboard:{metric}"   // cross-tenant data leak
+$"ranked-rows:{metric}"   // cross-tenant data leak
 ```
 
 ### Eviction tokens — department-scoped cache busting
 
-For data that changes when domain events fire (e.g. scoreboard entries change when a
-`GameSession` completes), use the **eviction-token pattern**:
+For data that changes when a domain event fires, rather than merely going stale on a
+clock, use the **eviction-token pattern**:
 
 1. Store a GUID token per tenant scope at a well-known key:
-   `CacheKeys.ScoreboardTokenKey(companyId, departmentId)`
+   `CacheKeys.<Feature>TokenKey(clubId, scopeId)`
 2. Include the token in every data key for that scope.
 3. On the invalidating event: write a **new** GUID at the token key via `ICacheService.SetAsync`.
    Old data keys become unreachable; they expire naturally by their own TTL.
 
 ```csharp
-// In ScoreboardCacheEvictionHandler (INotificationHandler<GameSessionCompletedEvent>):
-var tokenKey = CacheKeys.ScoreboardTokenKey(companyId, departmentId);
-await cache.SetAsync(tokenKey, Guid.NewGuid().ToString("N"), CacheProfiles.ScoreboardToken, ct);
+// In <Feature>CacheEvictionHandler (INotificationHandler<YourDomainEvent>):
+var tokenKey = CacheKeys.<Feature>TokenKey(companyId, departmentId);
+await cache.SetAsync(tokenKey, Guid.NewGuid().ToString("N"), CacheProfiles.<Feature>Token, ct);
 ```
 
 This pattern works identically with in-memory storage and Redis.
@@ -118,14 +118,13 @@ TTL values live in `appsettings.json` under the `"Cache"` section and are bound 
 
 ```json
 "Cache": {
-  "ScoreboardTtlSeconds": 60,
-  "ActiveGamesTtlSeconds": 300
+  "UserPreferencesTtlSeconds": 300
 }
 ```
 
 ```csharp
 // ✅ CORRECT — read TTL from injected options
-private TimeSpan ScoreboardTtl => _cacheOptions.Value.ScoreboardTtl;
+private TimeSpan UserPreferencesTtl => _cacheOptions.Value.UserPreferencesTtl;
 
 // ❌ VIOLATION — hardcoded TTL
 cache.GetOrCreateAsync(key, factory, TimeSpan.FromSeconds(60));
@@ -133,26 +132,8 @@ cache.GetOrCreateAsync(key, factory, TimeSpan.FromSeconds(60));
 
 | Profile | Default TTL | When to use |
 |---|---|---|
-| `ScoreboardTtlSeconds` | 60 s | Ranked-row list per department/metric/period |
-| `ActiveGamesTtlSeconds` | 300 s | Active game IDs per company |
-| `CacheProfiles.ScoreboardToken` | 1 h | Per-department eviction token |
-
-### Question pool caching
-
-`QuestionPoolService` caches two calls per session start:
-
-| Cache key | What | TTL | Eviction |
-|---|---|---|---|
-| `CacheKeys.QuestionCategoryKey(gameCategoryId)` | Game-category metadata (types + difficulty ratios) | `QuestionCategoryTtlSeconds` (300 s default) | TTL only |
-| `CacheKeys.QuestionPoolKey(gameCategoryId)` | Raw question pool (up to 200 questions, pre-shuffle) | `QuestionPoolTtlSeconds` (300 s default) | TTL only |
-
-**Shuffling happens after the cache read** — every session gets a unique question order even when the pool is served from cache.
-
-**Both TTLs must be equal** (`QuestionCategoryTtlSeconds == QuestionPoolTtlSeconds`). If the pool TTL is shorter than the category TTL, the pool will be re-fetched using stale category types (still in cache), producing an incorrect pool. Keep them in sync in `appsettings.json`.
-
-**No event-driven eviction**: question pools change only on admin edits — TTL-based expiry is sufficient. If instant propagation of admin changes is required, wire `ICacheService.RemoveAsync` into `QuestionController` create/update/delete actions (requires resolving the `gameCategoryId` for the affected question — follow-up ticket).
-
-**Offline downloads also use this cache** (`DownloadGameAsync` calls `SelectQuestionsAsync` with a larger pool size). The result is the same raw pool shuffled and trimmed to the requested size — behavior is identical to pre-caching, just potentially faster on repeated downloads within the TTL window.
+| `UserPreferencesTtlSeconds` | 300 s | The example profile shipped in `CacheOptions` |
+| `CacheProfiles.<Feature>Token` | 1 h | Per-scope eviction token, when you add one |
 
 ### Extending caching to new features
 
@@ -161,7 +142,7 @@ When caching a new resource:
 1. Add a `static string <Resource>Key(...)` method to `CacheKeys`.
 2. Add a TTL property to `CacheOptions` + both `appsettings.json` files.
 3. Add the TTL constant to `CacheProfiles` as a fallback.
-4. If data changes on domain events — create an `INotificationHandler<TEvent>` that writes a new eviction token (scoreboard pattern).
+4. If data changes on domain events — create an `INotificationHandler<TEvent>` that writes a new eviction token (ranked-rows pattern).
    If changes are infrequent admin operations — TTL-only eviction is sufficient (question pool pattern).
 5. Inject `ICacheService` into the service; never put caching in controllers.
 6. Add unit tests: cache-hit (factory not called), cache-miss (factory called), eviction.
@@ -173,7 +154,7 @@ When caching a new resource:
 | `CacheProfiles.cs` | Compile-time constants — fallbacks for tests and non-DI contexts |
 | `CacheOptions.cs` | Runtime-configurable via Options pattern — what production services read |
 | `appsettings.json` (MobileApi + WebApi) | Deployed values — single source of truth for production |
-| Frontend `SCOREBOARD_CACHE_TTL_MS` | Frontend TTL — must be manually kept in sync with `ScoreboardTtlSeconds`; document this coupling in the datasource file |
+| A frontend `*_CACHE_TTL_MS` | Frontend TTL — must be manually kept in sync with its backend counterpart; document the coupling in the datasource file |
 
 This is intentional Options-pattern design, not a DRY violation.
 
@@ -199,7 +180,7 @@ private sealed class PassThroughCacheService : ICacheService
 
 ### Why datasource-level, not React Query `staleTime`
 
-The scoreboard hooks (`useScoreboard`, `useCategoryScoreboard`) use a custom
+A cached datasource hook uses a custom
 `useState + useEffect` state machine with bidirectional pagination. Migrating them to
 `useInfiniteQuery` would be a non-trivial refactor. The datasource-level TTL cache
 achieves the same goal (no re-fetch on navigation within the TTL window) without
@@ -211,8 +192,8 @@ via `queryCacheConfig` from `@lib/http/query-config`:
 ```ts
 // ✅ CORRECT — new hook using React Query
 useQuery({
-  queryKey: ['scoreboard', params],
-  queryFn: () => scoreboardDatasource.getScoreboard(params),
+  queryKey: ['ranked-rows', params],
+  queryFn: () => rankedRowsDatasource.getRows(params),
   ...queryCacheConfig.leaderboard,   // staleTime: 30s, gcTime: 2min
 });
 ```
@@ -221,7 +202,7 @@ useQuery({
 
 - The cache is a module-level `Map<string, { data; expiresAt }>` — shared across all hook instances.
 - Cache keys include all parameters that affect the result (type, metric, page, pageSize, anchorToCurrentUser, gameCategoryId).
-- TTL is `60_000 ms` (60 s), matching the backend `ScoreboardTtlSeconds`.
+- TTL is `60_000 ms` (60 s), matching its backend counterpart.
 - **Pull-to-refresh** must pass `{ bypass: true }` to the datasource call, which clears the
   **entire** module-level cache and forces a fresh fetch. Clearing all entries (not just the
   current key) ensures that `loadMore` pages also get fresh data after a refresh, and that
@@ -232,11 +213,11 @@ useQuery({
 const refresh = useCallback(() => initialize(true), [initialize]);
 
 // In initialize:
-const result = await dataSource.getScoreboard(params, { bypass });
+const result = await dataSource.getRows(params, { bypass });
 
 // In datasource (withCache helper):
 if (options?.bypass) {
-  scoreboardCache.clear();  // clears ALL cached scoreboard pages — not just current key
+  rowsCache.clear();  // clears ALL cached ranked-rows pages — not just current key
 }
 ```
 
@@ -252,7 +233,7 @@ raw millisecond values.
 |---|---|---|---|
 | `profile` | 5 min | 10 min | Current user profile |
 | `list` | 2 min | 5 min | Generic paginated lists |
-| `leaderboard` | 30 s | 2 min | Scoreboard / leaderboard (high churn) |
+| `leaderboard` | 30 s | 2 min | RankedRows / leaderboard (high churn) |
 | `session` | 0 | 1 min | In-progress game session |
 | `static` | 1 h | 2 h | Reference data (categories, roles) |
 
@@ -267,10 +248,10 @@ Add a new preset to `apps/expo/src/lib/http/query-config.ts` when none of the ab
 public class MyService(IMemoryCache memoryCache) { }
 
 // ❌ Magic string keys
-cache.GetOrCreateAsync($"scoreboard:{metric}", ...);
+cache.GetOrCreateAsync($"ranked-rows:{metric}", ...);
 
 // ❌ Cache key without tenant scope
-CacheKeys.ScoreboardRowsKey(token, metric, period)  // if token is not scoped to company+dept
+CacheKeys.<Feature>RowsKey(token, metric, period)  // if token is not scoped to company+dept
 
 // ❌ Hardcoded TTL in service code
 cache.GetOrCreateAsync(key, factory, TimeSpan.FromSeconds(60));

@@ -112,7 +112,7 @@ public interface IUserRepository
 
     /// <summary>
     /// The roster of Athlete-role users across every one of <paramref name="teamIds"/>, each
-    /// tagged with the team it was found on — the Assign Survey screen's multi-team roster
+    /// tagged with the team it was found on — a multi-team roster screen
     ///, so a Coach with several teams sees every athlete they coach in one
     /// list, one row per team membership.
     /// </summary>

@@ -10,24 +10,11 @@ public sealed class CacheOptions
 {
     public const string SectionName = "Cache";
 
-    /// <summary>TTL in seconds for scoreboard ranked-row caches.</summary>
-    [Range(1, 3600)]
-    public int ScoreboardTtlSeconds { get; init; }
+    /// <summary>
+    /// Example TTL, bound from the <c>Cache</c> section. Replace with your own profiles;
+    /// the pattern is one option per cache profile so a TTL is changeable without a deploy.
+    /// </summary>
+    public int UserPreferencesTtlSeconds { get; init; } = 300;
 
-    /// <summary>TTL in seconds for the active-game-IDs club cache.</summary>
-    [Range(1, 3600)]
-    public int ActiveGamesTtlSeconds { get; init; }
-
-    /// <summary>TTL in seconds for cached raw question pools (before shuffling).</summary>
-    [Range(1, 3600)]
-    public int QuestionPoolTtlSeconds { get; init; }
-
-    /// <summary>TTL in seconds for cached game-category metadata (types and difficulty ratios).</summary>
-    [Range(1, 3600)]
-    public int QuestionCategoryTtlSeconds { get; init; }
-
-    public TimeSpan ScoreboardTtl => TimeSpan.FromSeconds(ScoreboardTtlSeconds);
-    public TimeSpan ActiveGamesTtl => TimeSpan.FromSeconds(ActiveGamesTtlSeconds);
-    public TimeSpan QuestionPoolTtl => TimeSpan.FromSeconds(QuestionPoolTtlSeconds);
-    public TimeSpan QuestionCategoryTtl => TimeSpan.FromSeconds(QuestionCategoryTtlSeconds);
+    public TimeSpan UserPreferencesTtl => TimeSpan.FromSeconds(UserPreferencesTtlSeconds);
 }

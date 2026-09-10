@@ -72,7 +72,6 @@ internal sealed class PushNotificationRepository(AppDbContext db, TimeProvider c
     {
         var now = clock.Now();
         var inactiveCutoff = now - inactiveThreshold;
-        var rewardGraceCutoff = now - TimeSpan.FromHours(2);
 
         var results = await db
             .PushNotifications.AsNoTracking()
@@ -83,10 +82,6 @@ internal sealed class PushNotificationRepository(AppDbContext db, TimeProvider c
                 && (
                     n.NotificationType == PushNotificationType.NewContent
                     || n.NotificationType == PushNotificationType.WeeklyNudge
-                    || (
-                        n.NotificationType == PushNotificationType.RewardUnlocked
-                        && n.CreatedAt <= rewardGraceCutoff
-                    )
                 )
             )
             .Select(n => new SweepCandidate(

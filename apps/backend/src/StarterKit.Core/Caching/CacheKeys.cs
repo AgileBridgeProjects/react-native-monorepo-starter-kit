@@ -4,13 +4,16 @@ namespace StarterKit.Core.Caching;
 /// Centralised cache key builders. Each static method is the single source of truth for that
 /// key's shape — never string-interpolate a cache key at the call site.
 /// </summary>
+/// <remarks>
+/// The example below is the shape to copy, not a key the kit uses. Note the tenant segment:
+/// every key for tenant-scoped data must carry the club id, or one tenant serves another
+/// tenant's cached rows. See docs/standards/caching.md § Tenant safety.
+/// </remarks>
 public static class CacheKeys
 {
     /// <summary>
-    /// The current user's in-progress DISC assessment session — shuffled question/option
-    /// order plus answers-so-far. Scoped by club then user per the tenant-safety rule in
-    /// docs/standards/caching.md.
+    /// Example: a per-user, per-tenant entry. Delete this once you have a real key.
     /// </summary>
-    public static string DiscSessionKey(Guid clubId, Guid userId) =>
-        $"disc:session:{clubId}:{userId}";
+    public static string UserPreferencesKey(Guid clubId, Guid userId) =>
+        $"user-preferences:{clubId}:{userId}";
 }

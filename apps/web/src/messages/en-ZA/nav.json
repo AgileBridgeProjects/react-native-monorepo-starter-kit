@@ -5,7 +5,5 @@
   "users": "Users",
   "roles": "Roles & Permissions",
   "audit-logs": "Audit Logs",
-  "reports": "Reports",
-  "reflection-templates": "Templates",
-  "message-reports": "Message Reports"
+  "reports": "Reports"
 }

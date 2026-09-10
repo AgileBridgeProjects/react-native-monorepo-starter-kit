@@ -15,7 +15,7 @@ interface PrimaryScreenLayoutProps {
 
 /**
  * Standard "hero + card" screen layout shared across Games, Learn,
- * Scoreboard, and Rewards screens.
+ * and other top-level screens.
  *
  * Renders a primary-coloured hero section that seamlessly blends with the
  * navigation bar, and a white rounded card that slides up beneath it.

@@ -109,15 +109,6 @@ const RULES = [
   },
   {
     paths: [
-      'apps/web/src/features/reflection-templates/',
-      'apps/web/src/app/reflection-templates/',
-      'apps/backend/src/StarterKit.Core/Reflections/',
-    ],
-    specs: ['tests/web/reflection-templates'],
-    why: 'reflection templates',
-  },
-  {
-    paths: [
       'apps/web/src/features/roles/',
       'apps/web/src/app/roles/',
       'apps/backend/src/StarterKit.Core/Roles/',
@@ -182,20 +173,6 @@ const RULES = [
     paths: ['apps/expo/src/features/profile/'],
     specs: ['tests/expo/profile'],
     why: 'expo profile',
-  },
-  {
-    paths: ['apps/expo/src/features/journal-alerts/', 'apps/expo/app/(detail)/journal-alerts.tsx'],
-    specs: ['tests/expo/journal-alerts'],
-    why: 'expo journal alerts inbox',
-  },
-  {
-    paths: [
-      'apps/expo/src/features/disc/',
-      'apps/expo/app/(detail)/disc.tsx',
-      'apps/expo/app/(detail)/disc/',
-    ],
-    specs: ['tests/expo/disc'],
-    why: 'expo DISC assessment',
   },
 
   // ── Deliberately uncovered — recorded, not silently unmapped ──────────────
@@ -265,10 +242,6 @@ const RULES = [
   },
   {
     paths: [
-      'apps/expo/src/features/messages/',
-      'apps/expo/src/features/check-ins/',
-      'apps/expo/src/features/notifications/',
-      'apps/expo/src/features/onboarding/',
       'apps/expo/app/(tabs)/',
       'apps/expo/app/(detail)/',
       'apps/expo/app/onboarding/',
@@ -281,23 +254,9 @@ const RULES = [
     paths: [
       'apps/backend/src/StarterKit.MobileApi/',
       'apps/backend/src/StarterKit.Mcp/',
-      'apps/backend/src/StarterKit.Core/Messages/',
-      'apps/backend/src/StarterKit.Core/CheckIns/',
       'apps/backend/src/StarterKit.Core/Notifications/',
       'apps/backend/src/StarterKit.Core/PushNotifications/',
       'apps/backend/src/StarterKit.Core/Seasons/',
-      // tests/expo/journal-alerts mocks GET /api/journal-alerts at the route level (see
-      // e2e/tests/expo/journal-alerts/journal-alerts.spec.ts), so it never reaches this code —
-      // mapping it there would claim coverage the spec doesn't provide. Regression coverage for
-      // this module is the real-encryption-service unit test in
-      // StarterKit.Core.Tests/Journal/Mappers instead.
-      'apps/backend/src/StarterKit.Core/Journal/',
-      // tests/expo/disc mocks session/answer/submit at the route level with a fixed
-      // SUBMIT_RESULT (see e2e/tests/expo/disc/disc-assessment.spec.ts), so it never calls
-      // DiscAssessmentService/DiscStyleRanker. Regression coverage for the scoring formula is
-      // StarterKit.Core.Tests/Disc instead.
-      'apps/backend/src/StarterKit.Core/Disc/',
-      'apps/backend/tests/StarterKit.Core.Tests/Disc/',
     ],
     specs: [],
     why: 'no Playwright coverage — the Expo suite runs a static export with synthetic auth and never calls these',

@@ -19,7 +19,7 @@ The following entities carry `ClubId` and are filtered automatically:
 | `CreditLedgerEntry` | `CreditsLedger` |
 | `UserEntity` | `Users` |
 | `UserRoleAssignmentEntity` | `UserRoleAssignments` |
-| `CheckIn` | `CheckIns` |
+| `Season` | `Seasons` |
 | `CheckInConfig` | `CheckInConfigs` |
 
 When you add a **new entity** with a `ClubId` column, you **must** add a `HasQueryFilter` call for it in `AppDbContext.ApplyMultitenancyFilters`.

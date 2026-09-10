@@ -20,7 +20,7 @@
  *   palette.{neutral,category,status} — legacy ramp colors, still used by
  *     existing components (grays, chart series, status chips) pending their
  *     component-by-component Figma pass.
- *   palette.{white,blue,cyan,purple,pink,gray,green,amber,yellow,red,disc} —
+ *   palette.{white,blue,cyan,purple,pink,gray,green,amber,yellow,red} —
  *     StarterKit palette, source of truth: Figma "StarterKit" library.
  *   palette.{volt,onyx,admin*} — admin portal brand, source of truth: the
  *     starterkit.com marketing site. Separate from the Blue/Cyan ramps above so
@@ -176,28 +176,6 @@ export const palette = {
   },
   yellow: '#FFBF00',
   red: '#CF3928',
-
-  /**
-   * DISC profile colours (chip gradients).
-   *
-   * Hues follow the Skill Library's category set (`pink`, `amber`, `blue.bright`) rather than
-   * the earlier red/yellow/navy, so DISC and Skills read as one family; S keeps a green — the
-   * one hue the Skills set lacks — brought up to `green.DEFAULT`'s vividness to sit with the
-   * others. Each `start` is the same hue darkened, so every chip keeps its light-into-dark ramp.
-   *
-   * Every stop, not just the darker one, is checked against `text` at WCAG 4.5:1: the small
-   * trait badge (`DiscTraitBadge` size="sm") renders its letter at 16px, so this is body text,
-   * not large text, and the 3:1 bar does not apply. Only `d` stays a white-on-deep chip; the
-   * other three are light ramps carrying dark text, which is what let `s` use the system's
-   * lighter greens rather than a dark forest green that only worked under white.
-   */
-  disc: {
-    d: { start: '#9E0472', end: '#C8048F', text: '#FFFFFF' },
-    i: { start: '#FF7700', end: '#FFBF00', text: '#2D2D2D' },
-    /** `emotion.relaxed` into `green.light` — the system's lighter greens, not a dark forest. */
-    s: { start: '#34D97A', end: '#CDFFD2', text: '#2D2D2D' },
-    c: { start: '#2AA3BE', end: '#3BD7F6', text: '#2D2D2D' },
-  },
 
   /**
    * Check-in emotion colours — one vivid, unique hue per emotion so no two

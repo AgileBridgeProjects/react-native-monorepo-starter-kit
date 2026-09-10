@@ -73,7 +73,6 @@ const requiredFiles = [
   'docs/standards/signalr.md',
   'docs/standards/caching.md',
   'docs/standards/audio.md',
-  'docs/standards/ai-prompts.md',
   'docs/standards/nfr-security.md',
   'docs/standards/nfr-accessibility.md',
   'docs/standards/nfr-compliance.md',

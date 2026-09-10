@@ -29,7 +29,7 @@ const mmkv = createMMKV({
 
 /**
  * Encrypted-at-rest key-value storage backed by react-native-mmkv, for on-device data
- * that's sensitive but too large/frequent-write for expo-secure-store (e.g. Journal
+ * that's sensitive but too large/frequent-write for expo-secure-store (e.g. long-form
  * drafts). Unlike `mmkvStorage`, this instance's file is AES-256 encrypted with a key
  * held in the platform Keychain/Keystore.
  */

@@ -15,7 +15,7 @@ export interface OptionCardRowProps {
 
 /**
  * A single answer option — full-width card with a circular letter badge. The shared single-select
- * option shape for every question flow in the app (the DISC assessment and reflection surveys),
+ * option shape for every question flow in the app,
  * so the two never drift apart visually.
  */
 export function OptionCardRow({
@@ -34,7 +34,7 @@ export function OptionCardRow({
       disabled={disabled}
       onPress={onPress}
       testID={testID}
-      // Deliberately no dimmed state for `disabled`. In the DISC flow it is only ever set for the
+      // Deliberately no dimmed state for `disabled`. In the flows that use it, it is only set for the
       // ~180ms between a tap and the next question arriving, and fading all four rows out and back
       // in across that window was the flash — it announced a network call the user never needed to
       // know about. `disabled` still blocks the press; it just does it silently.

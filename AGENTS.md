@@ -34,10 +34,7 @@ app (Expo), an admin portal (Next.js), and a backend (.NET 10).
 | EF query filters, `[AllowImpersonation]`, tenant-scoped entities | `docs/standards/backend/multitenancy.md` |
 | Self-hosted Supabase auth & DB (GoTrue JWT, app_metadata, slimmed stack, RLS stance) | `docs/standards/supabase.md` |
 | Reporting domain: snapshot tables, upsert pattern, `UserReportingExclusion` | `docs/standards/reporting.md` |
-| PDF report generation (Playwright capture, print layouts) | `docs/standards/pdf-reports.md` |
 | E2E testing (POM, mocks, DX quirks, CRUD pattern, Playwright) | `docs/standards/e2e-testing.md` |
-| Time zone testing for local dev (SA devs simulating US zones) | `docs/standards/dev-timezone-testing.md` |
-| AI Prompt System (prompt builders, payloads, extractors) | `docs/standards/ai-prompts.md` |
 | NFR laws (performance, availability, security, accessibility) | `docs/standards/non-functional-requirements.md` |
 | TLS, secrets management, RBAC, OWASP | `docs/standards/nfr-security.md` |
 | WCAG 2.1 AA for web (Next.js) and mobile (Expo) | `docs/standards/nfr-accessibility.md` |
@@ -140,13 +137,11 @@ Do not generate steering documents — project context comes from `docs/standard
 | Frontend mobile task | `docs/standards/frontend.md` + `docs/standards/frontend-mobile.md` |
 | OTA / EAS Update | `docs/standards/ota-updates.md` |
 | E2E tests | `docs/standards/e2e-testing.md` |
-| Time zone testing for local dev | `docs/standards/dev-timezone-testing.md` |
 | Security concern / SSRF / RBAC / TLS | `docs/standards/nfr-security.md` |
 | Accessibility (WCAG) | `docs/standards/nfr-accessibility.md` |
 | Compliance / PII / POPIA / GDPR | `docs/standards/nfr-compliance.md` |
 | Performance / Polly / pagination / 60fps | `docs/standards/nfr-performance.md` |
 | Logging / Sentry / health checks | `docs/standards/nfr-observability.md` |
-| AI prompts / payload builders | `docs/standards/ai-prompts.md` |
 | Notifications (email/SMS) | `docs/standards/notifications.md` |
 | SignalR real-time | `docs/standards/signalr.md` |
 | Caching | `docs/standards/caching.md` |

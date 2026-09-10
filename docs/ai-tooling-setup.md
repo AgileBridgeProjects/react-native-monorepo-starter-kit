@@ -456,7 +456,7 @@ npm run scaffold:backend -- --module <Module> --entity <Entity>
 
 ```bash
 npm run scaffold:backend -- --module Rewards --entity Reward
-npm run scaffold:backend -- --module Games --entity GameSession --tenant --api both
+npm run scaffold:backend -- --module Billing --entity Invoice --tenant --api both
 ```
 
 **Generates 20 files:**

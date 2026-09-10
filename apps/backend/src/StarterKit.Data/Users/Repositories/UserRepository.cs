@@ -440,7 +440,7 @@ internal sealed class UserRepository(AppDbContext db, TimeProvider clock) : IUse
                 && ut.User.IsActive
                 && ut.User.UserRoles.Any(ur => ur.Role.Name == "Athlete")
             )
-            // Stable order for the Assign Survey screen's multi-team roster: by team, then
+            // Stable order for a multi-team roster screen: by team, then
             // name within it, so athletes don't reshuffle between refetches and teams don't
             // interleave arbitrarily.
             .OrderBy(ut => ut.Team.Name)

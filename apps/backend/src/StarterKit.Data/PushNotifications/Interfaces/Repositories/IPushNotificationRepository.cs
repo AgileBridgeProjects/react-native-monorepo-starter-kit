@@ -21,7 +21,7 @@ public interface IPushNotificationRepository
     /// <summary>
     /// Returns pending notifications for the sweep job:
     /// PushSentAt IS NULL, SeenAt IS NULL, user inactive for more than <paramref name="inactiveThreshold"/>.
-    /// Applies the 2-hour grace window for RewardUnlocked.
+    /// Selects the inbox types that are worth a push once the user has gone quiet.
     /// </summary>
     Task<IReadOnlyList<SweepCandidate>> GetSweepCandidatesAsync(
         TimeSpan inactiveThreshold,

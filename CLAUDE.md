@@ -26,20 +26,17 @@ Read the relevant file(s) before writing any code. Never load files not relevant
 | Multitenancy / impersonation / query filters | `docs/standards/backend/multitenancy.md` |
 | Supabase / self-hosted auth & DB | `docs/standards/supabase.md` |
 | Reporting domain (snapshots, upsert, exclusions) | `docs/standards/reporting.md` |
-| PDF report generation (Playwright capture, print layouts) | `docs/standards/pdf-reports.md` |
 | Frontend shared (web + mobile) | `docs/standards/frontend.md` |
 | Frontend web | `docs/standards/frontend.md` + `docs/standards/frontend-web.md` |
 | Frontend mobile | `docs/standards/frontend.md` + `docs/standards/frontend-mobile.md` |
 | OTA / EAS Update (publish, mobile versioning / `version.json`, runtime version, restart prompt) | `docs/standards/ota-updates.md` |
 | Production store releases (dispatch, staging, store credentials) | `docs/deployment/prod-mobile-store-setup.md` |
 | E2E tests | `docs/standards/e2e-testing.md` |
-| Time zone testing for local dev (SA devs simulating US zones) | `docs/standards/dev-timezone-testing.md` |
 | Security / SSRF / RBAC / TLS | `docs/standards/nfr-security.md` |
 | Accessibility (WCAG 2.1 AA) | `docs/standards/nfr-accessibility.md` |
 | Compliance / PII / POPIA / GDPR | `docs/standards/nfr-compliance.md` |
 | Performance / Polly / pagination / 60fps | `docs/standards/nfr-performance.md` |
 | Logging / Sentry / health checks | `docs/standards/nfr-observability.md` |
-| AI prompts / payload builders | `docs/standards/ai-prompts.md` |
 | Notifications (email/SMS) | `docs/standards/notifications.md` |
 | SignalR real-time | `docs/standards/signalr.md` |
 | Caching | `docs/standards/caching.md` |

@@ -17,7 +17,7 @@ public interface IPushNotificationsService
     /// <summary>
     /// Creates a push notification DB row AND immediately delivers an OS-level push
     /// notification via Expo / HMS. Sets <c>PushSentAt</c> on success.
-    /// Use for inbox notifications (AdminMessage, NewContent, NewGame).
+    /// Use for inbox notifications (AdminMessage, NewContent).
     /// </summary>
     Task CreateAndDeliverAsync(
         Guid userId,
@@ -30,7 +30,7 @@ public interface IPushNotificationsService
 
     /// <summary>
     /// Delivers an OS-level push notification WITHOUT writing a DB row.
-    /// Use for time-bound nudges (DailyPlayReminder, WeeklyNudge, StreakAtRisk, RewardUnlocked)
+    /// Use for time-bound nudges (WeeklyNudge, and anything else that goes stale on a clock)
     /// that are stale once the moment passes and would clutter the notification inbox.
     /// </summary>
     /// <param name="entityId">

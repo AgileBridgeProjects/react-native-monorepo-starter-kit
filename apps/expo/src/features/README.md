@@ -52,17 +52,10 @@ No `IRepository` interfaces, `RepositoryImpl` classes, `UseCase` classes, or `Se
 
 | Feature | Backend controller | Status |
 |---|---|---|
-| `auth` | `AuthController` | Completed |
-| `calendar` | `CalendarEventsController` (in flight) → `CalendarEventsDataSource` | Placeholder types/datasource pending backend |
-| `check-ins` | `CheckInsController` → `CheckInsDataSource` | Completed |
-| `disc` | `DiscController` → `DiscDataSource` | Completed |
-| `journal` | `JournalEntriesController` → `JournalEntriesDataSource` | Completed |
-| `journal-alerts` | `JournalAlertsController` | Completed |
-| `messages` | `ConversationsController` → `ConversationsDataSource`, `MessagesController` → `MessagesDataSource` | Completed |
-| `notifications` | `PushNotificationsController`, `DeviceTokensController` | Completed |
-| `onboarding` | `UsersSetupController` | Completed |
-| `profile` | `UsersController` → `ProfileDataSource`, `SupportController` | Completed |
-| `reflect` | N/A (tab container only; segments delegate to the `journal` and `reflections` features) | Completed |
-| `reflections` | `ReflectionAssignmentsController` → `ReflectionAssignmentsDataSource` | Completed |
-| `skills` | N/A (bundled static content + MMKV; future admin-portal content API — see `skills/README.md`) | Foundation |
-| `stats-import` | `StatsController` | Completed |
+| `auth` | `AuthController`, `UsersSetupController` | Example |
+| `home` | N/A (static shell) | Example |
+| `profile` | `UsersController`, `SupportController` | Example |
+
+These three exist to show the layering, not because a product needs them. Add yours with
+`npm run scaffold:frontend -- --feature <kebab-name> --app expo` and delete what you do not
+use — a feature directory here is a vertical slice, so removing one removes it cleanly.

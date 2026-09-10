@@ -80,18 +80,6 @@ function useNavDefinitions(): RawNavGroups {
         icon: HistoryIcon,
         permission: 'StarterKit.Auditing.View',
       },
-      {
-        label: t('nav:reflection-templates'),
-        href: '/reflection-templates',
-        icon: DocumentIcon,
-        permission: 'StarterKit.ReflectionTemplates.View',
-      },
-      {
-        label: t('nav:message-reports'),
-        href: '/message-reports',
-        icon: WarningIcon,
-        permission: 'StarterKit.Moderation.View',
-      },
     ],
   };
 }

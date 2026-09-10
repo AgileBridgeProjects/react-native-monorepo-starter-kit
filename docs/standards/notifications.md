@@ -31,7 +31,7 @@ Use `DeliverTransientAsync`. These are time-bound or in-app-redundant. Once the 
 | `DailyPlayReminder` | Stale after that day |
 | `WeeklyNudge` | Stale once the week ends |
 | `StreakAtRisk` | Stale once the streak expires or they play |
-| `RewardUnlocked` | User already saw it in-app via toast + tab badge |
+| An in-app achievement | User already saw it via toast + tab badge |
 | `NewMessage` | Chat messages persist in the Messages domain itself (`Message` rows + per-user unread cursors) — an inbox row per chat message would flood the notification drawer. Push is delivered via `DeliverTransientAsync` from `MessageDispatchJob` only when the recipient looks disconnected. |
 | `CheckInReminder` | Stale the moment the slot's window closes — a missed Morning reminder has no meaning once Afternoon starts. Delivered via `DeliverTransientAsync` from `CheckInReminderJob`. |
 

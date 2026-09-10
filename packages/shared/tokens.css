@@ -180,27 +180,6 @@
   --starterkit-yellow: #ffbf00;
   --starterkit-red: #cf3928;
 
-  /* ── DISC profile colours (chip gradients) ───────────────────────────────────
-     Hues follow the Skill Library's category set (pink, amber, cyan) rather than
-     the earlier red/yellow/navy, so DISC and Skills read as one family; S keeps a
-     green, the one hue that set lacks. Each start is the same hue darkened.
-     Every stop checked against text at WCAG 4.5:1 (the sm trait badge's 16px
-     letter is body text, not large text). Only d is a white-on-deep chip; the
-     other three are light ramps with dark text, which is what lets s use the
-     system's lighter greens (emotion relaxed into green light). */
-  --starterkit-disc-d-start: #9e0472;
-  --starterkit-disc-d-end: #c8048f;
-  --starterkit-disc-d-text: #ffffff;
-  --starterkit-disc-i-start: #ff7700;
-  --starterkit-disc-i-end: #ffbf00;
-  --starterkit-disc-i-text: #2d2d2d;
-  --starterkit-disc-s-start: #34d97a;
-  --starterkit-disc-s-end: #cdffd2;
-  --starterkit-disc-s-text: #2d2d2d;
-  --starterkit-disc-c-start: #2aa3be;
-  --starterkit-disc-c-end: #3bd7f6;
-  --starterkit-disc-c-text: #2d2d2d;
-
   /* ── Named gradients (Figma fill styles) ─────────────────────────────────── */
   --starterkit-gradient-dark-background: linear-gradient(
     212.36deg,

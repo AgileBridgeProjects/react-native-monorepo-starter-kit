@@ -156,27 +156,27 @@ await broadcaster.BroadcastAsync(userId, PushNotificationType.NewContent, ct);
 
 ### Schedule-gated notifications
 
-Game assignment notifications are delivered when a `GameSchedule` becomes active, not when the
-assignment is created. This is implemented via a Hangfire delayed job:
+Some notifications should fire when a thing becomes *active*, not when it is created. Do
+that with a Hangfire delayed job rather than firing from the create path:
 
 ```text
-GameScheduleService.CreateAsync / UpdateAsync
-    └── ScheduleNotificationJob(scheduleId, startDate)
-            │  delay = startDate - clock.Now()
-            ├── delay <= 0  → backgroundJobClient.Enqueue<IGameScheduleNotificationJob>
-            └── delay >  0  → backgroundJobClient.Schedule<IGameScheduleNotificationJob>(delay)
+<Entity>Service.CreateAsync / UpdateAsync
+    └── ScheduleNotificationJob(entityId, startsAt)
+            │  delay = startsAt - clock.Now()
+            ├── delay <= 0  → backgroundJobClient.Enqueue<I<Entity>NotificationJob>
+            └── delay >  0  → backgroundJobClient.Schedule<I<Entity>NotificationJob>(delay)
 
-GameScheduleNotificationJob.ExecuteAsync(scheduleId)
-    ├── FindByIdAsync → null (schedule deleted)? → return early
-    ├── Game null (soft-deleted)? → return early
-    ├── GetUserIdsForScheduleAsync → find assigned users
-    └── Enqueue<IContentAssignedDispatchJob> → CreateAndDeliverAsync → FCM + SignalR
+<Entity>NotificationJob.ExecuteAsync(entityId)
+    ├── FindByIdAsync → null (deleted since)? → return early
+    ├── resolve the recipients
+    └── Enqueue dispatch → CreateAndDeliverAsync → push + SignalR
 ```
 
-`GameSchedule.NotificationJobId` stores the Hangfire job ID so `UpdateAsync` and `DeleteAsync`
-can cancel and reschedule the pending job, preventing double-notifications. If the schedule is
-deleted before the job fires, `FindByIdAsync` returns `null` (global soft-delete query filter)
-and the job exits cleanly.
+Store the Hangfire job id on the entity (`NotificationJobId`) so `UpdateAsync` and
+`DeleteAsync` can cancel and reschedule the pending job — without that you get
+double-notifications on every edit. If the entity is deleted before the job fires,
+`FindByIdAsync` returns `null` through the global soft-delete query filter and the job exits
+cleanly, so the job needs no delete-awareness of its own.
 
 **For any new content type that should be schedule-gated**, follow this pattern rather than
 firing from the assignment service.
@@ -185,102 +185,34 @@ firing from the assignment service.
 
 ## Expo conventions
 
+> **Not wired in this kit.** The backend hub, the broadcasters and the web client are real
+> and covered below. The Expo client is not: `apps/expo` carries the `@microsoft/signalr`
+> dependency and nothing else. The conventions in this section are the shape to build to
+> when you add it, not a description of code you can go and read.
+
 ### `useSignalR` — the only place for hub connection logic
 
+Put the hub connection lifecycle in exactly one hook, under the feature that owns realtime
+for your app:
+
 ```text
-apps/expo/src/features/notifications/infrastructure/hooks/use-signal-r.ts
+apps/expo/src/features/<your-feature>/infrastructure/hooks/use-signal-r.ts
 ```
 
-All hub connection lifecycle logic lives here. Never create a second `HubConnectionBuilder`
+All hub connection lifecycle logic lives there. Never create a second `HubConnectionBuilder`
 anywhere else in the app.
 
-```ts
-// ✅ CORRECT — use the shared hook
-import { useSignalR } from '@features/notifications/infrastructure/hooks/use-signal-r';
-useSignalR({ onNotificationReceived, enabled: isAuthenticated });
+### The rules that matter when you wire it
 
-// ❌ VIOLATION — building a connection elsewhere
-import { HubConnectionBuilder } from '@microsoft/signalr';
-const conn = new HubConnectionBuilder().withUrl(...).build();
-```
-
-### `enabled` guard — never connect unauthenticated
-
-Always pass `enabled: isAuthenticated` (or equivalent auth-state boolean). The hook uses this
-flag in its `useEffect` dependency array; the connection is only established when `enabled` is
-`true` and is torn down on logout:
-
-```ts
-// ✅ CORRECT
-useSignalR({ onNotificationReceived, enabled: isAuthenticated });
-
-// ❌ VIOLATION — hook always attempts to connect regardless of auth
-useSignalR({ onNotificationReceived });
-```
-
-### Token factory — always use the auth store
-
-The `accessTokenFactory` reads the cached Firebase token first, then force-refreshes if absent:
-
-```ts
-accessTokenFactory: async () => {
-  const cached = authStoreUtils.getIdToken();
-  if (cached) return cached;
-  const fresh = await firebaseAuth.currentUser?.getIdToken(true);
-  return fresh ?? '';
-},
-```
-
-Never hard-code a token or bypass the auth store.
-
-### AppState handling — built into `useSignalR`
-
-The hook automatically disconnects on `background`/`inactive` and reconnects on `active`.
-Do not add duplicate `AppState` listeners in screens or other hooks. The `enabledRef` guard
-ensures a connection is not restarted when `enabled` is `false` (e.g. after logout).
-
-### Routing hub events to React Query
-
-`useSignalR` accepts an `onNotificationReceived(notificationType: string)` callback. Mount it
-in `ToastTriggers` (`src/lib/toast-triggers.tsx`) — the single place for all global event
-listeners. Call `refetch()` directly on query observers mounted in the same component:
-
-```tsx
-// ToastTriggers.tsx — correct pattern
-const { refetch: refetchGameAssignments } = useGameAssignments();
-const { refetch: refetchRewards } = useRewards();
-
-const onNotificationReceived = useCallback((_notificationType: string) => {
-  void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-  void refetchGameAssignments();
-  void refetchRewards();
-  void queryClient.invalidateQueries({ queryKey: ['learn'] });
-}, [queryClient, refetchGameAssignments, refetchRewards]);
-
-useSignalR({ onNotificationReceived, enabled: isAuthenticated });
-```
-
-**Why `refetch()` over `invalidateQueries` for domain queries?** `invalidateQueries` marks
-queries as stale and triggers a background refetch only for observers that React Query considers
-"active" at that moment. `refetch()` called on an observer mounted in `ToastTriggers` always
-issues the network request regardless of observer state elsewhere in the tree — the same
-mechanism as pull-to-refresh.
-
-**Why `invalidateQueries` for notifications?** The notification list uses `refetchOnMount: 'always'`
-and has observers mounted in many places; invalidation reliably triggers a refetch there.
-
-### FCM ↔ SignalR — dual delivery
-
-The Expo app receives real-time signals from two sources:
-
-| Source | Handled by | Fires when |
-|---|---|---|
-| SignalR `ReceiveNotification` | `useSignalR` → `ToastTriggers.onNotificationReceived` | App is **connected to the hub** |
-| FCM foreground | `useNotificationListeners` → `addNotificationReceivedListener` | App is **in the foreground** |
-| FCM background tap | `useNotificationListeners` → `addNotificationResponseReceivedListener` | User **taps the OS banner** |
-
-Both paths call the same refetch logic. Do not put query refetches in only one path — always
-handle both so coverage is complete regardless of hub connectivity.
+- **One connection per app**, owned by that hook and torn down on sign-out. A second
+  connection double-delivers every message.
+- **Reconnect with backoff**, and treat a reconnect as a cache-invalidation event: messages
+  sent while disconnected are gone, so refetch rather than assume continuity.
+- **The hub is a signal, not a transport for state.** Handlers should invalidate a query,
+  not write payloads into the store. Otherwise the socket becomes a second source of truth
+  that disagrees with the API.
+- **Always pair a live path with a polled or on-focus fallback**, so a spec (and a user) on
+  a dead socket still converges.
 
 ---
 

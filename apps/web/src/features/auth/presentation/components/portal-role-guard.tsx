@@ -7,7 +7,7 @@ import { useAuthStore } from '@store/auth-store';
 import { useWorkspaceStore } from '@store/workspace-store';
 import { useEffect, useRef } from 'react';
 import { toast } from '@/components/ui';
-import { getApiAuthMe } from '@/proxy/services/auth/me';
+import { getApiAuthMe } from '@/proxy/services/auth/auth';
 
 /**
  * Checks whether the authenticated user has a portal-eligible role
