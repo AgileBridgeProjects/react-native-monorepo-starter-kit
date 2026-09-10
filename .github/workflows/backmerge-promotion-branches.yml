@@ -56,18 +56,35 @@ jobs:
             *)    echo "::notice::Nothing to back-merge from ${{ github.ref_name }}."; exit 0 ;;
           esac
 
+      # A fork may not have stood the promotion branches up yet. actions/checkout fails hard
+      # on a missing ref, which turns "this repo does not use uat" into a red check on every
+      # push to main, and a permanently-failing check trains people to ignore checks.
+      - name: Check the downstream branch exists
+        id: exists
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads "https://github.com/${GITHUB_REPOSITORY}"                "${{ steps.dir.outputs.into }}" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No downstream branch::'${{ steps.dir.outputs.into }}' does not exist, so there is nothing to back-merge into. See docs/standards/branching.md if you meant to use the dev/uat/main model."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.exists.outputs.found == 'true'
         with:
           ref: ${{ steps.dir.outputs.into }}
           fetch-depth: 0
 
       - name: Configure git
+        if: steps.exists.outputs.found == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Merge
         id: merge
+        if: steps.exists.outputs.found == 'true'
         env:
           FROM: ${{ steps.dir.outputs.from }}
           INTO: ${{ steps.dir.outputs.into }}

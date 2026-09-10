@@ -12,8 +12,8 @@ import { useRoleAssignments } from '@features/roles/presentation/hooks/use-role-
 import { useRoles } from '@features/roles/presentation/hooks/use-roles';
 import { useTranslation } from '@lib/i18n';
 import { uiConfig } from '@lib/ui-config';
-import { useQueryClient } from '@tanstack/react-query';
 import { AddIcon } from '@starterkit/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { confirm } from 'devextreme/ui/dialog';
 import { Column, Pager, Paging } from 'devextreme-react/data-grid';
 import { useState } from 'react';

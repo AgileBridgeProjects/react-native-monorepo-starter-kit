@@ -1,9 +1,9 @@
 'use client';
 
 import { supabase } from '@lib/supabase/config';
+import { mapSupabaseError } from '@starterkit/shared';
 import type { Provider } from '@supabase/supabase-js';
 import { useMutation } from '@tanstack/react-query';
-import { mapSupabaseError } from '@starterkit/shared';
 
 type OAuthProviderType = 'google' | 'microsoft' | 'apple';
 

@@ -208,7 +208,11 @@
     #0d90b1 64.004%,
     #021546 98.874%
   );
-  --starterkit-gradient-light-background: linear-gradient(250.79deg, #3bd7f6 39.438%, #012d74 93.337%);
+  --starterkit-gradient-light-background: linear-gradient(
+    250.79deg,
+    #3bd7f6 39.438%,
+    #012d74 93.337%
+  );
   /* Unnamed in Figma's Styles panel — a raw fill on the "Background/Variant3" symbol. */
   --starterkit-gradient-background-variant3: linear-gradient(
     -18.06deg,
@@ -224,7 +228,12 @@
      identical to --starterkit-gradient-button as a placeholder pending confirmation. */
   --starterkit-gradient-cyan: linear-gradient(187.69deg, #ffffff 3.16%, #a9f1ff 113.29%);
   /* Bonus: seen on an Icon Buttons/BluePink component — not yet a named Figma style. */
-  --starterkit-gradient-blue-pink: linear-gradient(90deg, #0a3d91 0%, #8322a4 66.581%, #ff06b8 98.494%);
+  --starterkit-gradient-blue-pink: linear-gradient(
+    90deg,
+    #0a3d91 0%,
+    #8322a4 66.581%,
+    #ff06b8 98.494%
+  );
 
   /* ══════════════════════════════════════════════════════════════════════════
      Admin portal brand — source of truth: the starterkit.com marketing site

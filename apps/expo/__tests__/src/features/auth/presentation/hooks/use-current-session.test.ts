@@ -1,6 +1,6 @@
 import { useCurrentSession } from '@features/auth/presentation/hooks/use-current-session';
-import { useAuthStore } from '@store/auth-store';
 import type { AuthUser } from '@starterkit/shared';
+import { useAuthStore } from '@store/auth-store';
 import { act } from 'react-test-renderer';
 import { beforeEach, describe, expect, it } from 'vitest';
 

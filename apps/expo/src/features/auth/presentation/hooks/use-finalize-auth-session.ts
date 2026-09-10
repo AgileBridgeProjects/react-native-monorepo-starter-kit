@@ -1,8 +1,8 @@
 import { crashReporter } from '@lib/crash-reporting';
+import { AccountNotFoundFailure, type AuthUser, authTransitionGuard } from '@starterkit/shared';
 import { useAuthStore } from '@store/auth-store';
 import type { QueryClient } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { AccountNotFoundFailure, type AuthUser, authTransitionGuard } from '@starterkit/shared';
 import { useCallback } from 'react';
 
 import { meDatasource } from '../../infrastructure/datasources/me.datasource';

@@ -1,8 +1,8 @@
 import { clearCachedAvatarUrl } from '@features/profile/presentation/hooks/use-profile';
 import { crashReporter } from '@lib/crash-reporting';
+import type { PhoneOtpTicket } from '@starterkit/shared';
 import { useAuthStore } from '@store/auth-store';
 import { useMutation } from '@tanstack/react-query';
-import type { PhoneOtpTicket } from '@starterkit/shared';
 import { SupabaseAuthDatasource } from '../../infrastructure/datasources/supabase-auth.datasource';
 import { useFinalizeAuthSession } from './use-finalize-auth-session';
 

@@ -4,9 +4,9 @@ import { SupabaseAuthDatasource } from '@features/auth/infrastructure/datasource
 import { revokeAndSignOut } from '@features/auth/infrastructure/revoke-session';
 import { lastVisitedPath } from '@lib/last-visited-path';
 import { isEmail } from '@lib/validation-utils';
+import { CUSTOM_AUTH_EMAIL_DOMAIN, type PhoneOtpTicket } from '@starterkit/shared';
 import { useAuthStore } from '@store/auth-store';
 import { useMutation } from '@tanstack/react-query';
-import { CUSTOM_AUTH_EMAIL_DOMAIN, type PhoneOtpTicket } from '@starterkit/shared';
 
 const authDatasource = new SupabaseAuthDatasource();
 

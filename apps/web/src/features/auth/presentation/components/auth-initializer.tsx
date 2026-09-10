@@ -1,8 +1,8 @@
 'use client';
 
 import { supabase } from '@lib/supabase/config';
-import { useAuthStore } from '@store/auth-store';
 import { subscribeToAuth } from '@starterkit/shared';
+import { useAuthStore } from '@store/auth-store';
 import { useEffect } from 'react';
 
 /**

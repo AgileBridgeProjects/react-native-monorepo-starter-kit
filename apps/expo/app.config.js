@@ -219,8 +219,7 @@ module.exports = ({ config }) => {
             plugin[0],
             {
               ...plugin[1],
-              iosUrlScheme:
-                'com.googleusercontent.apps.YOUR-DEV-IOS-OAUTH-CLIENT-ID',
+              iosUrlScheme: 'com.googleusercontent.apps.YOUR-DEV-IOS-OAUTH-CLIENT-ID',
             },
           ];
         }
@@ -242,8 +241,7 @@ module.exports = ({ config }) => {
             plugin[0],
             {
               ...plugin[1],
-              iosUrlScheme:
-                'com.googleusercontent.apps.YOUR-UAT-IOS-OAUTH-CLIENT-ID',
+              iosUrlScheme: 'com.googleusercontent.apps.YOUR-UAT-IOS-OAUTH-CLIENT-ID',
             },
           ];
         }

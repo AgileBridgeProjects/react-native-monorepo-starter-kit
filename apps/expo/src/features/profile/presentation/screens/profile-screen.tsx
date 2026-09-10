@@ -4,8 +4,8 @@ import { useOrganisations } from '@features/auth/presentation/hooks/use-organisa
 import { DevToolsCard } from '@features/profile/presentation/components/dev-tools-card';
 import { ApiError } from '@lib/http';
 import { useTranslation } from '@lib/i18n';
-import { useAuthStore } from '@store/auth-store';
 import { accountDisplayIdentifier, iconSize, MAX_AVATAR_SIZE_BYTES } from '@starterkit/shared';
+import { useAuthStore } from '@store/auth-store';
 import * as ImagePicker from 'expo-image-picker';
 import { type Href, Stack, useRouter } from 'expo-router';
 import { useState } from 'react';

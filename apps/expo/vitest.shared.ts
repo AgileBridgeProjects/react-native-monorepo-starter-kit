@@ -38,7 +38,10 @@ export const commonResolveConfig = {
       find: /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/,
       replacement: path.resolve(__dirname, './test/mocks/asset-stub.ts'),
     },
-    { find: '@starterkit/shared', replacement: path.resolve(__dirname, '../../packages/shared/src') },
+    {
+      find: '@starterkit/shared',
+      replacement: path.resolve(__dirname, '../../packages/shared/src'),
+    },
     { find: '@features', replacement: path.resolve(__dirname, './src/features') },
     { find: '@lib', replacement: path.resolve(__dirname, './src/lib') },
     { find: '@store', replacement: path.resolve(__dirname, './src/store') },

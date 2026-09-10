@@ -54,7 +54,12 @@ function useNavDefinitions(): RawNavGroups {
         icon: ShareWithTeamsIcon,
         permission: 'StarterKit.Teams.View',
       },
-      { label: t('nav:users'), href: '/users', icon: UsersIcon, permission: 'StarterKit.Users.View' },
+      {
+        label: t('nav:users'),
+        href: '/users',
+        icon: UsersIcon,
+        permission: 'StarterKit.Users.View',
+      },
     ],
     allAdmin: [
       {

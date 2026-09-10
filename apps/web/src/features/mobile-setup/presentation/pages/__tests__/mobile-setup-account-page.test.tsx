@@ -80,6 +80,8 @@ describe('MobileSetupAccountPage', () => {
   it('URL-encodes the token in the deep link', () => {
     withToken('a b/c');
     render(<MobileSetupAccountPage />);
-    expect(window.location.href).toBe('starterkit-mobile-dev://mobile-setup-account?token=a%20b%2Fc');
+    expect(window.location.href).toBe(
+      'starterkit-mobile-dev://mobile-setup-account?token=a%20b%2Fc',
+    );
   });
 });

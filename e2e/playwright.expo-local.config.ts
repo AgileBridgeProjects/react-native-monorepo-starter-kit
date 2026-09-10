@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 /** Tablet and mobile run only the specs that observe the viewport — see playwright.config.ts.
  * E2E_ALL_VIEWPORTS=1 restores the full matrix. */
 const viewportGrep = process.env.E2E_ALL_VIEWPORTS === '1' ? undefined : /@viewport/;
+
 import dotenv from 'dotenv';
 
 // The synthetic auth injector (playwright/utils/auth.ts) derives its localStorage key from

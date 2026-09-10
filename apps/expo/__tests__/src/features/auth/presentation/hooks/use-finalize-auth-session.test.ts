@@ -4,9 +4,9 @@ import {
   useFinalizeAuthSession,
 } from '@features/auth/presentation/hooks/use-finalize-auth-session';
 import { ORGANISATIONS_QUERY_KEY } from '@features/auth/presentation/hooks/use-organisations';
+import type { AuthUser } from '@starterkit/shared';
 import { useAuthStore } from '@store/auth-store';
 import { QueryClient } from '@tanstack/react-query';
-import type { AuthUser } from '@starterkit/shared';
 import { act } from 'react-test-renderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

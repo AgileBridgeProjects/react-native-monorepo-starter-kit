@@ -1,4 +1,9 @@
-import { countryCodeToEmoji, getPhoneCountries, type PhoneCountry, spacing } from '@starterkit/shared';
+import {
+  countryCodeToEmoji,
+  getPhoneCountries,
+  type PhoneCountry,
+  spacing,
+} from '@starterkit/shared';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 

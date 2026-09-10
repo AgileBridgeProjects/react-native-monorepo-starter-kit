@@ -256,9 +256,7 @@ test.describe('Users — Add User Drawer', () => {
       await expect(usersPage.dialogPanel).not.toBeVisible();
     });
 
-    test('creates a ClubAdmin user without selecting a team', async ({
-      page,
-    }) => {
+    test('creates a ClubAdmin user without selecting a team', async ({ page }) => {
       await mockStandardRoutes(page);
       await usersPage.goto();
       await usersPage.waitForLoad();

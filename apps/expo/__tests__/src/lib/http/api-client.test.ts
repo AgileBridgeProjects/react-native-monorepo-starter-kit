@@ -1,7 +1,7 @@
 import { apiClient } from '@lib/http/api-client';
 import { ApiError } from '@lib/http/api-error';
-import { authStoreUtils, useAuthStore } from '@store/auth-store';
 import type { AuthUser } from '@starterkit/shared';
+import { authStoreUtils, useAuthStore } from '@store/auth-store';
 import { HttpResponse, http } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

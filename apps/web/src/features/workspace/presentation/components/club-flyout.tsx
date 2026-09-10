@@ -5,9 +5,9 @@ import type { WorkspaceClubSummary } from '@features/workspace/domain/types/work
 import { queryCacheConfig } from '@lib/http/query-config';
 import { useTranslation } from '@lib/i18n';
 import { uiConfig } from '@lib/ui-config';
-import { useQuery } from '@tanstack/react-query';
 import { SearchIcon } from '@starterkit/icons';
 import { iconSize } from '@starterkit/shared';
+import { useQuery } from '@tanstack/react-query';
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import { PaginationFooter } from '@/components/ui';
 import { Skeleton } from '@/components/ui/skeleton';

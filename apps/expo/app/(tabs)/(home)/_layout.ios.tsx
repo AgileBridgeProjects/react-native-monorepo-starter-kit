@@ -1,7 +1,7 @@
 import { useProfile } from '@features/profile/presentation/hooks/use-profile';
 import { useTranslation } from '@lib/i18n';
-import { useAuthStore } from '@store/auth-store';
 import { fontSize, fontWeight } from '@starterkit/shared';
+import { useAuthStore } from '@store/auth-store';
 import { Stack } from 'expo-router';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 import { TabHeader } from '@/components/ui/tab-header';

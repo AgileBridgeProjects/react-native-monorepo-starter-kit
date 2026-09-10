@@ -5,9 +5,9 @@ import {
 } from '@features/auth/presentation/hooks/use-finalize-auth-session';
 import { crashReporter } from '@lib/crash-reporting';
 import { supabase } from '@lib/supabase/config';
+import { subscribeToAuth } from '@starterkit/shared';
 import { useAuthStore } from '@store/auth-store';
 import { useQueryClient } from '@tanstack/react-query';
-import { subscribeToAuth } from '@starterkit/shared';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 

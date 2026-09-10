@@ -48,10 +48,7 @@ function fakeFs(initial = {}) {
 describe('secretNameFor', () => {
   it('inverts the kebab to UPPER_SNAKE mapping pull-env.mjs applies', () => {
     assert.equal(secretNameFor('E2E_ADMIN_EMAIL'), 'e2e-admin-email');
-    assert.equal(
-      secretNameFor('EXAMPLE_LICENCE_KEY'),
-      'example-licence-key',
-    );
+    assert.equal(secretNameFor('EXAMPLE_LICENCE_KEY'), 'example-licence-key');
   });
 
   it('round-trips through the auto-map pull-env.mjs uses', () => {

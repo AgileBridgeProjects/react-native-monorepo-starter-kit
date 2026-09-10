@@ -30,8 +30,8 @@ export default function MaintenancePage() {
           <div className="flex flex-col gap-xs">
             <h1 className="text-2xl font-semibold text-text">Deployment in progress</h1>
             <p className="text-sm leading-relaxed text-text-secondary">
-              We're rolling out an update to StarterKit. This usually takes a couple of minutes — please
-              refresh the page shortly and you'll be back up and running.
+              We're rolling out an update to StarterKit. This usually takes a couple of minutes —
+              please refresh the page shortly and you'll be back up and running.
             </p>
           </div>
 
