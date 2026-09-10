@@ -117,7 +117,7 @@ jobs:
       - run: npm ci
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache-web
         with:
           path: ~/.cache/ms-playwright
@@ -278,7 +278,7 @@ jobs:
       - run: npm ci
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache-expo
         with:
           path: ~/.cache/ms-playwright
@@ -302,7 +302,7 @@ jobs:
       # env block below being part of what invalidates this.
       - name: Cache Expo web export
         id: expo-export-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /tmp/expo-web-dist
           key: >-
