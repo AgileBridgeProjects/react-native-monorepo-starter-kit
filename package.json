@@ -1,6 +1,7 @@
 {
   "name": "starterkit",
   "private": true,
+  "packageManager": "npm@11.19.0",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -19,6 +20,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:scripts": "node --test .claude/hooks/pr-prose-guard.test.mjs apps/expo/scripts/mobile-version.test.mjs scripts/pre-push-tag-skip.test.mjs scripts/store-release.test.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "check:affected": "biome check . && turbo run typecheck test --filter=\"...[origin/dev]\" && npm run test:scripts && npm run check:locale-casing && npm run check:architecture && npm run check:standards",
     "check": "biome check . && npm run typecheck && npm run test && npm run test:scripts && npm run check:locale-casing && npm run check:architecture && npm run check:standards",
     "generate:proxy": "npm run generate:proxy --workspaces --if-present",
     "generate:proxy:local": "npm run generate:proxy:local --workspaces --if-present",

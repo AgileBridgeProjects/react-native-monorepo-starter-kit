@@ -262,8 +262,6 @@ This makes it easy to ask "why does this button look misaligned?" or "fix the la
 [ ] Spec workflow: available through all three committed MCP configs
 [ ] Linear: authenticates via OAuth in browser on first use
 [ ] PostgreSQL: works if .env.local has correct credentials
-[ ] graphify: uv tool install graphifyy && graphify vscode install   # hooks already committed, no hook install needed
-[ ] graphify: if graphify-out/ not committed yet, open Copilot Chat and type /graphify .
 
 # Token reduction tooling (Section 8) — run once per developer machine
 [ ] RTK: download binary from https://github.com/rtk-ai/rtk/releases/latest
@@ -282,93 +280,6 @@ This makes it easy to ask "why does this button look misaligned?" or "fix the la
        /caveman-compress docs/standards/backend/repositories.md
        /caveman-compress docs/standards/frontend.md
        Do NOT run on CLAUDE.md — that file is intentionally minimal.
-```
-
----
-
-## 7. Knowledge Graph (graphify)
-
-graphify builds a knowledge graph from your codebase — code files via AST (no LLM), docs/markdown via Claude. It produces a persistent `graphify-out/GRAPH_REPORT.md` that all three AI agents read automatically before answering architecture questions, giving them structural understanding instead of keyword-matching across raw files.
-
-### How it works
-
-- **Code files** (`.ts`, `.tsx`, `.cs`, `.js`, etc.) — parsed locally via tree-sitter AST. No tokens spent, instant.
-- **Docs/markdown** — sent to the LLM once for semantic extraction. Results are SHA256-cached so re-runs only process changed files.
-- **Output** — `graphify-out/GRAPH_REPORT.md` (god nodes, communities, surprising connections), `graph.json` (queryable), `graph.html` (interactive browser view)
-
-The graph persists across sessions. You only rebuild when needed (see below).
-
-### Install (one-time per developer)
-
-Requires `uv` (already in this repo's toolchain):
-
-```bash
-uv tool install graphifyy
-```
-
-Then register it with your AI tools:
-
-```bash
-graphify vscode install    # GitHub Copilot (VS Code)
-graphify claude install    # Claude Code
-graphify codex install     # Codex
-```
-
-The git hooks are **already committed** to the repo (`.husky/_/post-commit` and `.husky/_/post-checkout`). They activate automatically when any dev runs `npm install` (Husky sets `core.hooksPath = .husky/_` in local git config). No extra step needed.
-
-> If you are the first person setting up graphify on a new repo, run `graphify hook install` to append the hook block. Everyone else just needs the binary.
-
-### Build the graph (first time)
-
-The graph build requires the AI agent because it uses the LLM for semantic extraction of docs. Open a **new** Copilot Chat session and type:
-
-```text
-/graphify .
-```
-
-For Claude Code:
-
-```text
-/graphify .
-```
-
-For Codex (uses `$` instead of `/`):
-
-```text
-$graphify .
-```
-
-This will scan the full repo. Expect it to take a few minutes on first run. The output lands in `graphify-out/` — **commit this folder** so teammates get the graph immediately on `git pull` without running it themselves.
-
-### Keeping the graph up to date
-
-| Trigger | What happens | LLM needed? |
-|---|---|---|
-| After every `git commit` | Hook auto-rebuilds code structure (AST only) | No |
-| After `git checkout` (branch switch) | Hook auto-rebuilds code structure | No |
-| After significant doc/markdown changes | Run `/graphify --update` manually | Yes (only changed files) |
-| After adding new entities/features | Run `/graphify --update` | Yes (only changed files) |
-
-### Using the graph
-
-Once built, the agents read `GRAPH_REPORT.md` automatically before architecture questions (wired into all three instruction files). You can also query it directly:
-
-```bash
-graphify query "what connects GameAssignment to Scoreboard?"
-graphify explain "GameSession"
-graphify path "Topic" "Reward"
-```
-
-Or open `graphify-out/graph.html` in a browser for an interactive visual.
-
-### What's in .gitignore
-
-Add these to `.gitignore` (keep the graph outputs, skip local-only files):
-
-```text
-graphify-out/cache/        # optional: commit for shared extraction speed, skip to keep repo small
-graphify-out/manifest.json # mtime-based, invalid after git clone — always gitignore this
-graphify-out/cost.json     # local token tracking, not useful to share
 ```
 
 ---
@@ -432,7 +343,6 @@ The `.claudeignore` file (gitignore syntax) at the repo root tells Claude Code w
 
 - `node_modules/`, `dist/`, `.next/`, `.expo/`, `out/`, `build/`, `coverage/` — build outputs
 - `**/bin/`, `**/obj/` — .NET build artifacts
-- `graphify-out/graph.json`, `graphify-out/graph.html` — large generated files with no useful text content
 - `package-lock.json`, `yarn.lock`, lock files — too large, no signal
 - `**/src/proxy/` — auto-generated Orval output (never hand-edited)
 - `**/__snapshots__/` — test snapshot files
@@ -443,7 +353,6 @@ The `.claudeignore` file (gitignore syntax) at the repo root tells Claude Code w
 
 - All of `docs/` including `docs/standards/**` ✅
 - `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md` ✅
-- `graphify-out/CHEAT_SHEET.md`, `graphify-out/GRAPH_REPORT.md` ✅
 - All source code in `apps/*/src/` ✅
 - `.claude/rules/*.md` ✅
 

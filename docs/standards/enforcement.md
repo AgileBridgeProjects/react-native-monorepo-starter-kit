@@ -77,7 +77,7 @@ running, silently.
 | Hook | Event | What |
 |---|---|---|
 | `lint-on-edit.mjs` | `PostToolUse` on `Write`/`Edit`/`MultiEdit` | Formats and lints the one file just written — biome for JS/TS/JSON, csharpier for `.cs`, markdownlint for `.md`, `check:locale-casing` when a locale JSON is touched. Fixes what it can; reports the rest on exit 2 so the agent corrects it in the same turn |
-| `guard-write.mjs` | `PreToolUse` on write tools | Denies edits to generated or locked files — `src/proxy/**` (Orval), `package-lock.json`, EF `Migrations/*.Designer.cs` and `*ModelSnapshot.cs`, `graphify-out/**`, real `.env` files — and names the generator to run instead |
+| `guard-write.mjs` | `PreToolUse` on write tools | Denies edits to generated or locked files — `src/proxy/**` (Orval), `package-lock.json`, EF `Migrations/*.Designer.cs` and `*ModelSnapshot.cs`, real `.env` files — and names the generator to run instead |
 | `guard-bash.mjs` | `PreToolUse` on `Bash` | Denies `pnpm`/`yarn`/`bun` (npm-only), `git commit\|push --no-verify`, and `dotnet format` (csharpier is the formatter) |
 | `pr-readiness-nudge.mjs` | `PreToolUse` on `Bash` | On a PR-creating command, injects the standards sweep (`pr-readiness.md`) and the E2E attestation requirement. Never blocks; fires once per session |
 | `pr-prose-guard.mjs` | `PreToolUse` on `Bash` | On any command publishing prose to a PR, injects the `pr-writing` contract for that artifact kind (description, review comment, reply — once each per session) and denies what is decidable: em/en dashes, sycophancy, chatbot sign-offs, a comment over 60 prose words, a description over 120, and a line-anchored review comment that does not open with 🔴, 🟡 or 💡. Read-only `gh` never fires |

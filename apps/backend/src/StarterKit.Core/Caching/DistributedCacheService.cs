@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,19 @@ internal sealed class DistributedCacheService(
     ILogger<DistributedCacheService> logger
 ) : ICacheService
 {
+    /// <summary>
+    /// One gate per cache key, so a miss runs the factory once instead of once per caller.
+    /// Without it every concurrent request for a cold key runs the same query: the cache
+    /// saves nothing at exactly the moment it is needed most, which is the stampede.
+    /// </summary>
+    /// <remarks>
+    /// Static because the gate has to outlive the scoped service instances contending for it.
+    /// Entries are never removed: a bounded set of cache keys means a bounded set of
+    /// semaphores, and removing one while a caller is waiting on it is a race with no upside.
+    /// If keys ever become unbounded (per-entity keys, say), this needs an eviction policy.
+    /// </remarks>
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> KeyGates = new();
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = null,
@@ -53,12 +67,40 @@ internal sealed class DistributedCacheService(
             }
         }
 
-        var value = await factory(cancellationToken);
-        if (value is null)
-            return null;
+        var gate = KeyGates.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            // Re-read inside the gate: whoever held it before us has just populated the key,
+            // and running the factory again would defeat the point of waiting.
+            var populated = await cache.GetAsync(key, cancellationToken);
+            if (populated is not null)
+            {
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(populated, JsonOptions);
+                }
+                catch (JsonException ex)
+                {
+                    logger.LogWarning(
+                        ex,
+                        "Cache deserialization failed for key '{Key}' after waiting. Re-fetching.",
+                        key
+                    );
+                }
+            }
 
-        await StoreAsync(key, value, ttl, cancellationToken);
-        return value;
+            var value = await factory(cancellationToken);
+            if (value is null)
+                return null;
+
+            await StoreAsync(key, value, ttl, cancellationToken);
+            return value;
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     /// <inheritdoc />

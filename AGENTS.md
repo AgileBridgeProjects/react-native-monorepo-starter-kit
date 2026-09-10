@@ -153,7 +153,3 @@ Do not generate steering documents — project context comes from `docs/standard
 
 **Do not load standards files that are not relevant to the current task.** This reduces context bloat and keeps responses faster and more accurate.
 
-## graphify
-
-Before any task that touches more than one feature module, or any task involving a new entity relationship, read `graphify-out/CHEAT_SHEET.md` first (30-line module topology). For deeper architecture exploration, read `graphify-out/GRAPH_REPORT.md`.
-Type `$graphify .` in Codex to build or update the knowledge graph.

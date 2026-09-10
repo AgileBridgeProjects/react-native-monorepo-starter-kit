@@ -20,11 +20,6 @@ coverage/
 **/obj/
 **/*.user
 
-# Large generated/binary graphify files — not useful to read directly
-# GRAPH_REPORT.md and CHEAT_SHEET.md are intentionally NOT excluded — Claude reads those
-graphify-out/graph.json
-graphify-out/graph.html
-
 # Lock files — too large, no useful signal for Claude
 package-lock.json
 yarn.lock

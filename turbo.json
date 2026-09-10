@@ -1,5 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "//": "globalDependencies is load-bearing for check:affected. turbo selects packages by path, so a change to tsconfig.base.json or biome.json picks NOTHING and the affected run goes green on a branch that `npm run typecheck` would fail. Listing them here invalidates every task instead.",
+  "globalDependencies": ["tsconfig.base.json", "biome.json", "package-lock.json"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

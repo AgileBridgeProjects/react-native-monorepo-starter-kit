@@ -155,7 +155,12 @@ builder.Services.AddHangfire(config =>
         config.UseInMemoryStorage();
 });
 
-builder.Services.AddHangfireServer();
+// Never in tests. Each WebApplicationFactory builds its own host, so an ungated registration
+// starts a background server per test class: measured at 94 servers, 64 non-graceful
+// shutdowns and 117 ObjectDisposedExceptions in one local run. On a 4-core CI runner that
+// starves the thread pool and wedges the runner with no failing assertion to point at.
+if (!isTesting)
+    builder.Services.AddHangfireServer();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

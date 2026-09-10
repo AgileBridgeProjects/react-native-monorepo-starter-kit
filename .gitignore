@@ -289,13 +289,6 @@ e2e/.env.e2e
 # Playwright saved auth state — contains credentials, never commit
 e2e/.auth/
 
-# graphify – keep outputs, ignore build cache & secrets
-graphify-out/manifest.json
-graphify-out/cost.json
-graphify-out/cache/
-graphify-out/.graphify_*
-graphify-out/.graphify_python
-graphify-out/_merge.py
 apps/backend/nul
 
 # Static Expo web export built by e2e:affected (mirrors the CI job) — never committed.

@@ -67,6 +67,3 @@ Do not generate steering documents — project context comes from `docs/standard
 
 ---
 
-## graphify
-
-Multi-module tasks or new entity relationships: read `graphify-out/CHEAT_SHEET.md` first (module topology). Deeper exploration: `graphify-out/GRAPH_REPORT.md`. Rebuild: `/graphify` in Copilot Chat.

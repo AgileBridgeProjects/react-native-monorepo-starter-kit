@@ -162,18 +162,25 @@ builder.Services.AddHangfire(config =>
         config.UseInMemoryStorage();
 });
 
-// Default server drains the standard job queue (notifications, AI, reports, recurring jobs).
-builder.Services.AddHangfireServer(options => options.Queues = ["default"]);
-
-// Dedicated single-worker server for CPU-bound media work (H.265 video transcoding).
-// Isolating it to its own "media" queue with WorkerCount = 1 guarantees at most one encode
-// runs at a time and that it never starves the default workers — concurrent libx265 encodes
-// on the shared App Service plan are what pinned the CPU and took the admin portal offline.
-builder.Services.AddHangfireServer(options =>
+// Never in tests. Each WebApplicationFactory builds its own host, so an ungated registration
+// starts a background server per test class: measured at 94 servers, 64 non-graceful
+// shutdowns and 117 ObjectDisposedExceptions in one local run. On a 4-core CI runner that
+// starves the thread pool and wedges the runner with no failing assertion to point at.
+if (!isTesting)
 {
-    options.Queues = ["media"];
-    options.WorkerCount = 1;
-});
+    // Default server drains the standard job queue (notifications, AI, reports, recurring jobs).
+    builder.Services.AddHangfireServer(options => options.Queues = ["default"]);
+
+    // Dedicated single-worker server for CPU-bound media work (H.265 video transcoding).
+    // Isolating it to its own "media" queue with WorkerCount = 1 guarantees at most one encode
+    // runs at a time and that it never starves the default workers — concurrent libx265 encodes
+    // on the shared App Service plan are what pinned the CPU and took the admin portal offline.
+    builder.Services.AddHangfireServer(options =>
+    {
+        options.Queues = ["media"];
+        options.WorkerCount = 1;
+    });
+}
 
 builder
     .Services.AddOptions<CorsPolicyOptions>()

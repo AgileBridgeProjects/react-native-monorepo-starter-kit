@@ -46,6 +46,26 @@ import { appConfig } from '@starterkit/shared';
 <title>{appConfig.adminPortalTitle}</title>
 ```
 
+### Never use t-shirt width utilities (`max-w-xs`, `max-w-sm`, `w-md`…)
+
+`@theme inline` in `globals.css` registers `xs`/`sm`/`md`/`lg`/`xl` as **spacing** keys
+(`--spacing-xs` … `--spacing-3xl`), and Tailwind v4 resolves `max-w-<key>` against the spacing
+namespace when no `--container-<key>` exists. So `max-w-xs` compiles to
+`max-width: var(--starterkit-spacing-xs)` — **4px** — and silently collapses whatever it wraps.
+The class looks right, generates no warning, and only shows up in the browser.
+
+```tsx
+// ❌ VIOLATION: 4px wide, not 20rem
+<div className="max-w-xs"><SelectBox width="100%" /></div>
+
+// ✅ CORRECT: numeric scale (`--spacing` is intact, w-64 = 16rem)
+<div className="w-full sm:w-64"><SelectBox width="100%" /></div>
+```
+
+For a width that carries meaning beyond a spacing step, add a `--container-*` token in the
+`@theme inline` block and use it by name — `--container-auth-card: 440px` → `max-w-auth-card`.
+Spacing utilities (`p-md`, `gap-sm`) are unaffected; this only bites width utilities.
+
 ### Two brands, one primitive file
 
 The portal and the mobile app do **not** share a colour identity. `packages/shared/tokens.css`

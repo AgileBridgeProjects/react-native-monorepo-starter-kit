@@ -72,6 +72,6 @@
   "ambientVolume": "Ambient volume",
   "devTools": {
     "title": "Dev tools",
-    "description": "Only shown on the dev client and the dev build — never on UAT or production."
+    "description": "Only shown on the dev client and the dev build, never on UAT or production."
   }
 }

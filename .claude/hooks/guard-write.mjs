@@ -37,10 +37,6 @@ const RULES = [
       '`dotnet ef migrations add <Name>`. See docs/standards/backend/auditing.md.',
   },
   {
-    test: (p) => p.startsWith('graphify-out/'),
-    reason: 'graphify-out/** is generated. Rebuild it with `/graphify` in Copilot Chat instead.',
-  },
-  {
     test: (p) => /(^|\/)\.env(\.|$)/.test(p) && !p.endsWith('.example'),
     reason:
       'Real .env files hold live credentials and are gitignored — an agent must not write them. ' +

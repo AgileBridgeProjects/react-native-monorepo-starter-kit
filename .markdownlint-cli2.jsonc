@@ -21,7 +21,6 @@
     "**/test-results/**",
     "**/html-report/**",
     "**/playwright-report/**",
-    "graphify-out/**",
     "_bmad/**",
     "_bmad-output/**",
     // Git worktrees live under .claude/worktrees/ (see .gitignore). Without this the

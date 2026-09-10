@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * CI check: locale JSON values must be neutral sentence-case.
+ * CI check: locale JSON values must be neutral sentence-case, and free of em/en dashes.
+ *
+ * Dashes are rejected because they read as machine-written and translate inconsistently
+ * (docs/standards/frontend.md § localization).
  * Fails if any string value is fully uppercase (e.g. "REWARDS", "SIGN IN").
  * Casing is applied in components via Tailwind classes, not baked into translations.
  *
@@ -16,6 +19,7 @@ const LOCALE_DIRS = [
 ];
 
 const ALL_CAPS = /^[A-Z][A-Z\s\d!?.,'"-]+$/;
+const LONG_DASH = /[—–]/;
 
 /** Walk a directory recursively and return all .json file paths */
 async function walkJson(dir) {
@@ -72,6 +76,14 @@ for (const dir of LOCALE_DIRS) {
       if (ALL_CAPS.test(value.trim())) {
         console.error(
           `[locale-casing] ALL_CAPS value in ${file}\n  ${key}: "${value}"\n  → Use sentence-case; apply uppercase via Tailwind className in the component.`,
+        );
+        violations++;
+      }
+      if (LONG_DASH.test(value)) {
+        console.error(
+          `[locale-casing] em/en dash in ${file}
+  ${key}: "${value}"
+  → Use a colon, a comma, or a second sentence.`,
         );
         violations++;
       }

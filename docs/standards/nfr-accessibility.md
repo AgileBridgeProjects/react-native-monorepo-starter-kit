@@ -199,6 +199,17 @@ Use when the label alone does not describe the outcome:
 </Pressable>
 ```
 
+### Gesture-only handles
+
+A drag handle with no discrete activation — a sheet grabber, a resize bar — is **decorative to
+assistive tech**, not an unlabelled control. Give it `importantForAccessibility="no-hide-descendants"`
+and `accessibilityElementsHidden`, and make sure the thing it does is reachable another way.
+
+Do NOT give it `accessibilityRole="button"` and a label. There is no `onPress` behind it, so a
+screen-reader double-tap does nothing; and the only name available is usually the sheet's own close
+label, which its close control already answers to — two identically named targets is worse than
+one hidden decoration. Apply it to whichever component owns the grabber.
+
 ### Dynamic Type / font scaling
 
 ```tsx
