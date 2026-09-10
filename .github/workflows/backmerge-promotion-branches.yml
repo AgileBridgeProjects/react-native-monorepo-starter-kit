@@ -1,0 +1,142 @@
+# ─────────────────────────────────────────────────────────────
+# Back-merge: uat → dev after a promotion, main → uat after a release.
+#
+# ── This is hygiene, not a gate ──────────────────────────────────────────────────────
+# It used to be load-bearing: `strict_required_status_checks_policy` meant the next
+# promotion PR was blocked until the base's merge commit reached the head branch. That is
+# no longer true — strict is off on uat and main, replaced by the `Promotion base
+# contained` check, which passes for exactly these ancestry-only commits. See
+# docs/standards/branching.md.
+#
+# What this still buys: `git log dev..uat` stays meaningful, so "what is on uat that dev
+# hasn't got" answers honestly instead of always listing stale merge commits. Worth having,
+# worth nothing if it goes red — hence the failure handling below.
+#
+# ── Why it does not fail when it cannot push ─────────────────────────────────────────
+# Both routes it could take are closed by design:
+#   • Direct push → refused by protect-dev / protect-uat (no bypass actor for Actions, and
+#     adding one would let ANY workflow push to a protected branch unreviewed).
+#   • Opening a PR → refused with "GitHub Actions is not permitted to create or approve
+#     pull requests" unless that repository setting is enabled.
+# The first version of this workflow tried push-then-PR and went red on every promotion,
+# which is worse than useless: a permanently-failing check trains people to ignore checks.
+# So it reports what it could not do and exits 0. Nothing depends on it succeeding.
+#
+# To make it silent and automatic, enable Settings → Actions → "Allow GitHub Actions to
+# create and approve pull requests". That grants only PR *creation* — merging still needs
+# the usual reviews — which is a far smaller grant than a push bypass.
+# ─────────────────────────────────────────────────────────────
+name: Back-merge promotion branches
+
+on:
+  push:
+    branches: [uat, main]
+  workflow_dispatch:
+
+concurrency:
+  group: backmerge-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backmerge:
+    name: Back-merge into the downstream branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Work out the direction
+        id: dir
+        run: |
+          set -euo pipefail
+          case "${{ github.ref_name }}" in
+            uat)  echo "from=uat"  >> "$GITHUB_OUTPUT"; echo "into=dev" >> "$GITHUB_OUTPUT" ;;
+            main) echo "from=main" >> "$GITHUB_OUTPUT"; echo "into=uat" >> "$GITHUB_OUTPUT" ;;
+            *)    echo "::notice::Nothing to back-merge from ${{ github.ref_name }}."; exit 0 ;;
+          esac
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.dir.outputs.into }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge
+        id: merge
+        env:
+          FROM: ${{ steps.dir.outputs.from }}
+          INTO: ${{ steps.dir.outputs.into }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$FROM" --quiet
+
+          if git merge-base --is-ancestor "origin/$FROM" HEAD; then
+            echo "::notice::$INTO already contains $FROM — nothing to do."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+
+          # --no-ff so the merge parent is recorded even when the content is identical.
+          # The parent is the entire point: it is what makes `git log $INTO..$FROM` honest.
+          if ! git merge --no-ff "origin/$FROM" -m "chore: back-merge $FROM into $INTO"; then
+            git merge --abort || true
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+      # A textual conflict means the two branches genuinely diverged — a human decision,
+      # not a bot's. `Promotion base contained` will also be failing on the open promotion
+      # PR, with the same diagnosis, so this is loud enough without failing the job.
+      - name: Report a conflict
+        if: steps.merge.outputs.conflict == 'true'
+        env:
+          FROM: ${{ steps.dir.outputs.from }}
+          INTO: ${{ steps.dir.outputs.into }}
+        run: |
+          echo "::warning::$FROM conflicts with $INTO — resolve it by hand:"
+          echo "::warning::  git checkout $INTO && git merge origin/$FROM"
+
+      - name: Push
+        id: push
+        if: steps.merge.outputs.needed == 'true' && steps.merge.outputs.conflict != 'true'
+        continue-on-error: true
+        run: git push origin HEAD:${{ steps.dir.outputs.into }}
+
+      - name: Fall back to a pull request
+        id: pr
+        if: steps.push.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FROM: ${{ steps.dir.outputs.from }}
+          INTO: ${{ steps.dir.outputs.into }}
+        run: |
+          set -euo pipefail
+          existing=$(gh pr list --base "$INTO" --head "$FROM" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "::notice::PR #$existing already open for $FROM → $INTO."
+            exit 0
+          fi
+          gh pr create --base "$INTO" --head "$FROM" \
+            --title "chore: back-merge $FROM into $INTO (ancestry only)" \
+            --body "Automated back-merge so \`git log $INTO..$FROM\` stays honest. Content diff is empty. **Merge with \"Create a merge commit\" — never squash**, or the merge parent is lost and this recurs."
+
+      # Never fail the job. Nothing gates on this, and a permanently-red check on every
+      # promotion is how people learn to ignore red checks.
+      - name: Report what could not be done
+        if: steps.push.outcome == 'failure' && steps.pr.outcome == 'failure'
+        env:
+          FROM: ${{ steps.dir.outputs.from }}
+          INTO: ${{ steps.dir.outputs.into }}
+        run: |
+          echo "::warning::Could not back-merge $FROM into $INTO automatically."
+          echo "::warning::Push was refused by branch protection, and this repo does not allow Actions to open PRs."
+          echo "::warning::Enable Settings → Actions → 'Allow GitHub Actions to create and approve pull requests' to automate it."
+          echo "::warning::Until then, by hand:  git checkout $INTO && git merge origin/$FROM && git push"
+          echo "::warning::Nothing is blocked by this — see docs/standards/branching.md."

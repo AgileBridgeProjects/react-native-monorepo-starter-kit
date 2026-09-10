@@ -45,6 +45,7 @@ Read the relevant file(s) before writing any code. Never load files not relevant
 | SignalR real-time | `docs/standards/signalr.md` |
 | Caching | `docs/standards/caching.md` |
 | Audio/SFX | `docs/standards/audio.md` |
+| Branching / promotion model (`dev` → `uat` → `main`, back-merges) | `docs/standards/branching.md` |
 | Quality gates / enforcement (hooks, `check:architecture`, `check:standards`) | `docs/standards/enforcement.md` |
 | Opening a PR (mandatory pre-PR standards sweep) | `docs/standards/pr-readiness.md` |
 | Writing PR prose (description, review comments, replies) | `.agents/skills/pr-writing/SKILL.md` |

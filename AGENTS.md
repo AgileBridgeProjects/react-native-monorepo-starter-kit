@@ -17,6 +17,7 @@ app (Expo), an admin portal (Next.js), and a backend (.NET 10).
 | Frontend shared rules (imports, DRY, HTTP, state, testing, feature structure) | `docs/standards/frontend.md` |
 | Frontend web-specific (Tailwind, DevExtreme, route guards, web components) | `docs/standards/frontend-web.md` |
 | Frontend mobile-specific (NativeWind, Expo components, haptics, gestures) | `docs/standards/frontend-mobile.md` |
+| Branching / promotion model (`dev` → `uat` → `main`, back-merges) | `docs/standards/branching.md` |
 | OTA / EAS Update (publish script, mobile versioning / `version.json`, runtime version policy, restart prompt) | `docs/standards/ota-updates.md` |
 | Production store releases (dispatch, staging, store credentials) | `docs/deployment/prod-mobile-store-setup.md` |
 | Apple App Store review requirements (all Expo PRs) | `docs/apple-app-store-review.md` |

@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────────────────────
+# Promotion base contained — replaces "require branches to be up to date".
+#
+# ── The problem this exists to solve ─────────────────────────────────────────────────
+# `dev → uat → main` is a linear promotion pipeline: each head branch is a SUPERSET of
+# its base. uat is dev plus the merge commits promotion created; main is uat plus the
+# same. So `strict_required_status_checks_policy` ("Require branches to be up to date
+# before merging") can only ever fire on those merge commits — commits whose content is
+# already, by construction, in the head branch.
+#
+# The result was a permanent treadmill: every promotion merge left a commit on the base
+# that the head could never contain, so the NEXT promotion PR opened "out of date" with
+# nothing actually missing, and someone had to hand-crank a back-merge (and, because the
+# protected branches have no bypass actors, temporarily disable branch protection to push
+# it). That happened for dev→uat on 2026-07-20, 2026-08-03, 2026-08-15, and for uat→main
+# on 2026-08-03 and again today.
+#
+# ── What strict actually protected ───────────────────────────────────────────────────
+# One real case, and it is worth keeping: a hotfix landed DIRECTLY on uat or main. Then
+# the base genuinely holds code the head has never seen or tested, and promoting would
+# quietly regress it. This has happened — 17 commits went straight to main once and
+# turned the next uat→main into a conflict wall (PR #633).
+#
+# ── What this check does instead ─────────────────────────────────────────────────────
+# It asks the question strict was a blunt proxy for: **does the base contain any content
+# the head does not?**
+#
+#   • Base commits whose changes are already in head (i.e. promotion merge commits) →
+#     PASS. This is the case that was blocking every release for nothing.
+#   • Base commits carrying content head lacks (a real direct hotfix) → FAIL, naming the
+#     commits and the files, with the command to back-merge them.
+#
+# The comparison is on CONTENT (`git diff base...head` semantics via merge-base), not on
+# commit identity, which is exactly the distinction strict could not make.
+#
+# Make this a required status check on `uat` and `main`, and turn OFF
+# `strict_required_status_checks_policy` on both. Contract: docs/standards/branching.md.
+# ─────────────────────────────────────────────────────────────
+name: Promotion base contained
+
+on:
+  pull_request:
+    branches: [uat, main]
+
+concurrency:
+  group: promotion-base-contained-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # No `if:` — a skipped required check blocks a PR forever, so this must always report.
+  check:
+    name: Promotion base contained
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: the merge-base between two long-lived branches can be far back.
+          fetch-depth: 0
+
+      - name: Check the base adds nothing the head is missing
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin "$BASE" --quiet
+          BASE_SHA="$(git rev-parse "origin/$BASE")"
+
+          echo "base: $BASE ($BASE_SHA)"
+          echo "head: $HEAD_SHA"
+          echo
+
+          if git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA"; then
+            echo "::notice::Head already contains the base tip — nothing to check."
+            exit 0
+          fi
+
+          # Commits on base that the head does not have. Under strict these alone would
+          # block the merge; here they are only a starting point.
+          MISSING="$(git rev-list "$HEAD_SHA".."$BASE_SHA")"
+          COUNT="$(echo "$MISSING" | grep -c . || true)"
+          echo "$COUNT commit(s) on $BASE are not in the head:"
+          git log --oneline "$HEAD_SHA".."$BASE_SHA" | sed 's/^/  /'
+          echo
+
+          # The question that matters: is any of their CONTENT missing from head?
+          # Three-dot diff = merge-base(head, base)..base, i.e. what base added since the
+          # branches parted. A promotion merge commit contributes nothing here, because
+          # its content came from the head branch in the first place.
+          DIFF="$(git diff --name-only "$HEAD_SHA...$BASE_SHA")"
+
+          if [ -z "$DIFF" ]; then
+            echo "::notice::All $COUNT commit(s) are ancestry-only (promotion merge commits) — their content is already in the head. Safe to promote."
+            exit 0
+          fi
+
+          FILES="$(echo "$DIFF" | grep -c . || true)"
+          echo "::error::$BASE has content the head is missing, across $FILES file(s)."
+          echo
+          echo "Files only in $BASE:"
+          echo "$DIFF" | head -50 | sed 's/^/  /'
+          [ "$FILES" -gt 50 ] && echo "  …and $((FILES - 50)) more"
+          echo
+          echo "This is the case 'require branches to be up to date' existed for: something"
+          echo "was committed directly to $BASE and promoting would regress it."
+          echo
+          echo "Back-merge it into the head branch, then push:"
+          echo
+          echo "    git fetch origin"
+          echo "    git checkout ${{ github.event.pull_request.head.ref }}"
+          echo "    git merge origin/$BASE"
+          echo "    git push"
+          exit 1
