@@ -34,11 +34,15 @@ The script generates 20 files. Fill in domain logic only — do not recreate boi
 ## CLI commands (use RTK variants for token savings)
 
 ```bash
-rtk dotnet build           # compact build output
-rtk dotnet test            # failures only
-dotnet csharpier .         # format all C# (run after changes)
-dotnet csharpier --check . # CI check
+dotnet build               # from apps/backend
+dotnet test                # from apps/backend
+dotnet csharpier format .  # format all C# (run after changes)
+dotnet csharpier check .   # CI check
 ```
+
+If you have the `rtk` CLI installed it wraps the first two with compacted output
+(`rtk dotnet build`, `rtk dotnet test`). It is an optional per-developer tool, not a
+repo dependency.
 
 ## Invariants (always true)
 

@@ -157,7 +157,7 @@ author, instead of N comments arriving as N emails.
 ```
 
 ```bash
-gh api repos/AgileBridgeProjects/react-native-monorepo-starter-kit/pulls/<number>/reviews \
+gh api repos/{owner}/{repo}/pulls/<number>/reviews \
   --method POST --input review.json
 ```
 

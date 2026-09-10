@@ -733,7 +733,7 @@ When you change any of the following, check `e2e/` and update:
 | Screen/page route | All `goto()` calls and `toHaveURL()` assertions |
 | `testID` on any interactive element | `e2e/playwright/selectors.ts` and `e2e/maestro/` YAML `id:` references |
 | API response shape or status code | Assertions on toasts, redirects, or rendered data |
-| Auth flow | `e2e/playwright/tests/auth/` and `e2e/maestro/auth/` |
+| Auth flow | `e2e/tests/web/auth/` and `e2e/maestro/auth/` |
 | i18n key text in an assertion | Any `getByText()` or Maestro `assertVisible: text:` |
 
 **Never rename a `testID` or change a route without searching `e2e/` first.**

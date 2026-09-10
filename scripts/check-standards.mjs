@@ -113,6 +113,9 @@ for (const script of [
   'format',
   'typecheck',
   'test',
+  // The repo's own tooling tests. They are cheap and they guard the release scripts, so a
+  // silent regression there must fail something.
+  'test:scripts',
   'check',
   'knip',
   'check:locale-casing',

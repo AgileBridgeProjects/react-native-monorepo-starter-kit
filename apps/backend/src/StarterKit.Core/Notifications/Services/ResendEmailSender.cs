@@ -57,7 +57,11 @@ public sealed class ResendEmailSender(
 
         if (payload.TemplateKey is not null)
         {
-            html = EmailTemplateRenderer.Render(payload.TemplateKey, payload.TemplateData);
+            html = EmailTemplateRenderer.Render(
+                payload.TemplateKey,
+                payload.TemplateData,
+                payload.FromNameOverride ?? options.Value.FromName
+            );
         }
         else if (payload.HtmlContent is not null)
         {

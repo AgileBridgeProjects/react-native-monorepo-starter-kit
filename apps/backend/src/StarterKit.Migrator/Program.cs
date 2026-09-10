@@ -145,31 +145,6 @@ await using (var connection = new NpgsqlConnection(sqlConnection))
 }
 
 // ── Dev survey assignments ─────────────────────────────────────────
-// DEVELOPMENT ONLY: nothing yet creates reflection assignments (the Coach/Director assign flow
-// is separate follow-on work), so without this the Reflect > Survey tab has nothing to show
-// locally. Never seeded outside Development.
-if (builder.Environment.IsDevelopment())
-{
-    await using var connection = new NpgsqlConnection(sqlConnection);
-    await connection.OpenAsync();
-
-    if (await DevSurveyAssignmentSeeder.HasBeenSeededAsync(connection))
-    {
-        Console.WriteLine("Dev survey assignments already present — skipping.");
-    }
-    else
-    {
-        Console.WriteLine("Seeding dev survey assignments...");
-        var seeded = await DevSurveyAssignmentSeeder.SeedAsync(connection);
-        Console.WriteLine(
-            seeded
-                ? "Dev survey assignments seeded."
-                : $"Dev survey assignments SKIPPED — no club-linked, role-assigned user matching {DevSurveyAssignmentSeeder.AthleteEmail}. "
-                    + "Create that account in Supabase and re-run, or the Reflect > Assignments tab will be empty."
-        );
-    }
-}
-
 // ── Dev admin Supabase (GoTrue) auth user ────────────────────────────────────
 // DEVELOPMENT ONLY: ensure admin@starterkit.local exists in GoTrue with the known dev password
 // so it can sign in immediately. Never seed a known password outside Development.

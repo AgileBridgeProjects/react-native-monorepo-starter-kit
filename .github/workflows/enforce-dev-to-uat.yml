@@ -4,15 +4,24 @@ on:
   pull_request:
     branches: [uat]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   check-source-branch:
     name: Source Branch Check
     runs-on: ubuntu-latest
     steps:
+      # HEAD_REF goes through env, never straight into the script. A branch name is
+      # attacker-controlled and git allows backticks, $, ; and | in a refname, all of
+      # which are live inside a double-quoted shell string.
       - name: Verify PR comes from dev
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [ "${{ github.head_ref }}" != "dev" ]; then
-            echo "::error::Only the 'dev' branch can be merged into uat. This PR is from '${{ github.head_ref }}'."
+          if [ "$HEAD_REF" != "dev" ]; then
+            echo "::error::Only the 'dev' branch can be merged into uat. This PR is from '$HEAD_REF'."
             exit 1
           fi
           echo "✓ PR is from 'dev' — allowed."

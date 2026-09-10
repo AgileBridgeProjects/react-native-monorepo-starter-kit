@@ -10,9 +10,6 @@
 import { AUTH_TEST_IDS } from '../../apps/expo/src/features/auth/presentation/auth.copy';
 
 export { AUTH_TEST_IDS } from '../../apps/expo/src/features/auth/presentation/auth.copy';
-export { DISC_TEST_IDS } from '../../apps/expo/src/features/disc/presentation/disc.copy';
-export { JOURNAL_ALERTS_TEST_IDS } from '../../apps/expo/src/features/journal-alerts/presentation/journal-alerts.copy';
-export { NOTIFICATIONS_TEST_IDS } from '../../apps/expo/src/features/notifications/notifications.copy';
 export {
   EDIT_PROFILE_TEST_IDS,
   HELP_TEST_IDS,

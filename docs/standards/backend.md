@@ -14,7 +14,7 @@ All backend rules live in `docs/standards/backend/`. **Never load this file univ
 | Options pattern, Mapperly, validation, enums, AI providers, Blob Storage | [`backend/patterns.md`](backend/patterns.md) |
 | Entity auditing, `IAuditable`/`ISoftDeletable`/`IConcurrent`, EF migrations, soft-delete, concurrency | [`backend/auditing.md`](backend/auditing.md) |
 | EF global query filters, `[AllowImpersonation]`, tenant-scoped entities | [`backend/multitenancy.md`](backend/multitenancy.md) |
-| Snapshot tables, upsert pattern, `UserReportingExclusion`, reporting domain conventions | [`../reporting.md`](../reporting.md) |
+| Snapshot tables, upsert pattern, `UserReportingExclusion`, reporting domain conventions | [`reporting.md`](reporting.md) |
 
 ## Dependency Rule (Never Break This)
 

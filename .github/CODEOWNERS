@@ -1,14 +1,17 @@
 # Code Owners
 # These owners are automatically requested for review on PRs.
 # Last person listed takes precedence for overlapping paths.
+#
+# Replace @your-org/your-team with a real team before relying on this. A handle that is
+# not a collaborator on the repo is silently ignored, so a wrong entry reads as "reviewed
+# by nobody" rather than as an error.
 
 # Default: all files
-* @Keelan-Matthews
+* @your-org/your-team
 
 # Design system — extra care needed, changes affect the whole app
-constants/tokens.ts @Keelan-Matthews
-constants/theme.ts @Keelan-Matthews
-tailwind.config.js @Keelan-Matthews
+apps/expo/constants/tokens.ts @your-org/your-team
+packages/shared/tokens.css @your-org/your-team
 
 # CI/CD changes need explicit review
-.github/ @Keelan-Matthews
+.github/ @your-org/your-team

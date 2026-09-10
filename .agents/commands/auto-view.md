@@ -29,7 +29,7 @@ gh api graphql -f query='
       }
     }
   }
-' -f owner=AgileBridgeProjects -f repo=StarterKit -F pr=<PR_NUMBER>
+' -f owner=AgileBridgeProjects -f repo={repo} -F pr=<PR_NUMBER>
 ```
 
 Capture the `pullRequest.id` (the GraphQL node ID, e.g. `PR_kwDOA...`) and the full list of file paths.
@@ -78,4 +78,4 @@ After all mutations complete, reply with:
 
 - Never mark hand-written source files, migrations, or configuration files as viewed — only the categories in step 2.
 - If the PR number is not provided, ask the user for it before proceeding.
-- The repo is always `AgileBridgeProjects/react-native-monorepo-starter-kit` unless the user specifies otherwise.
+- The repo is always `{owner}/{repo}` unless the user specifies otherwise.

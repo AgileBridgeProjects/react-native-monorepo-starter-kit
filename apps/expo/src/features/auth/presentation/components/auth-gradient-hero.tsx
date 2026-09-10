@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import type { ColorValue } from 'react-native';
 import { Image } from 'react-native';
 
-import vybeWordmark from '@/assets/images/brand-wordmark.png';
+import brandWordmark from '@/assets/images/brand-wordmark.png';
 import { SCREEN_GRADIENT } from '@/components/ui/gradient-background';
 import { palette } from '@/constants/tokens';
 
@@ -13,7 +13,7 @@ import { palette } from '@/constants/tokens';
 // button fill. Sourced from the shared token so no colour is hardcoded here.
 const [[SIGN_IN_CYAN], [SIGN_IN_NAVY]] = gradients.lightBackground.stops;
 
-export const AUTH_LOGO = vybeWordmark as number;
+export const AUTH_LOGO = brandWordmark as number;
 
 /** Accessibility label for the branded wordmark, shared across auth screens. */
 export const AUTH_LOGO_A11Y_LABEL = 'StarterKit logo';
@@ -21,7 +21,7 @@ export const AUTH_LOGO_A11Y_LABEL = 'StarterKit logo';
 /** Accessibility label for the volleyball mesh hero image, shared across dark-card auth screens. */
 export const AUTH_MESH_A11Y_LABEL = 'StarterKit volleyball';
 
-/** NativeWind classes that size the white VYBE EQ wordmark consistently across all auth screens. */
+/** NativeWind classes that size the white brand wordmark consistently across all auth screens. */
 export const AUTH_LOGO_CLASS = 'w-[220px] h-[61px]';
 
 /** Shared gradient colors for the auth hero sections. */

@@ -12,8 +12,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import vybeWordmark from '@/assets/images/brand-wordmark.png';
-import vybeKnockout from '@/assets/images/brand-wordmark-knockout.png';
+import brandWordmark from '@/assets/images/brand-wordmark.png';
+import brandKnockout from '@/assets/images/brand-wordmark-knockout.png';
 import { palette } from '@/constants/tokens';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
@@ -138,11 +138,11 @@ export function AnimatedSplash({ onLayout, testID }: AnimatedSplashProps) {
   // rather than inline in the JSX (docs/standards/frontend.md § Conditional rendering).
   const wordmark = reducedMotion ? (
     // No looping sweep: hold the lit wordmark the native splash handed over.
-    <Image source={vybeWordmark} style={StyleSheet.absoluteFill} contentFit="contain" />
+    <Image source={brandWordmark} style={StyleSheet.absoluteFill} contentFit="contain" />
   ) : (
     <>
       <Image
-        source={vybeWordmark}
+        source={brandWordmark}
         style={[StyleSheet.absoluteFill, styles.ghost]}
         tintColor={palette.accent[200]}
         contentFit="contain"
@@ -154,9 +154,9 @@ export function AnimatedSplash({ onLayout, testID }: AnimatedSplashProps) {
         end={{ x: 1, y: 0 }}
         style={[styles.band, bandStyle]}
       />
-      <Image source={vybeKnockout} style={StyleSheet.absoluteFill} contentFit="contain" />
+      <Image source={brandKnockout} style={StyleSheet.absoluteFill} contentFit="contain" />
       <Animated.View style={[StyleSheet.absoluteFill, handoffStyle]}>
-        <Image source={vybeWordmark} style={StyleSheet.absoluteFill} contentFit="contain" />
+        <Image source={brandWordmark} style={StyleSheet.absoluteFill} contentFit="contain" />
       </Animated.View>
     </>
   );

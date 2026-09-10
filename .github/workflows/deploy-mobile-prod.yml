@@ -246,6 +246,12 @@ jobs:
   #
   # A brand-new app has no live version to copy review information from, so the first
   # submission still needs those fields filled in by hand.
+
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys
   stage-ios-version:
     needs: [submit-ios]
     if: needs.submit-ios.result == 'success'
@@ -278,6 +284,11 @@ jobs:
           ASC_WAIT_MINUTES: "45"
         run: node scripts/asc-stage-version.mjs
 
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys
   build-android:
     needs: preflight
     if: >-
@@ -380,6 +391,12 @@ jobs:
   # for the just-uploaded versionCode with the release notes on every listing language and
   # commits the edit with changesNotSentForReview=true. Nothing reaches review until a human
   # presses "Send changes for review" in Publishing overview.
+
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys
   stage-play-release:
     needs: [submit-android]
     if: needs.submit-android.result == 'success'
@@ -407,3 +424,9 @@ jobs:
           VERSION_CODE: ${{ needs.submit-android.outputs.version_code }}
           RELEASE_NOTES: ${{ github.event.inputs.release-notes }}
         run: node scripts/play-stage-release.mjs
+
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys

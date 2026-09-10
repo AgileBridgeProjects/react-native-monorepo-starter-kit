@@ -2,7 +2,7 @@
 
 What each EAS build profile ships as, and the one-time console ceremony every **new**
 app identity needs before CI can build and submit it. Written after the first deploy
-following the the identity split identity split failed on exactly these steps (2026-07-28).
+after a failed submission on exactly these steps (2026-07-28).
 
 For JS-only releases see `docs/standards/ota-updates.md`. For store review rules see
 `docs/apple-app-store-review.md` / `docs/google-play-store-review.md`.
@@ -64,7 +64,7 @@ package needs these once, in order:
    non-interactive credential setup can talk to Apple. (Without those vars the build
    dies with `Distribution Certificate is not validated for non-interactive builds` —
    that was the 2026-07-28 failure.) Always **reuse** the org's existing Apple
-   Distribution certificate — it signs every AgileBridge app; revoking or regenerating
+   Distribution certificate — it signs every app on the account; revoking or regenerating
    it breaks all of them.
 2. **App Store Connect app record** — cannot be created by CI. In ASC: Apps → ＋ →
    New App → pick the bundle id (registered by step 1) → name/language/SKU. Creating

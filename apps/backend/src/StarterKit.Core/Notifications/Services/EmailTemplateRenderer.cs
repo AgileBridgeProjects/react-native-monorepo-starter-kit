@@ -20,15 +20,23 @@ public static partial class EmailTemplateRenderer
 {
     private const string LayoutKey = "_Layout";
     private const string BodyPlaceholder = "{{Body}}";
+    private const string BrandPlaceholder = "{{BrandName}}";
 
     [GeneratedRegex(@"\{\{(\w+)\}\}", RegexOptions.Compiled)]
     private static partial Regex PlaceholderRegex();
 
-    public static string Render(string templateKey, object? templateData)
+    /// <param name="brandName">
+    /// Rendered into the layout's header band. Pass the sender name the app is configured with
+    /// (<c>Email:FromName</c>) rather than hardcoding a product name into the template, so a
+    /// fork's transactional email carries the fork's brand.
+    /// </param>
+    public static string Render(string templateKey, object? templateData, string brandName)
     {
         var body = Substitute(LoadTemplate(templateKey), templateData);
         var layout = LoadTemplate(LayoutKey);
-        return layout.Replace(BodyPlaceholder, body);
+        return layout
+            .Replace(BodyPlaceholder, body)
+            .Replace(BrandPlaceholder, WebUtility.HtmlEncode(brandName));
     }
 
     private static string Substitute(string html, object? templateData)

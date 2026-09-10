@@ -284,7 +284,7 @@ This makes it easy to ask "why does this button look misaligned?" or "fix the la
 
 ---
 
-## 8. Token Reduction Tooling (ABC-123)
+## 7. Token Reduction Tooling
 
 These tools minimise the tokens consumed each Claude Code session. All are active in this repo.
 
@@ -523,4 +523,4 @@ npm run scaffold:frontend -- --feature game-history --app both
 
 **`/caveman-compress` not found** — The plugin needs a restart after install. Close and reopen Claude Code, then try again. If still missing, open `/plugins` and confirm `caveman@caveman` shows as installed.
 
-**Scaffold script fails with "module not found"** — Run from the repo root (`C:\dev\StarterKit`), not from a sub-directory. The scripts use Node.js ES modules. Requires Node.js ≥ 20.
+**Scaffold script fails with "module not found"** — Run from the repo root (`<repo root>`), not from a sub-directory. The scripts use Node.js ES modules. Requires Node.js ≥ 20.

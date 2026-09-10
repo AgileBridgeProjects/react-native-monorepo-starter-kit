@@ -70,7 +70,13 @@ jobs:
 
       # ── Unit tests ─────────────────────────────────────────
       - name: Tests
-        run: npm run test -- --reporter=verbose
+        run: npm run test
+
+      # The repo's own tooling: the prose guard, the mobile version derivation, the tag-skip
+      # guard and the store-release staging scripts. These ran nowhere until now, so a
+      # regression in them was invisible until it misfired on a real release.
+      - name: Tooling tests
+        run: npm run test:scripts
 
       - name: Upload coverage
         if: always()

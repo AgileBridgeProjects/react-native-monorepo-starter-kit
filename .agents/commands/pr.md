@@ -63,7 +63,7 @@ Follow these steps **in order** without asking for confirmation unless noted:
 
    ```bash
    git push -u origin HEAD
-   gh pr create --base dev --repo AgileBridgeProjects/react-native-monorepo-starter-kit --title "<title>" --body-file /tmp/pr-body.txt --draft
+   gh pr create --base dev --repo {owner}/{repo} --title "<title>" --body-file /tmp/pr-body.txt --draft
    ```
 
    - Push first so `gh` never needs to prompt about where to push.

@@ -77,19 +77,6 @@ e2e: sha=... base=... result=passed specs=... at=...
 - [ ] FCM push notification changes (if any) have `google-services.json` correctly configured
 - [ ] Reviewed against [docs/google-play-store-review.md](../docs/google-play-store-review.md) for feature-specific rules
 
-### Huawei AppGallery _(skip if not targeting AppGallery distribution)_
-
-- [ ] No new permissions added to `AndroidManifest.xml` that are not actively used
-- [ ] Sensitive permissions have clear user-facing purpose rationale before requesting
-- [ ] All network requests use HTTPS; no cleartext HTTP in production
-- [ ] If account creation added/modified: in-app account deletion path exists
-- [ ] Push notification changes use HMS Push Kit (not FCM only) for Huawei compatibility
-- [ ] GMS-dependent APIs (Maps, Location, Sign-In) have HMS equivalents or graceful fallback
-- [ ] Digital goods sold in-app use HMS IAP for AppGallery builds
-- [ ] Privacy policy is accessible from within the app (not just the store listing)
-- [ ] `agconnect-services.json` is present and updated if new HMS services are added
-- [ ] Reviewed against [docs/huawei-appgallery-review.md](../docs/huawei-appgallery-review.md) for feature-specific rules
-
 ## Screenshots / Screen recordings
 
 <!-- Mobile app: include before/after screenshots for any UI changes -->

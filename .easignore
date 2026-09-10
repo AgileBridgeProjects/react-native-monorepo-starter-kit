@@ -33,3 +33,8 @@ _bmad-output/
 
 # ── Docs and other non-source content ────────────────────────
 docs/
+
+# Signing material the deploy workflows decode at build time. A local `eas build` would
+# otherwise upload the Apple .p8 and the Play service-account JSON inside the project tarball.
+keys/
+apps/expo/keys/

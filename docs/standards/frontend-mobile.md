@@ -6,7 +6,6 @@
 > **App Store compliance** — every PR touching `apps/expo/` must be reviewed against all three
 > store guidelines. See [docs/apple-app-store-review.md](../apple-app-store-review.md),
 > [docs/google-play-store-review.md](../google-play-store-review.md), and
-> [docs/huawei-appgallery-review.md](../huawei-appgallery-review.md).
 
 ## Styling
 

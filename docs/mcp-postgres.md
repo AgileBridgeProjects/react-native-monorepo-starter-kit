@@ -33,10 +33,10 @@ PGHOST=localhost
 PGPORT=5432
 PGUSER=postgres
 PGPASSWORD=postgres
-PGDATABASE=starterkit
+PGDATABASE=postgres
 ```
 
-For local Docker development the defaults above match `apps/backend/docker-compose.yml`.
+For local Docker development the defaults above match `infra/supabase/docker-compose.supabase.yml`.
 
 ---
 
@@ -86,7 +86,7 @@ PGHOST=your-server.postgres.database.azure.com
 PGPORT=5432
 PGUSER=your-username
 PGPASSWORD=your-password
-PGDATABASE=starterkit
+PGDATABASE=postgres
 PGSSLMODE=require
 ```
 

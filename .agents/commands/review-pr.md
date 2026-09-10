@@ -93,7 +93,7 @@ Follow these steps **in order**. Do not ask for confirmation except where noted.
 9. **Post it.**
 
    ```bash
-   gh api repos/AgileBridgeProjects/react-native-monorepo-starter-kit/pulls/<number>/reviews --method POST --input <scratch>/review.json
+   gh api repos/{owner}/{repo}/pulls/<number>/reviews --method POST --input <scratch>/review.json
    ```
 
    On a 422, work the causes listed in the skill § When it 422s. Re-run step 2 if the head SHA

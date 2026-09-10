@@ -134,6 +134,11 @@ jobs:
           EXPO_APPLE_TEAM_TYPE: COMPANY_OR_ORGANIZATION
         run: eas build --platform ios --profile dev --non-interactive
 
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys
   build-android:
     if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android' }}
     needs: sync-eas-secrets
@@ -233,6 +238,11 @@ jobs:
       - name: Submit Android to Play Store (internal testing)
         run: eas submit --platform android --profile dev --non-interactive --id ${{ steps.target.outputs.id }}
 
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys
   submit-ios:
     if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
     needs: build-ios
@@ -295,4 +305,8 @@ jobs:
           ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
         run: eas submit --platform ios --profile dev --non-interactive --id ${{ steps.target.outputs.id }}
 
-
+      # The decoded Apple .p8 and Play service-account JSON are private keys sitting on the
+      # runner's disk. Nothing else in the job needs them once the submit step is done.
+      - name: Shred decoded credentials
+        if: always()
+        run: rm -rf keys apps/expo/keys

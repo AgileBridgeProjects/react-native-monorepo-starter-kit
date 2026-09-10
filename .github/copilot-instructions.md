@@ -35,7 +35,6 @@ Full reference docs: `docs/design-system.md`, `docs/architecture.md`, `docs/cont
 | Production store releases (dispatch, staging, store credentials) | `docs/deployment/prod-mobile-store-setup.md` |
 | Apple App Store review requirements (all Expo PRs) | `docs/apple-app-store-review.md` |
 | Google Play Store review requirements (all Expo PRs) | `docs/google-play-store-review.md` |
-| Huawei AppGallery review requirements (AppGallery-targeted Expo PRs) | `docs/huawei-appgallery-review.md` |
 | Backend folder structure, project layout, naming, seed data | `docs/standards/backend/structure.md` |
 | Backend controller actions, endpoints, orchestration, SSRF, validation | `docs/standards/backend/controllers.md` |
 | Backend MCP tools (parity rule, tool classes, StarterKit.Mcp) | `docs/standards/backend/mcp.md` |

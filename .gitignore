@@ -211,7 +211,6 @@ android/
 .env.test.local
 .env.production.local
 .env*.local
-scripts/harvest-category-map.json
 
 # ── Docker ───────────────────────────────────────────────────
 docker-compose.override.yml
@@ -302,3 +301,11 @@ _bmad-output/planning-artifacts/*
 e2e/.env.e2e.kvcache
 e2e/.expo-web-dist.key
 e2e/blob-report/
+
+# Credential material the docs tell you to create. Never commit any of it.
+apps/expo/keys/
+*.keystore
+*.pem
+.env.*
+!.env.example
+!.env.*.example

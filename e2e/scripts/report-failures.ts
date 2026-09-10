@@ -26,8 +26,12 @@ import path from 'node:path';
 
 // ── Linear constants ─────────────────────────────────────────
 const LINEAR_API = 'https://api.linear.app/graphql';
-const TEAM_ID = 'c5ea2c7f-e678-484e-972e-4e435cf6afa7';
-const BUG_LABEL_ID = '1a92193f-0af5-4f79-844c-2491655ba798';
+
+// The workspace these tickets land in. Hardcoding them means a fork that sets its own
+// LINEAR_API_KEY silently files into whichever workspace the ids belong to, so they are
+// required env and the script refuses to guess.
+const TEAM_ID = process.env.LINEAR_TEAM_ID;
+const BUG_LABEL_ID = process.env.LINEAR_BUG_LABEL_ID;
 
 // Whoever owns unblamed failures — when git blame can't map the failing spec
 // to a Linear user, the ticket is assigned here rather than left to rot.
@@ -53,6 +57,8 @@ interface FailedTest {
 function linearRequest(query: string, variables: Record<string, unknown> = {}) {
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) throw new Error('LINEAR_API_KEY is not set');
+  if (!TEAM_ID) throw new Error('LINEAR_TEAM_ID is not set');
+  if (!BUG_LABEL_ID) throw new Error('LINEAR_BUG_LABEL_ID is not set');
 
   return fetch(LINEAR_API, {
     method: 'POST',

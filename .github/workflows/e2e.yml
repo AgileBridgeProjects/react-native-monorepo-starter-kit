@@ -142,7 +142,9 @@ jobs:
       # uninstalls azure-cli, and the Azure login step below then dies with
       # "Unable to locate executable file: az".
       - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
+        # Pinned to a SHA, not @main: this job also holds an Azure OIDC token, and a
+        # third-party action tracking a mutable branch runs whatever landed upstream.
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           large-packages: false
           tool-cache: false
@@ -601,5 +603,7 @@ jobs:
         run: npx tsx scripts/report-failures.ts
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_ID: ${{ vars.LINEAR_TEAM_ID }}
+          LINEAR_BUG_LABEL_ID: ${{ vars.LINEAR_BUG_LABEL_ID }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_SHA: ${{ github.sha }}

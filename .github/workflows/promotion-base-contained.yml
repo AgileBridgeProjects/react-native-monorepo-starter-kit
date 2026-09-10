@@ -46,6 +46,10 @@ concurrency:
   group: promotion-base-contained-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   # No `if:` — a skipped required check blocks a PR forever, so this must always report.
   check:
@@ -62,6 +66,9 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Through env, never interpolated into the script: a branch name is
+          # attacker-controlled and git permits shell metacharacters in a refname.
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
 
@@ -109,7 +116,7 @@ jobs:
           echo "Back-merge it into the head branch, then push:"
           echo
           echo "    git fetch origin"
-          echo "    git checkout ${{ github.event.pull_request.head.ref }}"
+          echo "    git checkout $HEAD_REF"
           echo "    git merge origin/$BASE"
           echo "    git push"
           exit 1

@@ -74,9 +74,11 @@ jobs:
       - name: Resolve image tag
         id: tag
         shell: bash
+        env:
+          INPUT_TAG: ${{ github.event.inputs.image_tag }}
         run: |
-          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
-            TAG="${{ github.event.inputs.image_tag }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
           else
             TAG="${GITHUB_SHA::7}"
           fi
