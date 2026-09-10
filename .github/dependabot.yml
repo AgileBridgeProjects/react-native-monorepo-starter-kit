@@ -1,0 +1,29 @@
+# Without this, a public starter kit ships whatever versions it was cut with, and every
+# fork inherits them. Two unauthenticated-RCE advisories reached this repo that way.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR per ecosystem-ish cluster, otherwise a monorepo this size opens a wall of them.
+      dev-tooling:
+        patterns: ['@biomejs/*', 'knip', 'lint-staged', 'husky', 'markdownlint*', 'secretlint*', 'turbo', 'typescript']
+      expo:
+        patterns: ['expo', 'expo-*', 'react-native', 'react-native-*', '@expo/*']
+      next:
+        patterns: ['next', 'react', 'react-dom', '@types/react*']
+
+  - package-ecosystem: nuget
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

@@ -50,29 +50,46 @@ Product-specific features were deliberately removed; use the scaffold scripts to
 
 ## Getting started
 
-Prerequisites: Node 22+, .NET 10 SDK, Docker.
+Prerequisites: Node 22+ (see `.nvmrc`), .NET 10 SDK, Docker.
 
 ```bash
-npm install
-cp .env.example .env.local            # fill in what you need
-docker compose up -d                  # PostgreSQL + local Supabase
+npm ci
+cp infra/supabase/.env.example infra/supabase/.env   # demo values boot as-is
 ```
 
-Backend:
+Generate the first EF migration. The kit deliberately ships none, and the migrator has
+nothing to apply without it:
 
 ```bash
 cd apps/backend
+dotnet tool restore                                   # dotnet-ef is a local tool
 dotnet ef migrations add InitialCreate --project src/StarterKit.Data --startup-project src/StarterKit.Migrator
-dotnet run --project src/StarterKit.Migrator
-dotnet run --project src/StarterKit.WebApi     # and/or StarterKit.MobileApi
+cd ../..
 ```
 
-Frontends:
+Then bring the whole backend up. This is Supabase, the migrator and both .NET APIs on one
+Compose network:
 
 ```bash
-npm run dev --workspace apps/web
-npm run start --workspace apps/expo
+npm run dev:backend
 ```
+
+> Plain `docker compose up` will not work. The Supabase compose file interpolates
+> `POSTGRES_PASSWORD`, `JWT_SECRET` and `ANON_KEY` with no defaults, and there is no root
+> `.env` — the `--env-file infra/supabase/.env` that `dev:backend` passes is what supplies
+> them. `infra/supabase/README.md` has the health-check commands.
+
+Frontends, in separate terminals:
+
+```bash
+npm run dev:web        # admin portal on :3000
+npm run dev:expo       # Expo dev server
+```
+
+Sign in to the admin portal with the development admin the migrator seeds:
+`admin@starterkit.local` / `P@ssword01*$`. It is seeded only when the environment is
+Development, and the password is in the source (`SupabaseAuthSeeder`) precisely because
+it must never mean anything outside your laptop.
 
 Then read, in order:
 

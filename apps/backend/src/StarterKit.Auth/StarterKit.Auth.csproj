@@ -14,6 +14,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+    <!-- Pinned above the 2.0.0 that Microsoft.AspNetCore.OpenApi 10.0.4 drags in:
+         that version carries GHSA-v5pm-xwqc-g5wc (high) and is marked deprecated for
+         critical bugs. Drop this line once the AspNetCore package moves past it. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -98,6 +98,25 @@ Needs name templating before it is useful to a fork.
 
 ---
 
+## Found by audit, not yet fixed
+
+Two audits ran over the published repo on 2026-09-10 (public-exposure, and cold-clone
+onboarding). What they found that is still open:
+
+| Item | Why it is still here |
+|---|---|
+| `JOURNAL_ENCRYPTION_KEY` **rotation** | The committed default is gone, but if any deployed environment ever booted with it, every journal row encrypted at rest under it is decryptable by anyone who cloned this repo before today. Check the vault, rotate, re-encrypt. This is an operational action, not a code change |
+| The value is still in **git history** | Blanking it in the working tree does not remove it from the published history. `git log -S` finds it. Same for the Microsoft client id, Firebase key and Apple Team ID. All are public-by-design client identifiers rather than secrets, so the fix is rotation where it matters, not a history rewrite |
+| `spec-*` commands vs the mandatory spec rule | Still unresolved. See the top of this file |
+| Dead standards docs | `ai-prompts.md`, `pdf-reports.md` and `dev-timezone-testing.md` govern code that does not exist here; `caching.md` and `signalr.md` are each half-fictional. `check-standards.mjs` actively requires `ai-prompts.md`, so deleting it means editing the gate too |
+| `docs/contributing.md`, `docs/standards/monorepo.md` | Both carry stale claims: `dev → main` as the release path, `npm run check` described as three steps when it is seven, Firebase/Azure B2C named as the auth stack when it is Supabase GoTrue, and a `docker-compose up` line that cannot work |
+| `docs/erd.md` | Ships as a template while `AppDbContext` has 20 real DbSets. Its own warning about stale ERDs applies to itself |
+| `/onboarding` and `/pull-secrets` | Both drive Azure Key Vault against a vault a forker has no access to. The commands most specifically aimed at new starters are the ones that cannot run for them |
+| `.codex/config.toml` is empty | Five docs describe MCP servers it does not configure |
+| `add-secret` and `backfill-snapshots` | Present in `.agents/commands/` only, so Claude and Copilot users cannot reach them. `AGENTS.md` lists `add-secret` as available |
+| `markdownlint-cli2` advisory | High severity, via its dependency tree, no non-major fix at time of writing |
+| Node 20 deprecation warning in Actions | `actions/checkout@v4`, `setup-node@v4` and `upload-artifact@v4` target Node 20 and are being forced onto Node 24. Bump to v5 when convenient |
+
 ## Repo settings this kit cannot ship
 
 Three things live in GitHub configuration, and cloning gets you none of them:
