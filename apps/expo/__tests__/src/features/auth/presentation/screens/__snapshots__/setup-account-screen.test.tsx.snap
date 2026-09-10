@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SetupAccountScreen — snapshots > matches the form tree 1`] = `
+<View
+  className="w-full gap-lg"
+>
+  <Pressable
+    accessibilityRole="link"
+    className="flex-row items-center gap-xs"
+    onPress={[Function]}
+    testID="setup-back-button"
+  >
+    <Text
+      className="text-text-muted"
+      variant="body-sm"
+    >
+      setup.backToLogin
+    </Text>
+  </Pressable>
+  <View
+    className="gap-xs"
+  >
+    <Text
+      className=""
+      variant="h1"
+    >
+      setup.title
+    </Text>
+    <Text
+      className="text-text-secondary"
+      variant="body-sm"
+    >
+      setup.subtitle
+       
+      setup.subtitleEmailPrefix
+       
+      <Text
+        className="font-semibold text-primary"
+        variant="body-sm"
+      >
+        new@user.com
+      </Text>
+    </Text>
+  </View>
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="setup-password-input"
+    value=""
+  />
+  <TextInput
+    onBlur={[Function]}
+    onChangeText={[Function]}
+    testID="setup-confirmPassword-input"
+    value=""
+  />
+  <View
+    testID="password-rules"
+  />
+  <Pressable
+    accessibilityState={
+      {
+        "busy": false,
+      }
+    }
+    onPress={[Function]}
+    testID="setup-submit-button"
+  >
+    <Text>
+      setup.submit
+    </Text>
+  </Pressable>
+</View>
+`;

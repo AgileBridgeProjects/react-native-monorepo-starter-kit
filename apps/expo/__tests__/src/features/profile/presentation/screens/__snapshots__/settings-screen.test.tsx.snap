@@ -1,0 +1,255 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SettingsScreen — structural snapshot > matches the default render (one group per setting) 1`] = `
+<ScrollView
+  className="flex-1"
+  contentContainerClassName="flex-grow gap-lg px-lg py-lg w-full self-center md:max-w-reading"
+  contentInsetAdjustmentBehavior="automatic"
+  testID="settings-screen"
+>
+  <View
+    testID="settings-general-card"
+  >
+    <View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          notifications
+        </Text>
+        <Switch
+          accessibilityLabel="notifications"
+          accessibilityState={
+            {
+              "checked": true,
+              "disabled": undefined,
+            }
+          }
+          onValueChange={[Function]}
+          testID="settings-notifications-switch"
+          value={true}
+        />
+      </View>
+    </View>
+    <Text>
+      notificationsDesc
+    </Text>
+  </View>
+  <View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "disabled": true,
+          }
+        }
+      >
+        <Text>
+          darkMode
+        </Text>
+        <Switch
+          accessibilityLabel="darkMode"
+          accessibilityState={
+            {
+              "checked": true,
+              "disabled": true,
+            }
+          }
+          disabled={true}
+          testID="settings-dark-mode-switch"
+          value={true}
+        />
+      </View>
+    </View>
+    <Text>
+      darkModeDesc
+    </Text>
+  </View>
+  <View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          reduceMotion
+        </Text>
+        <Switch
+          accessibilityLabel="reduceMotion"
+          accessibilityState={
+            {
+              "checked": false,
+              "disabled": undefined,
+            }
+          }
+          onValueChange={[MockFunction spy]}
+          testID="settings-reduce-motion-switch"
+          value={false}
+        />
+      </View>
+    </View>
+    <Text>
+      reduceMotionDesc
+    </Text>
+  </View>
+  <View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          sounds
+        </Text>
+        <Switch
+          accessibilityLabel="sounds"
+          accessibilityState={
+            {
+              "checked": true,
+              "disabled": undefined,
+            }
+          }
+          onValueChange={[MockFunction spy]}
+          testID="settings-sounds-switch"
+          value={true}
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          sfxVolume
+        </Text>
+        <View
+          accessibilityActions={
+            [
+              {
+                "name": "increment",
+              },
+              {
+                "name": "decrement",
+              },
+            ]
+          }
+          accessibilityLabel="sfxVolume"
+          accessibilityRole="adjustable"
+          accessibilityValue={
+            {
+              "max": 1,
+              "min": 0,
+              "now": 0.8,
+            }
+          }
+          accessible={true}
+          className="w-32"
+          onAccessibilityAction={[Function]}
+          testID="settings-sounds-volume-slider"
+        >
+          <Slider
+            maximumValue={1}
+            minimumTrackTintColor="#6d28d9"
+            minimumValue={0}
+            onValueChange={[Function]}
+            step={0.05}
+            thumbTintColor="#6d28d9"
+            value={0.8}
+          />
+        </View>
+      </View>
+    </View>
+    <Text>
+      soundsDesc
+    </Text>
+  </View>
+  <View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          ambientSounds
+        </Text>
+        <Switch
+          accessibilityLabel="ambientSounds"
+          accessibilityState={
+            {
+              "checked": true,
+              "disabled": undefined,
+            }
+          }
+          onValueChange={[MockFunction spy]}
+          testID="settings-ambient-switch"
+          value={true}
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "disabled": undefined,
+          }
+        }
+      >
+        <Text>
+          ambientVolume
+        </Text>
+        <View
+          accessibilityActions={
+            [
+              {
+                "name": "increment",
+              },
+              {
+                "name": "decrement",
+              },
+            ]
+          }
+          accessibilityLabel="ambientVolume"
+          accessibilityRole="adjustable"
+          accessibilityValue={
+            {
+              "max": 1,
+              "min": 0,
+              "now": 0.5,
+            }
+          }
+          accessible={true}
+          className="w-32"
+          onAccessibilityAction={[Function]}
+          testID="settings-ambient-volume-slider"
+        >
+          <Slider
+            maximumValue={1}
+            minimumTrackTintColor="#6d28d9"
+            minimumValue={0}
+            onValueChange={[Function]}
+            step={0.05}
+            thumbTintColor="#6d28d9"
+            value={0.5}
+          />
+        </View>
+      </View>
+    </View>
+    <Text>
+      ambientSoundsDesc
+    </Text>
+  </View>
+</ScrollView>
+`;

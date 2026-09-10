@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LiquidGlassTabLayout > matches the default snapshot 1`] = `
+<View
+  testID="native-tabs"
+>
+  <View
+    data-disabled={false}
+    testID="trigger-(home)"
+  >
+    <View
+      testID="trigger-icon"
+    />
+    <Text>
+      titles:nav.home
+    </Text>
+  </View>
+</View>
+`;

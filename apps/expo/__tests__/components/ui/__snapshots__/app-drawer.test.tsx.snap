@@ -1,0 +1,201 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AppDrawer > matches the default snapshot 1`] = `
+<View
+  className="flex-1"
+  style={
+    {
+      "backgroundColor": "#FFFFFF",
+    }
+  }
+>
+  <View
+    className="flex-row items-center justify-between px-lg py-md"
+  >
+    <Pressable
+      accessibilityLabel="Close menu"
+      accessibilityRole="button"
+      className="min-h-11 min-w-11 items-center justify-center"
+      onPress={[Function]}
+    >
+      <View
+        testID="icon-xmark"
+      />
+    </Pressable>
+  </View>
+  <View
+    className="flex-row items-center gap-md px-lg pb-lg pt-sm"
+  >
+    <View
+      data-name="Jane Doe"
+      testID="avatar"
+    />
+    <View
+      className="shrink gap-xs"
+    >
+      <Text>
+        Jane Doe
+      </Text>
+      <Text>
+        jane@acme.io
+      </Text>
+    </View>
+  </View>
+  <View
+    className="mx-lg h-px bg-border"
+  />
+  <View
+    className="gap-xs px-lg pt-lg"
+  >
+    <Text>
+      yourAccount
+    </Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      className="flex-row items-center gap-lg rounded-xl py-md"
+      disabled={false}
+      onPress={[Function]}
+      testID="drawer-switch-org"
+    >
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full bg-surface"
+      >
+        <View
+          testID="icon-arrow.left.arrow.right"
+        />
+      </View>
+      <View
+        className="flex-1"
+      >
+        <Text>
+          switchOrganisation
+        </Text>
+      </View>
+      <View
+        testID="icon-chevron.right"
+      />
+    </Pressable>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      className="flex-row items-center gap-lg rounded-xl py-md"
+      disabled={false}
+      onPress={[Function]}
+    >
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full bg-surface"
+      >
+        <View
+          testID="icon-person"
+        />
+      </View>
+      <View
+        className="flex-1"
+      >
+        <Text>
+          editProfile
+        </Text>
+      </View>
+      <View
+        testID="icon-chevron.right"
+      />
+    </Pressable>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      className="flex-row items-center gap-lg rounded-xl py-md"
+      disabled={false}
+      onPress={[Function]}
+    >
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full bg-surface"
+      >
+        <View
+          testID="icon-gearshape"
+        />
+      </View>
+      <View
+        className="flex-1"
+      >
+        <Text>
+          settings
+        </Text>
+      </View>
+      <View
+        testID="icon-chevron.right"
+      />
+    </Pressable>
+  </View>
+  <View
+    className="mx-lg mt-md h-px bg-border"
+  />
+  <View
+    className="gap-xs px-lg pt-lg"
+  >
+    <Text>
+      support
+    </Text>
+    <Pressable
+      accessibilityRole="button"
+      className="flex-row items-center gap-lg rounded-xl py-md"
+      onPress={[Function]}
+    >
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full bg-surface"
+      >
+        <View
+          testID="icon-questionmark.circle"
+        />
+      </View>
+      <View
+        className="flex-1"
+      >
+        <Text>
+          help
+        </Text>
+      </View>
+      <View
+        testID="icon-chevron.right"
+      />
+    </Pressable>
+  </View>
+  <View
+    className="flex-1"
+  />
+  <View
+    className="px-lg pb-lg pt-md"
+  >
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "disabled": false,
+        }
+      }
+      className="flex-row items-center justify-center gap-sm py-md"
+      disabled={false}
+      onPress={[Function]}
+    >
+      <View
+        testID="icon-rectangle.portrait.and.arrow.right"
+      />
+      <Text>
+        logout
+      </Text>
+    </Pressable>
+  </View>
+</View>
+`;

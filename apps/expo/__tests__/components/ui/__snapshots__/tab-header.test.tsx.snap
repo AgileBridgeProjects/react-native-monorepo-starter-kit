@@ -1,0 +1,67 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TabHeader > matches the default snapshot 1`] = `
+<View
+  accessibilityLabel="Home"
+  className="w-full flex-row items-center justify-between py-xs"
+>
+  <View
+    className="flex-1 flex-row items-center gap-sm"
+  />
+  <View
+    className="flex-row items-center gap-xs"
+  >
+    <Pressable
+      accessibilityLabel="Open menu"
+      accessibilityRole="button"
+      className="touch-target items-center justify-center"
+      onPress={[Function]}
+    >
+      <View
+        testID="icon-line.3.horizontal"
+      />
+    </Pressable>
+  </View>
+</View>
+`;
+
+exports[`TabHeader > matches the logo snapshot 1`] = `
+<View
+  accessibilityLabel="Home"
+  className="w-full flex-row items-center justify-between py-xs"
+>
+  <View
+    className="flex-1 flex-row items-center gap-sm"
+  >
+    <Image
+      contentFit="contain"
+      contentPosition="left center"
+      source={
+        {
+          "uri": "https://cdn/logo.png",
+        }
+      }
+      style={
+        {
+          "height": 36,
+          "width": 120,
+        }
+      }
+    />
+  </View>
+  <View
+    className="flex-row items-center gap-xs"
+  >
+    <Pressable
+      accessibilityLabel="Open menu"
+      accessibilityRole="button"
+      className="touch-target items-center justify-center"
+      onPress={[Function]}
+    >
+      <View
+        testID="icon-line.3.horizontal"
+      />
+    </Pressable>
+  </View>
+</View>
+`;
