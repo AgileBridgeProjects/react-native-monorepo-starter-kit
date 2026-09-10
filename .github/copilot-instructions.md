@@ -29,6 +29,7 @@ Full reference docs: `docs/design-system.md`, `docs/architecture.md`, `docs/cont
 | Frontend shared rules (imports, DRY, HTTP, state, testing, feature structure) | `docs/standards/frontend.md` |
 | Frontend web-specific (Tailwind, DevExtreme, route guards, web components) | `docs/standards/frontend-web.md` |
 | Frontend mobile-specific (NativeWind, Expo components, haptics, gestures) | `docs/standards/frontend-mobile.md` |
+| What is still to come from upstream, and the repo settings a clone does not get | `docs/upstream-backlog.md` |
 | Branching / promotion model (`dev` → `uat` → `main`, back-merges) | `docs/standards/branching.md` |
 | OTA / EAS Update (publish script, mobile versioning / `version.json`, runtime version policy, restart prompt) | `docs/standards/ota-updates.md` |
 | Production store releases (dispatch, staging, store credentials) | `docs/deployment/prod-mobile-store-setup.md` |
