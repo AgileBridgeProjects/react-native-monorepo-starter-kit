@@ -113,7 +113,7 @@ jobs:
 
       - name: Setup Expo and EAS CLI
         if: steps.ota-relevant.outputs.relevant == 'true'
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           # Pinned — an unpinned "latest" broke `eas update` for weeks when the
           # CLI removed the --profile flag. Bump deliberately.
