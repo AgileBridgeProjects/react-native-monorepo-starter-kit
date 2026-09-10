@@ -34,9 +34,17 @@ Follow these steps **in order** without asking for confirmation unless noted:
 3. Generate the PR title and body using the PR template structure from `.github/pull_request_template.md`.
 
    **Read `.agents/skills/pr-writing/SKILL.md` and its `ARTIFACTS.md` § PR description first.**
-   The house style is not optional: claim first, never narrate the diff, ~80 words of prose
-   across What/Why/How, and zero em dashes. `.claude/hooks/pr-prose-guard.mjs` denies the
-   string-matchable rules at the `gh` call, so a body that ignores them will not post.
+   That is the house style for every word posted to a PR here, and two of its rules are gated
+   rather than advised: `.claude/hooks/pr-prose-guard.mjs` denies a description over **120
+   prose words** and denies any em dash, sycophancy or chatbot sign-off. About 80 words across
+   What, Why and How is the target. Fenced code, HTML comments and the template's checklists do
+   not count.
+
+   Plain prose, and never a narration of the diff. Run each sentence past Orwell's six rules,
+   which § rule 3 of that skill states in PR terms: no figure of speech you have seen in print,
+   no long word where a short one will do, cut every word you can cut, active never passive,
+   everyday English over jargon, and break any of those sooner than write something the
+   reviewer has to read twice.
 
    **Title:** `[IDENTIFIER]: [ticket title]` — e.g. `ABC-123: Implement Audit Logging`. If no Linear ticket, derive from the branch name.
 

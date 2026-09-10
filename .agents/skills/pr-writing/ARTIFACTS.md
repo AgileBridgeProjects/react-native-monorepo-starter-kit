@@ -21,6 +21,11 @@ Severity labels, exactly these three:
 | 🟡 nit | real but not merge-blocking: naming, a missed edge, a standards deviation |
 | 💡 suggestion | optional. The author may decline without arguing |
 
+Two gates, both in `.claude/hooks/pr-prose-guard.mjs`, both denying the post: the label is the
+first character of the body, and the prose runs 60 words or fewer. Fenced code is excluded from
+the count, so a stack trace, a diff hunk or a ```suggestion block is free. Over the cap with
+nothing to cut means two findings. Post two comments.
+
 Verify before you assert. A comment claiming a test fails should say which test and against
 which commit.
 
@@ -40,7 +45,9 @@ After (32 words):
 
 ## Reply to a reviewer
 
-Verdict, then evidence, then nothing. Do not re-explain the reviewer's own finding back to them.
+Verdict, then evidence, then nothing. No severity label; a reply opens with the verdict. The
+60-word cap still applies and is still gated. Do not re-explain the reviewer's own finding back
+to them.
 
 - Fixed: "Fixed in `<sha>`." Add one clause only if the fix differs from what was asked.
 - Disagree: "Disagree: `<file>:<line>` already covers this because <reason>." Leave the thread
@@ -57,7 +64,7 @@ on the PR. `Suite 176/176, Repo CI green.` is the whole evidence line.
 
 ### Replying to a multi-finding review
 
-A batch reply is still 3 sentences. Counts, not an enumeration.
+A batch reply is still 60 words. Counts, not an enumeration.
 
 - Fixed items: the count and one SHA. `Blocker fixed in 2df3431, plus 5 of 9 nits.`
 - Declined items: **name** them so nothing looks silently dropped, and point at where the
@@ -93,12 +100,27 @@ do not delete the checklists.
 | **App Store Compliance** | Complete for any PR touching `apps/expo/`. Delete nothing; skip for backend-only PRs. |
 | **Screenshots** | Leave the placeholder unless you have actual images. |
 
-The prose budget covers What, Why and How together: about 80 words. Rationale, alternatives and
-design detail go in the linked spec or ADR. A reviewer opening the PR wants to know what
-changed and whether it is safe, and finds neither if both are buried in a wall.
+The prose budget covers What, Why and How together: about 80 words. The hook denies a
+description over 120 prose words, counting neither fenced code, HTML comments, headings nor the
+template's checkboxes. Rationale, alternatives and design detail go in the linked spec or ADR. A
+reviewer opening the PR wants to know what changed and whether it is safe, and finds neither if
+both are buried in a wall.
 
 Give the number rather than a sentence about the number: `176/176`, not "the full suite passes".
 Anything not verified says so, explicitly, with what is missing.
+
+Five genres put a description over the cap. None of them belongs in one:
+
+- **The self-review confessional.** "A blind review found three defects in my own diff." Fix
+  them before you push. What you caught in your own work is not news to the reviewer.
+- **Bolded pseudo-headings over paragraphs of argument.** An essay inside a description. The
+  argument goes in the spec or the ADR; the description links it.
+- **Reader instructions.** "Worth reviewing", "the one worth reading". The reviewer decides
+  what is worth their attention.
+- **Rejected alternatives.** Why you did not do it the other way is a decision record, not a
+  description. One clause is the ceiling, and only when the reviewer would otherwise ask.
+- **The compressed epigram.** Short and still hard to read. This one fits inside the cap, so
+  the hook will not catch it for you. See `SKILL.md` rule 3.
 
 Before, the **How** section:
 
@@ -116,7 +138,7 @@ After, the whole description:
 >
 > ## Why
 >
-> Resolves [the identity split](https://linear.app/starterkit/issue/the identity split). Tenants on a non-hourly cadence
+> Resolves [ABC-123](https://linear.app/your-workspace/issue/ABC-123). Tenants on a non-hourly cadence
 > needed a deploy to change their reminder window.
 >
 > ## How

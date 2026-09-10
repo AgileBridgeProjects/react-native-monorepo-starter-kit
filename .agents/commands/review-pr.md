@@ -56,15 +56,32 @@ Follow these steps **in order**. Do not ask for confirmation except where noted.
    Drop anything that does not survive both. Posting an unverified blocker is worse than
    posting nothing.
 
-7. **Write the comments** in the `pr-writing` house style: severity label, defect first, the fix
-   concretely, one claim per comment, 4 sentences maximum. No praise, no summary of the diff.
+7. **Write the comments** in the `pr-writing` house style: severity label as the first
+   character, defect first, the fix concretely, one claim per comment. **60 prose words each,
+   and 30 is the target.** Fenced code does not count, so a ```suggestion block is free.
+
+   Plain English, not compressed grammar. Run every comment past Orwell's six rules, which
+   `pr-writing` § rule 3 states in PR terms: no figure of speech you have seen in print, no
+   long word where a short one will do, cut every word you can cut, active never passive,
+   everyday English over jargon, and break any of those sooner than write something the author
+   has to read twice.
+
+   Rule 4 matters most in a review comment. "The tenant id is not checked" hides who should
+   check it; "`OrderService` does not check the tenant id" names the actor, which is half the
+   finding. Rule 6 settles rule 3: cut whole sentences, never the grammar inside them. No
+   praise, no summary of the diff, no epigram as a closer. All six fit inside the word cap, so
+   the hook will not catch them for you.
+
+   `.claude/hooks/pr-prose-guard.mjs` denies the whole review payload if any comment runs over
+   the cap or does not open with 🔴, 🟡 or 💡, and names the file:line that failed. It reads
+   the `--input` file, so writing the payload does not get you past it.
 
 8. **Build the payload** at `<scratch>/review.json`:
 
    ```json
    {
      "event": "COMMENT",
-     "body": "<counts by severity, plus any coverage gap. One line.>",
+     "body": "<counts by severity, plus any coverage gap. One line, capped at 60 words like any other comment: the findings live on the lines they are about, not in here.>",
      "comments": [
        { "path": "<in-scope path>", "line": 26, "side": "RIGHT", "body": "🔴 ..." }
      ]

@@ -19,16 +19,22 @@ Run the specs your diff touches, then paste the line it prints below:
 
     npm run e2e:affected
 
-The `E2E Attestation` check verifies the SHA matches this PR's head commit, so
-re-run and re-paste after any new push. If the runner says no specs were selected,
-say so here instead — the check will pass on its own.
+A later push does NOT invalidate this wholesale: only the specs the new commits
+actually touch. So merging `dev` in usually costs nothing, and when it does cost
+something the check tells you exactly what is outstanding and prints the command:
+
+    npm run e2e:affected -- --since <sha>
+
+ADD that line, don't replace the old one, because lines accumulate, and each still counts
+for whatever it covered. If the runner says no specs were selected, say so here
+instead; the check will pass on its own.
 
 No coverage for your change? Add a rule to e2e/scripts/affected-specs.mjs.
 Genuinely not applicable? Apply the `skip-e2e` label and explain why here.
 -->
 
 ```text
-e2e: sha=... result=passed specs=... at=...
+e2e: sha=... base=... result=passed specs=... at=...
 ```
 
 ## Checklist
@@ -44,12 +50,12 @@ e2e: sha=... result=passed specs=... at=...
 
 ## App Store Compliance
 
-<!-- Complete this section for every PR that touches apps/expo/ — skip for backend-only PRs -->
+<!-- Complete this section for every PR that touches apps/expo/. Skip for backend-only PRs -->
 
 ### Apple App Store
 
 - [ ] No new/changed permissions without updated `Info.plist` purpose strings
-- [ ] No OTA-delivered code that introduces significant new functionality (EAS Update is safe for bug fixes only — Guideline 2.5.2)
+- [ ] No OTA-delivered code that introduces significant new functionality (EAS Update is safe for bug fixes only, Guideline 2.5.2)
 - [ ] All network requests use HTTPS; any ATS exceptions are documented
 - [ ] If account creation added/modified: in-app account deletion path exists (Guideline 5.1.1v)
 - [ ] If third-party social login added: Sign in with Apple is also offered (Guideline 4.8)

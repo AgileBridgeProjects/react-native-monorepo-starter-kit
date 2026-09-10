@@ -56,9 +56,9 @@ app (Expo), an admin portal (Next.js), and a backend (.NET 10).
 **Full reference docs:** `docs/design-system.md`, `docs/architecture.md`, `docs/contributing.md`,
 `docs/adr/`, layer `README.md` files.
 
-**Signed-off Business Requirements:** `docs/starterkit-brd.md` — the client-approved BRD covering all in-scope features (Learn Content, Play Games, Scoreboards, Rewards, Notifications, Dashboard/Reports, System Access). Read this when making decisions about product scope, personas, game types, or NFRs.
+**Signed-off Business Requirements:** `docs/starterkit-brd.md` — the approved scope, personas and NFRs. Read this when making decisions about product scope. Ships as a template; fill it in.
 
-**Entity Relationship Diagram:** `docs/erd.md` — Mermaid ERD for all 29 database entities. Read this when working with backend data models, migrations, relationships, or any feature that touches the database schema. Update it whenever a migration adds, removes, or renames a table or column.
+**Entity Relationship Diagram:** `docs/erd.md` — the Mermaid ERD for the database. Read this when working with backend data models, migrations, relationships, or any feature that touches the schema. Update it whenever a migration adds, removes, or renames a table or column.
 
 ---
 

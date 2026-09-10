@@ -80,7 +80,7 @@ running, silently.
 | `guard-write.mjs` | `PreToolUse` on write tools | Denies edits to generated or locked files — `src/proxy/**` (Orval), `package-lock.json`, EF `Migrations/*.Designer.cs` and `*ModelSnapshot.cs`, `graphify-out/**`, real `.env` files — and names the generator to run instead |
 | `guard-bash.mjs` | `PreToolUse` on `Bash` | Denies `pnpm`/`yarn`/`bun` (npm-only), `git commit\|push --no-verify`, and `dotnet format` (csharpier is the formatter) |
 | `pr-readiness-nudge.mjs` | `PreToolUse` on `Bash` | On a PR-creating command, injects the standards sweep (`pr-readiness.md`) and the E2E attestation requirement. Never blocks; fires once per session |
-| `pr-prose-guard.mjs` | `PreToolUse` on `Bash` | On any command publishing prose to a PR, injects the `pr-writing` contract for that artifact kind (description, review comment, reply — once each per session) and denies the string-matchable rules: em/en dashes, sycophancy, chatbot sign-offs. Read-only `gh` never fires |
+| `pr-prose-guard.mjs` | `PreToolUse` on `Bash` | On any command publishing prose to a PR, injects the `pr-writing` contract for that artifact kind (description, review comment, reply — once each per session) and denies what is decidable: em/en dashes, sycophancy, chatbot sign-offs, a comment over 60 prose words, a description over 120, and a line-anchored review comment that does not open with 🔴, 🟡 or 💡. Read-only `gh` never fires |
 
 The prose guard reads the body out of `--body`, `--title`, `--body-file`, `--input` and gh's
 `-f`/`-F`/`--field` forms in both quote placements. Two lessons are baked into it, both learned

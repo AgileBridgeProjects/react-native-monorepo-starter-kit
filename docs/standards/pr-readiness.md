@@ -137,13 +137,26 @@ are mandatory for agent-authored PR traffic.
 
 | Skill / command | For |
 |---|---|
-| `.agents/skills/pr-writing/SKILL.md` | Every word posted to a PR: the description, review comments, replies to reviewers. Budgets, the claim-first rule, the no-diff-narration rule, and the list of tics to strip. `ARTIFACTS.md` carries the per-artifact shape |
+| `.agents/skills/pr-writing/SKILL.md` | Every word posted to a PR: the description, review comments, replies to reviewers. Gated budgets, the claim-first rule, the plain-English rule and Orwell's six, the no-diff-narration rule, and the list of tics to strip. `ARTIFACTS.md` carries the per-artifact shape |
 | `.agents/skills/pr-review/SKILL.md`, `/review-pr` | Reviewing a PR. Findings are **line-anchored** through the batched review API, never floating. Scope comes from `scripts/pr-review-diff.mjs`, which excludes tests, e2e, `src/proxy/**`, Markdown and generated artefacts before the diff reaches context |
 
 `.claude/hooks/pr-prose-guard.mjs` puts the house style in front of the agent the first time a
-session publishes PR prose, and hard-denies the rules that are string matches rather than
-judgement calls: em and en dashes, sycophancy, chatbot sign-offs. Everything else in the skill
-is a judgement call, which is why it is a skill and not a regex.
+session publishes each kind of PR prose, and hard-denies the rules that are decidable rather
+than judgement calls:
+
+| Denied | Why it is code and not prose |
+|---|---|
+| Em and en dashes, sycophancy, chatbot sign-offs | Literal string matches with no honest use in PR text |
+| A comment or reply over **60 prose words** | A word budget in prose is unenforceable by construction: the model has no counter to hold itself to |
+| A description over **120 prose words** | Same. The cap sits above the ~80-word target so a paragraph that runs a little long still posts |
+| A line-anchored review comment that does not open with a severity label | The label rule was already written down and reviews went out unlabelled anyway. The nudge fires once per kind, so posts 2..n of a batch saw nothing |
+
+Fenced code, HTML comments and the template's headings and checkboxes are stripped before
+counting: evidence is exempt from every budget, and nothing here asks anyone to trim a stack
+trace to hit a number. The gate reads the batched review payload out of its `--input` file, so
+a review is judged comment by comment and every fault is reported in one denial. Everything
+else in the skill is a judgement call, which is why it is a skill and not a regex.
+`.claude/hooks/pr-prose-guard.test.mjs` covers the caps and runs in `npm run test:scripts`.
 
 Both skills are adapted from the `mr-writing` skill in the ai-dlc project. The budgets, the
 four rules and the artifact shapes are theirs; the template sections, the exclusion list and

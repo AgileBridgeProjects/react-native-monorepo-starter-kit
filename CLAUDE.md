@@ -53,9 +53,9 @@ Read the relevant file(s) before writing any code. Never load files not relevant
 
 **Reference docs:** `docs/design-system.md`, `docs/architecture.md`, `docs/contributing.md`, `docs/mobile-deployment.md` (app identities, store setup per new bundle id), `docs/adr/`, layer `README.md` files.
 
-**BRD:** `docs/starterkit-brd.md` — signed-off scope, personas, game types, NFRs.
+**BRD:** `docs/starterkit-brd.md` — signed-off scope, personas, NFRs. Ships as a template; fill it in.
 
-**ERD:** `docs/erd.md` — 29 entities. Read for any DB/migration work. Update whenever a migration adds, removes, or renames a table or column.
+**ERD:** `docs/erd.md` — the database schema. Read for any DB/migration work. Update whenever a migration adds, removes, or renames a table or column.
 
 ---
 
