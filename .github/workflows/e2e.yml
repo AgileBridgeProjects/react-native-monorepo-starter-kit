@@ -91,14 +91,13 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
-    env:
-      SHARD_TOTAL: "3"
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
       id-token: write
       contents: read
     env:
+      SHARD_TOTAL: "3"
       KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
       PLAYWRIGHT_BASE_URL: http://localhost:3000
     steps:
