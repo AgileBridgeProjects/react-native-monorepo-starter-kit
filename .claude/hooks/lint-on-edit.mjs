@@ -16,7 +16,7 @@
  * one path, so the hook stays in the low seconds even on the backend.
  *
  * Fail-open on anything unexpected — a broken hook must never wedge the session.
- * Set VYBE_HOOK_LINT=0 to disable.
+ * Set SK_HOOK_LINT=0 to disable.
  */
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -97,7 +97,7 @@ function commandsFor(relativePath, absolutePath, cwd) {
 }
 
 function main() {
-  if (process.env.VYBE_HOOK_LINT === '0') return;
+  if (process.env.SK_HOOK_LINT === '0') return;
 
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const filePath = input?.tool_input?.file_path;

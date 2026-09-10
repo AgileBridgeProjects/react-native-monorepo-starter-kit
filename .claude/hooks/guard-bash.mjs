@@ -10,7 +10,7 @@
  * Deliberately narrow: only invariants that are already written down and already enforced
  * somewhere slower. This is not a general-purpose command firewall.
  *
- * Fail-open on anything unexpected. Set VYBE_HOOK_GUARD=0 to disable.
+ * Fail-open on anything unexpected. Set SK_HOOK_GUARD=0 to disable.
  */
 import { readFileSync } from 'node:fs';
 
@@ -59,7 +59,7 @@ function deny(reason) {
 }
 
 function main() {
-  if (process.env.VYBE_HOOK_GUARD === '0') return;
+  if (process.env.SK_HOOK_GUARD === '0') return;
 
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const command = input?.tool_input?.command;

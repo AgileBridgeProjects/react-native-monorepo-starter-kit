@@ -8,7 +8,7 @@
  * a gate that does not exist, so this turns each one into a deny with the actual fix in
  * the message — the agent reads the reason and runs the generator instead.
  *
- * Fail-open on anything unexpected. Set VYBE_HOOK_GUARD=0 to disable.
+ * Fail-open on anything unexpected. Set SK_HOOK_GUARD=0 to disable.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -62,7 +62,7 @@ function deny(reason) {
 }
 
 function main() {
-  if (process.env.VYBE_HOOK_GUARD === '0') return;
+  if (process.env.SK_HOOK_GUARD === '0') return;
 
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const filePath = input?.tool_input?.file_path ?? input?.tool_input?.notebook_path;

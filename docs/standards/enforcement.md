@@ -47,6 +47,12 @@ Kept under ~10s: no Docker, no network. Order:
 | `knip` | dead code / unused dependencies (blocking) |
 | `check:standards` | repo-config invariants (see below) |
 | `check-e2e-receipt` | if the push touches spec-covered code, require a passing local E2E run (`e2e-testing.md` § The pre-push receipt gate) |
+| `mobile-version check --if-mobile` | if the push touches the mobile scope, require the production and runtime bumps it owes in `apps/expo/version.json` (`ota-updates.md` § Versioning). A no-op for backend-, web- and docs-only branches |
+
+A tag push skips this whole suite, but only when the commits it publishes are already on a
+remote branch where they passed — `scripts/pre-push-tag-skip.mjs` decides, and is unit-tested.
+Skipping unconditionally would let `git tag t <local-commit>` publish ungated code, since no
+workflow triggers on tags.
 
 ### `commit-msg`
 
@@ -94,7 +100,7 @@ the file; a detached writer racing the agent's next read produces "file modified
 read" failures and silently clobbered edits. Per-file scope is what keeps it cheap enough
 not to need backgrounding.
 
-Disable with `VYBE_HOOK_LINT=0`, `VYBE_HOOK_GUARD=0`, `VYBE_HOOK_NUDGE=0`.
+Disable with `SK_HOOK_LINT=0`, `SK_HOOK_GUARD=0`, `SK_HOOK_NUDGE=0`.
 
 ### These do not replace husky
 

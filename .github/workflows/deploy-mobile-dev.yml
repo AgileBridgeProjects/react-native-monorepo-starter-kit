@@ -17,8 +17,10 @@ permissions:
   contents: read
   id-token: write # required for OIDC Azure login
 
+# Shared with the other mobile store pipelines on purpose: they all publish from one
+# EAS project, and letting them overlap is what makes a submit take the wrong artifact.
 concurrency:
-  group: deploy-mobile-dev
+  group: deploy-mobile-stores
   cancel-in-progress: false
 
 jobs:
@@ -205,8 +207,31 @@ jobs:
           mkdir -p keys
           echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > keys/google-play-service-account.json
 
+      - name: Resolve the dev Android build to submit
+        id: target
+        run: |
+          set -euo pipefail
+          # NOT `--latest`: that flag picks the newest build for the PLATFORM across the
+          # whole EAS project, ignoring the profile. When two of these pipelines run close
+          # together it submits the wrong artifact — a uat IPA into another app record, an
+          # APK into a Play listing that only accepts bundles. Selecting by profile is the
+          # fix; the shared `deploy-mobile-stores` concurrency group is what keeps "newest
+          # finished for this profile" unambiguous.
+          build=$(eas build:list --platform android --buildProfile dev --status finished --limit 1 --non-interactive --json | jq -c '.[0] // empty')
+          if [ -z "$build" ]; then
+            echo "::error title=No dev Android build to submit::eas build:list found no finished android build for profile 'dev'."
+            exit 1
+          fi
+          id=$(printf '%s' "$build" | jq -r '.id // empty')
+          if [ -z "$id" ]; then
+            echo "::error title=Unreadable build record::eas build:list returned a build with no id: $build"
+            exit 1
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "Submitting build $id ($(printf '%s' "$build" | jq -r '"\(.appVersion) (\(.appBuildVersion))"'))"
+
       - name: Submit Android to Play Store (internal testing)
-        run: eas submit --platform android --profile dev --non-interactive --latest
+        run: eas submit --platform android --profile dev --non-interactive --id ${{ steps.target.outputs.id }}
 
   submit-ios:
     if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios' }}
@@ -241,10 +266,33 @@ jobs:
           mkdir -p keys
           echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
 
+      - name: Resolve the dev iOS build to submit
+        id: target
+        run: |
+          set -euo pipefail
+          # NOT `--latest`: that flag picks the newest build for the PLATFORM across the
+          # whole EAS project, ignoring the profile. When two of these pipelines run close
+          # together it submits the wrong artifact — a uat IPA into another app record, an
+          # APK into a Play listing that only accepts bundles. Selecting by profile is the
+          # fix; the shared `deploy-mobile-stores` concurrency group is what keeps "newest
+          # finished for this profile" unambiguous.
+          build=$(eas build:list --platform ios --buildProfile dev --status finished --limit 1 --non-interactive --json | jq -c '.[0] // empty')
+          if [ -z "$build" ]; then
+            echo "::error title=No dev iOS build to submit::eas build:list found no finished ios build for profile 'dev'."
+            exit 1
+          fi
+          id=$(printf '%s' "$build" | jq -r '.id // empty')
+          if [ -z "$id" ]; then
+            echo "::error title=Unreadable build record::eas build:list returned a build with no id: $build"
+            exit 1
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "Submitting build $id ($(printf '%s' "$build" | jq -r '"\(.appVersion) (\(.appBuildVersion))"'))"
+
       - name: Submit iOS to TestFlight
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
-        run: eas submit --platform ios --profile dev --non-interactive --latest
+        run: eas submit --platform ios --profile dev --non-interactive --id ${{ steps.target.outputs.id }}
 
 

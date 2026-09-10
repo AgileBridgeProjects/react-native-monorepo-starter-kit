@@ -1,11 +1,19 @@
 name: Deploy Mobile (OTA update)
 
-# Pushes an EAS Update (JS bundle only — no native rebuild) to the matching
-# channel whenever Expo-relevant files change on dev or main.
+# Pushes an EAS Update (JS bundle only — no native rebuild) to a channel.
 #
 # Channel mapping:
-#   dev  branch → dev        channel (TestFlight / internal testers)
-#   main branch → production channel (App Store / Play Store users)
+#   push to dev            → dev        channel (TestFlight / internal testers)
+#   dispatch, on main only → production channel (App Store / Play Store users)
+#
+# Production is dispatch-only, deliberately. This used to publish on every push
+# to `main`, which is unsafe on two counts. App Store Review Guideline 2.5.2
+# permits OTA JavaScript only while it does not materially change the app's
+# features or purpose, and a push trigger cannot tell a copy tweak from a feature
+# drop. And the path filter is broad enough that an unrelated file merged to main
+# — a served static asset, a lockfile move — would ship to real users. Shipping to
+# production is a release decision, so it needs a human and a typed confirmation.
+# See docs/standards/ota-updates.md § Shipping an OTA to production.
 #
 # All publish logic lives in apps/expo/scripts/publish-ota.mjs — it syncs the
 # eas.json profile env to the EAS environment, verifies the runtimeVersion
@@ -15,10 +23,15 @@ name: Deploy Mobile (OTA update)
 # See docs/standards/ota-updates.md.
 
 on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type publish-to-production to confirm. Only runs on main.
+        required: true
+        type: string
   push:
     branches:
       - dev
-      - main
     paths:
       - apps/expo/**
       - packages/shared/**
@@ -32,17 +45,36 @@ permissions:
 
 concurrency:
   group: deploy-mobile-update-${{ github.ref_name }}
-  cancel-in-progress: true
+  # A production publish is never cancelled mid-flight; a dev push may supersede itself.
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   update:
-    name: EAS Update (${{ github.ref_name }})
+    # Renders the target, so a mis-aimed dispatch is legible in the run list.
+    name: EAS Update (${{ github.event_name == 'workflow_dispatch' && 'production' || 'dev' }} @ ${{ github.ref_name }})
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && 'production' || 'dev' }}
     defaults:
       run:
         working-directory: apps/expo
     steps:
+      # Two locks on a production publish: the ref must be main, and the operator has
+      # to type the phrase. The `production` GitHub environment should also carry a
+      # deployment-branch policy of main only, which is the binding one.
+      - name: Validate production dispatch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm }}
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error title=Wrong branch::A production OTA publishes from main. This run is on '$GITHUB_REF_NAME'."
+            exit 1
+          fi
+          if [ "$CONFIRM" != "publish-to-production" ]; then
+            echo "::error title=Not confirmed::Type publish-to-production in the confirm input to publish to real users."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -64,7 +96,10 @@ jobs:
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.sha }}
         run: |
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "Manual dispatch — the operator decided this is worth publishing."
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
             echo "First push on this ref (no prior SHA to diff against) — treating as relevant."
           else
@@ -92,9 +127,11 @@ jobs:
       - name: Publish EAS Update
         if: steps.ota-relevant.outputs.relevant == 'true'
         env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          # head_commit is absent on a dispatch, so key the message on the event rather
+          # than on the field being falsy.
+          COMMIT_MESSAGE: ${{ github.event_name == 'workflow_dispatch' && format('Manual production OTA dispatched by {0} ({1})', github.actor, github.sha) || github.event.head_commit.message }}
         run: |
-          PROFILE="${{ github.ref_name == 'main' && 'production' || 'dev' }}"
+          PROFILE="${{ github.event_name == 'workflow_dispatch' && 'production' || 'dev' }}"
           node scripts/publish-ota.mjs --profile "$PROFILE" --message "$COMMIT_MESSAGE"
 
       - name: No OTA-relevant changes

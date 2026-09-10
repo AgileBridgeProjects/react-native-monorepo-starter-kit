@@ -156,21 +156,35 @@ console.log(`\n▶ OTA publish — profile "${profile}" → channel "${channel}"
 // ─── 1. Sync the eas.json profile env to the EAS environment ─────────────────
 // `eas update --environment` bundles with the server environment's vars only.
 // Pushing before every publish keeps eas.json the single source of truth.
+//
+// EAS_BUILD_PROFILE must never be pushed. EAS sets it itself on every build worker,
+// but a value STORED on the environment overrides that — so every build profile
+// sharing the slot then identifies as whichever profile last published through it,
+// and app.config.js keys the app name, bundle identifier, package and icons off it.
+// The bundle never needs it: identity fields are native-only, and the runtime
+// version is the same for every profile.
+//
+// Note also that `eas env:push --force` overwrites but never REMOVES keys, so a
+// shared environment slot accumulates whatever any profile has ever pushed to it.
+const NEVER_PUSH = new Set(['EAS_BUILD_PROFILE']);
+const pushedEnv = Object.fromEntries(
+    Object.entries(profileEnv).filter(([key]) => !NEVER_PUSH.has(key)),
+);
 
 const tempDir = mkdtempSync(join(tmpdir(), 'ota-env-'));
 const envFile = join(tempDir, '.env.ota-sync');
 try {
     writeFileSync(
         envFile,
-        Object.entries(profileEnv)
+        Object.entries(pushedEnv)
             .map(([key, value]) => `${key}=${value}`)
             .join('\n'),
     );
     if (dryRun) {
-        console.log(`(dry-run) Would push ${Object.keys(profileEnv).length} vars to environment "${environment}"`);
+        console.log(`(dry-run) Would push ${Object.keys(pushedEnv).length} vars to environment "${environment}"`);
     } else {
         eas(['env:push', environment, '--path', envFile, '--force']);
-        console.log(`✔ Synced ${Object.keys(profileEnv).length} eas.json env vars to environment "${environment}"`);
+        console.log(`✔ Synced ${Object.keys(pushedEnv).length} eas.json env vars to environment "${environment}"`);
     }
 } finally {
     rmSync(tempDir, { recursive: true, force: true });

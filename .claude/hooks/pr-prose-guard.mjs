@@ -15,7 +15,7 @@
  *
  * Read-only gh usage (pr view/list/diff/checks, api GET) never fires.
  *
- * Fail-open on anything unexpected. Set VYBE_HOOK_NUDGE=0 to disable.
+ * Fail-open on anything unexpected. Set SK_HOOK_NUDGE=0 to disable.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -190,7 +190,7 @@ function markerPath(sessionId, kind) {
 }
 
 function main() {
-  if (process.env.VYBE_HOOK_NUDGE === '0') return;
+  if (process.env.SK_HOOK_NUDGE === '0') return;
 
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const command = input?.tool_input?.command;

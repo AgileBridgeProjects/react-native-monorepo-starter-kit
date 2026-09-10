@@ -19,7 +19,7 @@ import {
   everyRefIsATag,
   refsFrom,
 } from './pre-push-tag-skip.mjs';
-import { makeSandboxRepo } from './gate/test-sandbox.mjs';
+import { makeSandboxRepo } from './lib/test-sandbox.mjs';
 
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'pre-push-tag-skip.mjs');
 const SHA = 'a'.repeat(40);

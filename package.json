@@ -17,7 +17,7 @@
     "lint:fix": "biome check --fix .",
     "format": "biome format --write .",
     "test": "npm run test --workspaces --if-present",
-    "test:scripts": "node --test apps/expo/scripts/mobile-version.test.mjs scripts/pre-push-tag-skip.test.mjs",
+    "test:scripts": "node --test apps/expo/scripts/mobile-version.test.mjs scripts/pre-push-tag-skip.test.mjs scripts/store-release.test.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "check": "biome check . && npm run typecheck && npm run test && npm run test:scripts && npm run check:locale-casing && npm run check:architecture && npm run check:standards",
     "generate:proxy": "npm run generate:proxy --workspaces --if-present",

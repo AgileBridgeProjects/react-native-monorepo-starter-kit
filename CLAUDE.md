@@ -30,7 +30,8 @@ Read the relevant file(s) before writing any code. Never load files not relevant
 | Frontend shared (web + mobile) | `docs/standards/frontend.md` |
 | Frontend web | `docs/standards/frontend.md` + `docs/standards/frontend-web.md` |
 | Frontend mobile | `docs/standards/frontend.md` + `docs/standards/frontend-mobile.md` |
-| OTA / EAS Update (publish, runtime version, restart prompt) | `docs/standards/ota-updates.md` |
+| OTA / EAS Update (publish, mobile versioning / `version.json`, runtime version, restart prompt) | `docs/standards/ota-updates.md` |
+| Production store releases (dispatch, staging, store credentials) | `docs/deployment/prod-mobile-store-setup.md` |
 | App Store compliance | `docs/apple-app-store-review.md` / `docs/google-play-store-review.md` / `docs/huawei-appgallery-review.md` |
 | E2E tests | `docs/standards/e2e-testing.md` |
 | Time zone testing for local dev (SA devs simulating US zones) | `docs/standards/dev-timezone-testing.md` |

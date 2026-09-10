@@ -1,0 +1,409 @@
+name: Deploy Mobile (prod)
+
+# ── SAFETY MODEL — READ BEFORE EDITING ───────────────────────────────────────
+# The production store listings are LIVE apps serving real users. This workflow
+# must NEVER submit anything for store review: it stages each release so that the
+# ONE remaining action per store is a human clicking "submit for review".
+#   • iOS  → uploads to TestFlight, then stages the App Store version: creates the
+#            version record, attaches the build, writes What's New, copies the App
+#            Review information forward. Never creates a review submission — that
+#            is the "Add for Review" click in App Store Connect.
+#   • Play → eas.json pins the submit profile to the INTERNAL track, then
+#            stage-play-release writes a production release with notes and commits
+#            it with changesNotSentForReview=true. The release sits in Publishing
+#            overview until a human presses "Send changes for review". The service
+#            account needs "Release to production" for this — the
+#            changesNotSentForReview flag is the guarantee, never drop it.
+# Release notes come from the `release-notes` input and can be edited in each
+# console before submitting.
+# Full design: docs/deployment/prod-mobile-store-setup.md
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Missing credentials FAIL the run. A green run that built nothing is a lie: you
+# asked for a store build and got a tick. preflight checks only the secrets the
+# DISPATCHED platform needs, and fails with the list when any are absent.
+#
+# Dispatch-only, deliberately. An earlier version of this pipeline also fired on
+# every push to `main` that touched apps/expo/**. Once enabled, an unrelated main
+# push — a copy tweak, a served static file — burned EAS builds and pushed
+# binaries into TestFlight and Play internal that nobody asked for. Cutting a
+# store build is a release decision, so it is an explicit human action with a
+# platform choice. Runbook: docs/deployment/prod-mobile-store-setup.md
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build and submit
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      release-notes:
+        description: >-
+          What's New / release notes written to both stores. Edit here for a
+          feature release, or leave the default and change it in the console
+          before submitting.
+        required: true
+        type: string
+        default: Bug fixes and performance improvements.
+
+permissions:
+  contents: read
+
+# Shared with deploy-mobile-uat.yml on purpose: the two pipelines publish from one
+# EAS project, and letting them overlap is what makes a submit take the wrong
+# artifact. Serialising them keeps the build:list lookup below unambiguous.
+concurrency:
+  group: deploy-mobile-stores
+  cancel-in-progress: false
+
+jobs:
+  # Secrets are not readable in job-level `if:` expressions, so surface their
+  # presence as outputs here, then fail the run if the dispatched platform is
+  # missing any of them.
+  #
+  # `environment: production` also means GitHub enforces that policy's
+  # deployment-branch restriction before any step runs — that is what stops a
+  # production binary being built from a feature branch, and it is LOAD-BEARING.
+  # Set it to `main` only, and verify with
+  # `gh api repos/:owner/:repo/environments/production/deployment-branch-policies`.
+  preflight:
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      has_expo: ${{ steps.check.outputs.has_expo }}
+      has_asc: ${{ steps.check.outputs.has_asc }}
+      has_play: ${{ steps.check.outputs.has_play }}
+    steps:
+      - name: Check which credentials are configured
+        id: check
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          PLAY_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}
+        run: |
+          echo "has_expo=$([ -n "$EXPO_TOKEN" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "has_asc=$([ -n "$ASC_KEY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "has_play=$([ -n "$PLAY_KEY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Require the credentials the dispatched platform needs
+        env:
+          PLATFORM: ${{ github.event.inputs.platform }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          PLAY_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}
+        run: |
+          missing=()
+          if [ -z "$EXPO_TOKEN" ]; then missing+=("EXPO_TOKEN — needed by every platform"); fi
+          case "$PLATFORM" in
+            all|ios)
+              if [ -z "$ASC_KEY" ]; then missing+=("ASC_API_KEY_P8_BASE64 — iOS TestFlight submit"); fi
+              ;;
+          esac
+          case "$PLATFORM" in
+            all|android)
+              if [ -z "$PLAY_KEY" ]; then missing+=("GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 — Play internal submit"); fi
+              ;;
+          esac
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf '  - %s\n' "${missing[@]}"
+            echo "::error title=Missing production credentials::Platform '$PLATFORM' needs secrets that are not set in the production environment — see the step log for the list. Add them to the environment, or dispatch a narrower platform."
+            exit 1
+          fi
+          echo "All credentials required for platform '$PLATFORM' are present."
+
+      - name: Require non-blank release notes
+        env:
+          RELEASE_NOTES: ${{ github.event.inputs.release-notes }}
+        run: |
+          if [ -z "$(printf '%s' "$RELEASE_NOTES" | tr -d '[:space:]')" ]; then
+            echo "::error title=Blank release notes::Every store refuses a submission with empty What's New. Re-dispatch with the release-notes input filled in."
+            exit 1
+          fi
+          # Google Play caps release notes at 500 characters per language, and one dispatch
+          # writes the same text to both stores, so Play's limit binds. Apple allows 4000.
+          if [ "$(printf '%s' "$RELEASE_NOTES" | wc -m)" -gt 500 ]; then
+            echo "::error title=Release notes too long::Google Play caps release notes at 500 characters and the same text goes to both stores. Shorten the release-notes input."
+            exit 1
+          fi
+
+  build-ios:
+    needs: preflight
+    if: >-
+      needs.preflight.outputs.has_expo == 'true' &&
+      (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: 20.5.1 # pinned — an unpinned "latest" has broken these pipelines before
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      - name: Build iOS IPA (EAS cloud)
+        run: eas build --platform ios --profile production --non-interactive --clear-cache
+
+  submit-ios:
+    needs: [preflight, build-ios]
+    if: needs.preflight.outputs.has_asc == 'true' && needs.build-ios.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      app_version: ${{ steps.target.outputs.app_version }}
+      build_number: ${{ steps.target.outputs.build_number }}
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: 20.5.1 # pinned — an unpinned "latest" has broken these pipelines before
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
+
+      - name: Resolve the prod iOS build to submit
+        id: target
+        run: |
+          set -euo pipefail
+          # NOT `--latest`: that flag picks the newest build for the PLATFORM across the
+          # whole EAS project, ignoring the profile. When the prod and uat pipelines run
+          # close together, `--latest` submits the wrong artifact — a uat IPA into the
+          # production app record, an APK into a Play listing that only accepts bundles.
+          # Selecting by profile is the fix; the shared concurrency group above is what
+          # keeps "newest finished for this profile" unambiguous.
+          build=$(eas build:list --platform ios --buildProfile production --status finished --limit 1 --non-interactive --json | jq -c '.[0] // empty')
+          if [ -z "$build" ]; then
+            echo "::error title=No prod iOS build to submit::eas build:list found no finished ios build for profile 'production'."
+            exit 1
+          fi
+          id=$(printf '%s' "$build" | jq -r '.id // empty')
+          if [ -z "$id" ]; then
+            echo "::error title=Unreadable build record::eas build:list returned a build with no id: $build"
+            exit 1
+          fi
+          # appVersion / appBuildVersion are what stage-ios-version uses to find the build
+          # in App Store Connect once it has processed.
+          {
+            echo "id=$id"
+            echo "app_version=$(printf '%s' "$build" | jq -r '.appVersion // empty')"
+            echo "build_number=$(printf '%s' "$build" | jq -r '.appBuildVersion // empty')"
+          } >> "$GITHUB_OUTPUT"
+          echo "Submitting build $id ($(printf '%s' "$build" | jq -r '"\(.appVersion) (\(.appBuildVersion))"'))"
+
+      # TestFlight only — stage-ios-version prepares the App Store version record next;
+      # submitting for review stays a manual ASC action.
+      - name: Submit iOS to TestFlight
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        run: eas submit --platform ios --profile production --non-interactive --id ${{ steps.target.outputs.id }}
+
+  # Stages the App Store version so the console flow is one click: waits for ASC to finish
+  # processing the TestFlight build, creates/reuses the version record for the build's
+  # marketing version, attaches the build, writes What's New on every localization and copies
+  # the App Review information (demo account, notes) forward. Never submits for review.
+  #
+  # A brand-new app has no live version to copy review information from, so the first
+  # submission still needs those fields filled in by hand.
+  stage-ios-version:
+    needs: [submit-ios]
+    if: needs.submit-ios.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > keys/asc-api-key.p8
+
+      - name: Stage App Store version
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_PATH: keys/asc-api-key.p8
+          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+          APP_VERSION: ${{ needs.submit-ios.outputs.app_version }}
+          BUILD_NUMBER: ${{ needs.submit-ios.outputs.build_number }}
+          RELEASE_NOTES: ${{ github.event.inputs.release-notes }}
+          ASC_WAIT_MINUTES: "45"
+        run: node scripts/asc-stage-version.mjs
+
+  build-android:
+    needs: preflight
+    if: >-
+      needs.preflight.outputs.has_expo == 'true' &&
+      (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: 20.5.1 # pinned — an unpinned "latest" has broken these pipelines before
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Check for banned native imports
+        run: node scripts/check-native-imports.mjs
+
+      - name: Build Android AAB (EAS cloud)
+        run: eas build --platform android --profile production --non-interactive --clear-cache
+
+  submit-android:
+    needs: [preflight, build-android]
+    if: needs.preflight.outputs.has_play == 'true' && needs.build-android.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      version_code: ${{ steps.target.outputs.version_code }}
+    defaults:
+      run:
+        working-directory: apps/expo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: 20.5.1 # pinned — an unpinned "latest" has broken these pipelines before
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decode Google Play service account key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > keys/google-play-service-account.json
+
+      - name: Resolve the prod Android build to submit
+        id: target
+        run: |
+          set -euo pipefail
+          # NOT `--latest` — see the iOS job for why.
+          build=$(eas build:list --platform android --buildProfile production --status finished --limit 1 --non-interactive --json | jq -c '.[0] // empty')
+          if [ -z "$build" ]; then
+            echo "::error title=No prod Android build to submit::eas build:list found no finished android build for profile 'production'."
+            exit 1
+          fi
+          id=$(printf '%s' "$build" | jq -r '.id // empty')
+          if [ -z "$id" ]; then
+            echo "::error title=Unreadable build record::eas build:list returned a build with no id: $build"
+            exit 1
+          fi
+          # appBuildVersion is the versionCode stage-play-release promotes to production.
+          {
+            echo "id=$id"
+            echo "version_code=$(printf '%s' "$build" | jq -r '.appBuildVersion // empty')"
+          } >> "$GITHUB_OUTPUT"
+          echo "Submitting build $id (versionCode $(printf '%s' "$build" | jq -r '.appBuildVersion'))"
+
+      # eas.json pins this profile to the INTERNAL track; stage-play-release then writes the
+      # production release. Sending it for review stays a manual Play Console action.
+      - name: Submit Android to Play internal track
+        run: eas submit --platform android --profile production --non-interactive --id ${{ steps.target.outputs.id }}
+
+  # Stages the Play production release so the console flow is one click: writes a release
+  # for the just-uploaded versionCode with the release notes on every listing language and
+  # commits the edit with changesNotSentForReview=true. Nothing reaches review until a human
+  # presses "Send changes for review" in Publishing overview.
+  stage-play-release:
+    needs: [submit-android]
+    if: needs.submit-android.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Decode Google Play service account key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > keys/google-play-service-account.json
+
+      - name: Stage Play production release
+        env:
+          PLAY_SERVICE_ACCOUNT_PATH: keys/google-play-service-account.json
+          PLAY_PACKAGE_NAME: ${{ vars.PLAY_PACKAGE_NAME }}
+          PLAY_TRACK: production
+          VERSION_CODE: ${{ needs.submit-android.outputs.version_code }}
+          RELEASE_NOTES: ${{ github.event.inputs.release-notes }}
+        run: node scripts/play-stage-release.mjs
