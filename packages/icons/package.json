@@ -18,7 +18,7 @@
   },
   "peerDependencies": {
     "@react-native-vector-icons/material-icons": "*",
-    "react": "*"
+    "react": "^19.2.8"
   },
   "peerDependenciesMeta": {
     "@react-native-vector-icons/material-icons": {
