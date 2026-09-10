@@ -304,3 +304,8 @@ e2e/.expo-web-dist/
 # ── BMAD planning artifacts (working docs, not meant to be committed) ──
 _bmad-output/planning-artifacts/*
 !_bmad-output/planning-artifacts/.gitkeep
+
+# E2E harness caches — resolved secrets and the static-export digest sidecar.
+e2e/.env.e2e.kvcache
+e2e/.expo-web-dist.key
+e2e/blob-report/

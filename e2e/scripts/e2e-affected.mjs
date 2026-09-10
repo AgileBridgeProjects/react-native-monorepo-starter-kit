@@ -21,19 +21,34 @@
  *   npm run e2e:affected -- --dry-run          # show the selection, run nothing
  *   npm run e2e:affected -- --json             # machine-readable selection, run nothing
  *   npm run e2e:affected -- --base origin/uat  # compare against another ref
+ *   npm run e2e:affected -- --since <sha>      # only what changed since an earlier run
  *   E2E_KEEP_UP=1 npm run e2e:affected         # leave containers up (warm next run)
+ *
+ * `--since` is the top-up mode. After merging `dev` into a branch, the attestation you
+ * already have still stands for everything the merge did not touch, so re-running the
+ * whole selection is waste. Pass the sha of the run you are topping up (the CI check
+ * prints the exact command) and the resulting attestation line records the narrower
+ * range via `base=`, so the two lines together cover the diff.
  */
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { partitionBySuite, projectsFor, resolveAffected } from './affected-specs.mjs';
+import {
+  partitionBySuite,
+  projectsFor,
+  pruneScriptOnlyPackageJson,
+  resolveAffected,
+} from './affected-specs.mjs';
+import { ensureSecrets } from './ensure-secrets.mjs';
+import { check, readEnvFile, suiteFilterFor } from './preflight.mjs';
 
 const E2E_DIR = path.resolve(import.meta.dirname, '..');
 const REPO_ROOT = path.resolve(E2E_DIR, '..');
 const RECEIPT_PATH = path.join(E2E_DIR, '.e2e-receipt.json');
-const RECEIPT_SCHEMA = 1;
+const PREFLIGHT_SCRIPT = path.join(E2E_DIR, 'scripts', 'preflight.mjs');
+const RECEIPT_SCHEMA = 2;
 const EXPO_SERVER_URL = 'http://localhost:8081';
 const WEB_SERVER_URL = 'http://localhost:3000';
 
@@ -77,7 +92,10 @@ const dryRun = argv.includes('--dry-run');
 const jsonOnly = argv.includes('--json');
 const allViewports = argv.includes('--all-viewports') || process.env.E2E_ALL_VIEWPORTS === '1';
 const baseArg = argv.indexOf('--base');
-const requestedBase = baseArg !== -1 ? argv[baseArg + 1] : process.env.E2E_BASE;
+const sinceArg = argv.indexOf('--since');
+const requestedSince = sinceArg !== -1 ? argv[sinceArg + 1] : process.env.E2E_SINCE;
+// --since is just --base with a different intent, so one resolution path serves both.
+const requestedBase = requestedSince ?? (baseArg !== -1 ? argv[baseArg + 1] : process.env.E2E_BASE);
 
 // ── Git helpers ───────────────────────────────────────────────────────────────
 function git(args, { allowFailure = false } = {}) {
@@ -133,7 +151,57 @@ if (!base) {
   warn('no base ref found (origin/dev, dev, origin/main, main) — using uncommitted changes only.');
 }
 
-const { all: changedFiles, uncommitted } = collectChangedFiles(base);
+if (requestedSince && !base) {
+  error(`--since ${requestedSince}: no such commit in this clone.`);
+  process.exit(1);
+}
+// `--is-ancestor` signals through the exit code and prints nothing, so test for the
+// null the helper returns on failure — an empty string here means success.
+if (
+  requestedSince &&
+  git(['merge-base', '--is-ancestor', base, 'HEAD'], { allowFailure: true }) === null
+) {
+  error(`--since ${requestedSince} is not an ancestor of HEAD — nothing to top up from.`);
+  process.exit(1);
+}
+
+/**
+ * What the attestation line records as its lower bound.
+ *
+ * A top-up run pins the exact commit it started from; a full run names the branch it
+ * was taken against. CI re-derives the range from this, so it has to be a ref the
+ * remote can resolve — hence `origin/dev` is recorded as `dev`.
+ */
+const attestationBase = requestedSince
+  ? git(['rev-parse', base])
+  : (base ?? 'dev').replace(/^origin\//, '');
+
+const collected = collectChangedFiles(base);
+// A package.json counts only when something outside its inert keys moved (a scripts edit
+// cannot reach a browser). "head" is the working tree here, because uncommitted changes are
+// in scope.
+const mergeBase = base ? git(['merge-base', base, 'HEAD'], { allowFailure: true }) : null;
+/**
+ * @param baseRef  what "before" means for this list. The branch selection compares against
+ *   the merge base; the uncommitted-dirt list must compare against HEAD, or a dependency
+ *   removed in a commit and re-added in the working tree cancels out and reads as inert.
+ */
+const prunePackageJson = (files, baseRef) =>
+  pruneScriptOnlyPackageJson(files, (file) => {
+    let head = null;
+    try {
+      head = readFileSync(path.join(REPO_ROOT, file), 'utf8');
+    } catch {
+      head = null;
+    }
+    return {
+      base: baseRef ? git(['show', `${baseRef}:${file}`], { allowFailure: true }) : null,
+      head,
+    };
+  });
+const changedFiles = prunePackageJson(collected.all, mergeBase);
+const { uncommitted } = collected;
+const prunedUncommitted = prunePackageJson(uncommitted, 'HEAD');
 const { specs, reasons, uncovered, knownUncovered } = resolveAffected(changedFiles);
 
 // Machine-readable selection for CI (e2e-post-merge.yml reads this). Emitted before
@@ -195,6 +263,77 @@ info(`projects: ${projects.join(', ')}`);
 if (dryRun) {
   info('--dry-run: stopping before execution.');
   process.exit(0);
+}
+
+// ── Preflight ─────────────────────────────────────────────────────────────────
+// Assert every value this run depends on before spending anything on it. A missing
+// licence key or admin credential does not stop a run, it changes what the run TESTS —
+// blocked clicks in an unrelated drawer, or auth specs skipping themselves while
+// the run still reports success. That is worse than stopping.
+//
+// Placed AFTER the --json and --dry-run exits above, deliberately and load-bearingly:
+// e2e-post-merge.yml:69 runs `node e2e/scripts/e2e-affected.mjs --json --base <sha>` to
+// compute its selection, and CI has no .env.e2e and no licence key. Gating that
+// invocation would fail the post-merge pipeline on a developer-local prerequisite. The
+// `CI` check below is the belt to that braces: if this script ever grows a code path that
+// reaches here under automation, the gate still stands down rather than breaking a
+// pipeline it was never meant to police. See the SCOPE note in preflight.mjs.
+//
+// Only the suites actually selected are asserted — demanding a web build input of an
+// expo-only selection would be the false alarm that gets a gate bypassed. An empty
+// selection runs nothing, so it needs nothing.
+if (!process.env.CI && (webSpecs.length > 0 || expoSpecs.length > 0)) {
+  const selected = [];
+  if (webSpecs.length > 0) selected.push('web');
+  if (expoSpecs.length > 0) selected.push('expo');
+
+  // Top up from Key Vault before asserting, so the gate reports what it genuinely cannot
+  // get rather than what nobody has fetched yet.
+  //
+  // Without this the gate is a liar on the web path. run-e2e.sh, which this script spawns
+  // below for the web phase, fetches every secret from Key Vault at the top of its own
+  // run — so a stale .env.e2e would have been topped up a few seconds later anyway, and
+  // gating ahead of it would block a run that was going to work. It also matches what
+  // `npm run e2e` already does: that entry point has always provisioned itself, and only
+  // e2e:affected relied on the developer having run `pull:env` at some point in the past.
+  //
+  // Best-effort by design. No `az` process starts unless something is actually missing,
+  // and a machine with no Azure CLI, no login, or no network falls straight through to the
+  // gate, which then prints the manual remedy exactly as before. Opt out with
+  // E2E_NO_AUTO_PULL=1.
+  if (process.env.E2E_NO_AUTO_PULL !== '1') {
+    const envFile = path.join(E2E_DIR, '.env.e2e');
+    const missing = check({
+      env: process.env,
+      fileEnv: readEnvFile(envFile),
+      paths: [],
+      suiteFilter: suiteFilterFor(selected),
+    }).map((item) => item.id);
+
+    if (missing.length > 0) {
+      info(`fetching ${missing.length} missing value(s) from Key Vault…`);
+      const report = ensureSecrets(missing, { envFile });
+      if (report.fetched.length > 0) {
+        info(`fetched ${report.fetched.join(', ')} and updated .env.e2e.`);
+      }
+      if (report.unavailable) {
+        warn('Azure CLI unavailable or not logged in — falling through to the gate.');
+      }
+    }
+  }
+
+  const preflight = spawnSync(
+    process.execPath,
+    [PREFLIGHT_SCRIPT, `--suite=${selected.join(',')}`],
+    { stdio: 'inherit' },
+  );
+  // A spawn that never started reports status null with an error — exiting on that alone
+  // would be indistinguishable from a real prerequisite failure.
+  if (preflight.error) {
+    error(`could not run the preflight gate: ${preflight.error.message}`);
+    process.exit(1);
+  }
+  if (preflight.status !== 0) process.exit(preflight.status ?? 1);
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
@@ -398,7 +537,9 @@ if (webSpecs.length > 0 && exitCode === 0) {
 const finishedAt = new Date().toISOString();
 const result = exitCode === 0 ? 'passed' : 'failed';
 // Only E2E-relevant dirt blocks attestation — an uncommitted README does not.
-const relevantDirty = uncommitted.filter((file) => resolveAffected([file]).specs.length > 0);
+// Pruned the same way the selection was, or one script would call the same package.json
+// irrelevant for choosing specs and blocking dirt for the receipt.
+const relevantDirty = prunedUncommitted.filter((file) => resolveAffected([file]).specs.length > 0);
 
 writeFileSync(
   RECEIPT_PATH,
@@ -409,6 +550,10 @@ writeFileSync(
       headSha,
       treeDigest,
       base: base ?? null,
+      // The range this run covered, as the attestation line records it. The pre-push
+      // hook reads this to tell a full run from a top-up.
+      attestationBase,
+      topUp: Boolean(requestedSince),
       dirty: relevantDirty,
       specs,
       projects,
@@ -437,7 +582,13 @@ if (relevantDirty.length > 0) {
 }
 
 console.log(`${C.bold}Paste this into the ## E2E section of your PR:${C.reset}\n`);
-console.log(`e2e: sha=${headSha} result=passed specs=${specs.length} at=${finishedAt}`);
+console.log(
+  `e2e: sha=${headSha} base=${attestationBase} result=passed specs=${specs.length} at=${finishedAt}`,
+);
+if (requestedSince) {
+  console.log('');
+  info('this is a top-up line — keep the earlier one, both count for what they cover.');
+}
 console.log('');
 // Only the web path starts containers, so only mention them when it ran.
 // Keep-up is run-e2e.sh's default now — the next run reuses the warm stack.

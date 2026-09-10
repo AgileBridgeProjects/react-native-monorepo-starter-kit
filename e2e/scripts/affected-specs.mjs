@@ -14,6 +14,7 @@
 
 const WEB_SUITE = 'tests/web';
 const EXPO_SUITE = 'tests/expo';
+const SUITES = [WEB_SUITE, EXPO_SUITE];
 
 /** Playwright projects per suite. Expo runs one viewport locally, three in CI. */
 const WEB_PROJECTS = ['web'];
@@ -233,6 +234,16 @@ const RULES = [
       'commitlint.config.mjs',
       'lint-staged.config.mjs',
       '.markdownlint-cli2.jsonc',
+      // The derived store / runtime version numbers (mobile-version.mjs). A version bump
+      // changes nothing a spec can observe: the runtime is a label installed builds are
+      // matched against, and the store version is metadata. Without this every bump reads
+      // as a coverage hole.
+      'apps/expo/version.json',
+      // Tests for the selector itself — they run under `npm run check`, not Playwright, so a
+      // change here proves nothing about the app. This does not collide with the harness
+      // rule's `e2e/scripts/affected-specs.mjs`: prefix matching compares `.test.mjs`
+      // against `.mjs` and fails, so only this rule matches.
+      'e2e/scripts/affected-specs.test.mjs',
     ],
     specs: [],
     why: 'not application code',
@@ -312,6 +323,118 @@ function suiteOf(spec) {
   return spec.startsWith(EXPO_SUITE) ? EXPO_SUITE : WEB_SUITE;
 }
 
+// ── package.json: content-aware, not path-aware ──────────────────────────────
+//
+// Every `package.json` in the tree is mapped to at least one suite, because a dependency
+// change can alter what a spec runs against. But the same file also holds `scripts`, and a
+// scripts-only edit — a new npm script, a renamed check — selected the full suites for a
+// change that cannot reach a browser. Root `package.json` in particular changes on most
+// tooling PRs. So a `package.json` path counts only when one of the sections below differs
+// between the two ends of the range; the callers supply the two texts because only they know
+// whether "head" means a commit or the working tree.
+
+/**
+ * Top-level keys that provably cannot reach a suite. Everything else can, including keys
+ * nobody has thought of yet — which is why this is an allow-list of inert keys rather than a
+ * list of dangerous ones. Listing the dangerous keys instead let `exports`, `main`, `types` and
+ * `type` through: re-pointing `packages/shared`'s `exports` map changes what every spec imports
+ * while touching no dependency section at all.
+ */
+export const PACKAGE_JSON_INERT_KEYS = [
+  'name',
+  'version',
+  'description',
+  'keywords',
+  'author',
+  'license',
+  'repository',
+  'bugs',
+  'homepage',
+  'private',
+  'scripts', // conditionally — see HARNESS_SCRIPTS
+  'packageManager',
+  'devEngines',
+];
+
+/**
+ * Script names the E2E harness itself invokes. A change to one of these changes how the specs
+ * run, so `scripts` is inert only when no changed key is in this set.
+ *
+ * `scripts` was briefly treated as wholly inert, which was wrong:
+ * `e2e/playwright.config.ts` boots the entire web suite with `npm run dev:e2e -w apps/web`, so
+ * redefining that one script (say, adding `--turbopack` back, the regression its own comment
+ * warns about) would have shipped with the E2E gate requiring nothing.
+ *
+ * The set does not need to be exhaustive to be safe. The only way a script reaches a spec is
+ * by being invoked from the harness, and every file that does the invoking (`e2e/**`) is
+ * already mapped to both suites — so wiring up a new one selects the suites on its own.
+ */
+export const HARNESS_SCRIPTS = [
+  'dev:e2e', // e2e/playwright.config.ts — the web suite's server
+  'dev:expo', // the Metro server the expo-web specs attach to locally
+  'e2e',
+  'e2e:affected',
+  'e2e:playwright',
+  'e2e:maestro',
+];
+
+/** Script keys whose value differs between the two ends. */
+export function changedScriptKeys(baseScripts, headScripts) {
+  const keys = new Set([...Object.keys(baseScripts ?? {}), ...Object.keys(headScripts ?? {})]);
+  return [...keys].filter((key) => baseScripts?.[key] !== headScripts?.[key]);
+}
+
+export function isPackageJson(file) {
+  const f = file.replaceAll('\\', '/');
+  return f === 'package.json' || f.endsWith('/package.json');
+}
+
+/**
+ * Can this package.json change reach a suite? Unreadable or unparseable at either end is a
+ * yes: a missed selection waves untested code through, a needless one costs a run.
+ *
+ * @param {string | null} baseText
+ * @param {string | null} headText
+ */
+export function packageJsonReachesSuites(baseText, headText) {
+  if (baseText == null || headText == null) return true;
+  let base;
+  let head;
+  try {
+    base = JSON.parse(baseText);
+    head = JSON.parse(headText);
+  } catch {
+    return true;
+  }
+  const keys = new Set([...Object.keys(base ?? {}), ...Object.keys(head ?? {})]);
+  for (const key of keys) {
+    if (JSON.stringify(base?.[key] ?? null) === JSON.stringify(head?.[key] ?? null)) continue;
+    if (key === 'scripts') {
+      // Inert unless one of the scripts the harness runs changed.
+      const changed = changedScriptKeys(base?.scripts, head?.scripts);
+      if (changed.some((name) => HARNESS_SCRIPTS.includes(name))) return true;
+      continue;
+    }
+    if (!PACKAGE_JSON_INERT_KEYS.includes(key)) return true;
+  }
+  return false;
+}
+
+/**
+ * Drop every package.json whose change stays outside the suite-bearing sections. Run this on
+ * the changed-file list before `resolveAffected`, in every consumer, or the three will disagree.
+ *
+ * @param {string[]} files
+ * @param {(file: string) => { base: string | null, head: string | null }} readAt
+ */
+export function pruneScriptOnlyPackageJson(files, readAt) {
+  return files.filter((file) => {
+    if (!isPackageJson(file)) return true;
+    const { base, head } = readAt(file);
+    return packageJsonReachesSuites(base, head);
+  });
+}
+
 /**
  * Resolve a list of changed repo-relative paths to the specs that cover them.
  *
@@ -389,4 +512,100 @@ export function partitionBySuite(specs) {
     web: specs.filter((s) => suiteOf(s) === WEB_SUITE),
     expo: specs.filter((s) => suiteOf(s) === EXPO_SUITE),
   };
+}
+
+// ── Coverage arithmetic ───────────────────────────────────────────────────────
+// Selections mix two granularities: a suite root (`tests/web`) and a leaf
+// (`tests/web/auth`). Set operations on that mix are wrong — subtracting
+// `tests/web/auth` from `tests/web` has no answer at this granularity. So every
+// operation below expands to leaves first, does plain set maths, and collapses back.
+
+/** @type {string[] | null} */
+let leafCache = null;
+
+/**
+ * Every leaf spec directory, from the rules table *and* from disk.
+ *
+ * Disk matters: a spec directory added without a matching rule can never be selected
+ * on its own, but it is still part of the suite a suite-root selection stands for.
+ * Expanding from the rules table alone would silently drop it from a `tests/web` run.
+ */
+export function leafSpecs() {
+  if (leafCache) return leafCache;
+  const leaves = new Set();
+  for (const rule of RULES) {
+    for (const spec of rule.specs) if (!SUITES.includes(spec)) leaves.add(spec);
+  }
+  for (const suite of SUITES) {
+    let entries = [];
+    try {
+      entries = readdirSync(path.join(import.meta.dirname, '..', suite), { withFileTypes: true });
+    } catch {
+      // No checkout of the suite (or a partial one) — the rules table still stands.
+    }
+    for (const entry of entries) if (entry.isDirectory()) leaves.add(`${suite}/${entry.name}`);
+  }
+  leafCache = [...leaves].sort();
+  return leafCache;
+}
+
+/** Suite roots → their leaves. Leaves pass through unchanged. */
+export function expandSpecs(specs) {
+  const out = new Set();
+  for (const spec of specs) {
+    if (SUITES.includes(spec)) {
+      for (const leaf of leafSpecs()) if (leaf.startsWith(`${spec}/`)) out.add(leaf);
+    } else {
+      out.add(spec);
+    }
+  }
+  return [...out].sort();
+}
+
+/**
+ * Inverse of `expandSpecs`: a fully-covered suite collapses back to its root.
+ *
+ * Stronger than the internal `collapse` above, which only drops leaves already implied
+ * by a present root. Here every leaf being present *is* the root, because after set
+ * subtraction that is the same statement and the caller wants the shortest one.
+ */
+export function collapseSpecs(specs) {
+  const remaining = new Set(specs);
+  const out = new Set();
+  for (const suite of SUITES) {
+    const leaves = leafSpecs().filter((s) => s.startsWith(`${suite}/`));
+    const whole =
+      remaining.has(suite) || (leaves.length > 0 && leaves.every((l) => remaining.has(l)));
+    if (!whole) continue;
+    out.add(suite);
+    remaining.delete(suite);
+    for (const leaf of leaves) remaining.delete(leaf);
+  }
+  for (const spec of remaining) out.add(spec);
+  return [...out].sort();
+}
+
+/**
+ * Which of `required` still needs running.
+ *
+ * Each attestation contributes the specs it actually exercised (`covered`) minus the
+ * specs that have changed since it ran (`invalidated`). What survives across all of
+ * them is already proven; the remainder is what is outstanding.
+ *
+ * Attestations union rather than compete: a run that covered everything except `auth`
+ * plus a later run that covered `auth` together cover the lot.
+ *
+ * @param {string[]} required
+ * @param {{ covered: string[], invalidated: string[] }[]} attestations
+ * @returns {string[]} the outstanding selection, collapsed
+ */
+export function outstandingSpecs(required, attestations) {
+  const outstanding = new Set(expandSpecs(required));
+  for (const { covered, invalidated } of attestations) {
+    const stale = new Set(expandSpecs(invalidated));
+    for (const spec of expandSpecs(covered)) {
+      if (!stale.has(spec)) outstanding.delete(spec);
+    }
+  }
+  return collapseSpecs([...outstanding]);
 }

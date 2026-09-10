@@ -71,15 +71,27 @@ jobs:
   # Heavy full-stack suite. Weekly sweep + manual dispatch only — never the
   # promotion gate (legacy suite, not yet hardened; a false red must not block
   # dev→uat). Failures on the sweep surface as Linear tickets.
-  playwright:
+  # Sharded. Each shard brings up its own stack, which costs runner minutes but not
+  # wall-clock, because they run concurrently and setup was never the dominant term.
+  #
+  # The aggregator below keeps the name `Playwright (Web)`. That is the required status
+  # check: a matrix job reports as "… (1)" / "… (2)" and would satisfy neither. If you add
+  # or rename a shard, do not touch the aggregator's `name:`.
+  playwright-shard:
     needs: check-changes
     if: >-
       always() &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'schedule' && needs.check-changes.outputs.web-changed == 'true'))
-    name: Playwright (Web)
+    name: Playwright (Web) shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      SHARD_TOTAL: "3"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     permissions:
       id-token: write
       contents: read
@@ -116,6 +128,52 @@ jobs:
         if: steps.playwright-cache-web.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      # `docker compose --build` on a clean runner has no layer cache at all, so every run
+      # paid a full dotnet restore + build + publish for both backend images. buildx with a
+      # GHA-scoped cache turns that into a pull. mode=max because the stages worth caching are
+      # the restore/build/publish intermediates, which mode=min does not export.
+      #
+      # free-disk-space runs BEFORE the builds. `large-packages: false` is load-bearing: it
+      # uninstalls azure-cli, and the Azure login step below then dies with
+      # "Unable to locate executable file: az".
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          large-packages: false
+          tool-cache: false
+          docker-images: false
+          swap-storage: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build migrator image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/backend
+          file: apps/backend/src/StarterKit.Migrator/Dockerfile
+          tags: starterkit-e2e-migrator:ci
+          load: true
+          cache-from: type=gha,scope=e2e-migrator
+          cache-to: type=gha,mode=max,scope=e2e-migrator
+
+      - name: Build WebApi image (cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/backend
+          file: apps/backend/src/StarterKit.WebApi/Dockerfile
+          tags: starterkit-e2e-webapi:ci
+          load: true
+          cache-from: type=gha,scope=e2e-webapi
+          cache-to: type=gha,mode=max,scope=e2e-webapi
+
+      # Both images are in the daemon now, so the build cache is dead weight on a runner
+      # that is about to hold two databases and a browser.
+      - name: Reclaim builder space
+        run: |
+          df -h /
+          docker buildx prune --all --force
+          df -h /
+
       - name: Start E2E databases
         working-directory: e2e
         run: |
@@ -124,7 +182,7 @@ jobs:
       - name: Run database migrations
         working-directory: e2e
         run: |
-          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up migrator-e2e --build --abort-on-container-exit
+          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up migrator-e2e --abort-on-container-exit
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -153,23 +211,23 @@ jobs:
       - name: Start E2E backend API
         working-directory: e2e
         run: |
-          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait webapi-e2e --build
+          docker compose -f docker-compose.e2e.yml -p starterkit-e2e up -d --wait webapi-e2e
 
       - name: Run Playwright tests
         working-directory: e2e
-        run: npx playwright test --config playwright.config.ts --project=web --reporter=json,html
+        run: >-
+          npx playwright test --config playwright.config.ts --project=web
+          --shard=${{ matrix.shard }}/${{ env.SHARD_TOTAL }} --reporter=blob
         env:
           CI: "true"
-          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/web-results.json
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/web-${{ matrix.shard }}.zip
 
-      - name: Upload Playwright report
+      - name: Upload shard blob report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: |
-            e2e/html-report/
-            e2e/test-results/web-results.json
+          name: web-blob-${{ matrix.shard }}
+          path: e2e/blob-report/
           retention-days: 14
 
       - name: Tear down E2E databases
@@ -182,14 +240,22 @@ jobs:
   # run across desktop + tablet + mobile viewports. Runs on the weekly sweep,
   # the dev→uat promotion gate, and manual dispatch. Real-GoTrue email specs
   # fall back to the seeded dev admin credentials.
-  playwright-expo:
+  # Sharded — see the comment on playwright-shard. `Playwright (Expo Web)` is the
+  # required check and belongs to the aggregator, not to a matrix job.
+  playwright-expo-shard:
     needs: check-changes
     if: >-
       always() &&
       (github.event_name != 'schedule' || needs.check-changes.outputs.expo-changed == 'true')
-    name: Playwright (Expo Web)
+    name: Playwright (Expo Web) shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    env:
+      SHARD_TOTAL: "2"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -223,7 +289,28 @@ jobs:
         working-directory: e2e
         run: npx playwright install-deps chromium
 
+      # EXPO_PUBLIC_* values are inlined at transform time and Metro keys its cache on file
+      # content, not env, so a warm Metro cache can silently keep the previous build's URLs.
+      # That argues for hashing the env into the key, not for rebuilding every run — hence the
+      # env block below being part of what invalidates this.
+      - name: Cache Expo web export
+        id: expo-export-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/expo-web-dist
+          key: >-
+            ${{ runner.os }}-expo-web-dist-${{ hashFiles(
+              'apps/expo/app/**', 'apps/expo/src/**', 'apps/expo/components/**',
+              'apps/expo/constants/**', 'apps/expo/hooks/**', 'apps/expo/modules/**',
+              'apps/expo/plugins/**', 'apps/expo/assets/**', 'apps/expo/public/**',
+              'apps/expo/package.json', 'apps/expo/app.config.js', 'apps/expo/app.json',
+              'apps/expo/version.json', 'apps/expo/metro.config.js', 'apps/expo/babel.config.js',
+              'apps/expo/global.css', 'apps/expo/tsconfig.json',
+              'packages/**', 'package-lock.json', 'patches/**'
+            ) }}-api-localhost-5001
+
       - name: Build Expo web (static export)
+        if: steps.expo-export-cache.outputs.cache-hit != 'true'
         working-directory: apps/expo
         run: npx expo export --platform web --output-dir /tmp/expo-web-dist
         env:
@@ -249,20 +336,24 @@ jobs:
         # Uses the synthetic-auth config (no global-setup / Next server) — the
         # exact setup the suite was verified green against, across 3 viewports.
         working-directory: e2e
-        run: npx playwright test --config playwright.expo-local.config.ts --reporter=list,json,html
+        run: >-
+          npx playwright test --config playwright.expo-local.config.ts
+          --shard=${{ matrix.shard }}/${{ env.SHARD_TOTAL }} --reporter=blob
         env:
           CI: "true"
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/expo-${{ matrix.shard }}.zip
+          # The tablet and mobile projects run only @viewport-tagged specs on a PR; the weekly
+          # sweep runs the full three-width matrix. See e2e/playwright.expo-local.config.ts.
+          E2E_ALL_VIEWPORTS: ${{ github.event_name == 'schedule' && '1' || '0' }}
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/expo-results.json
           PLAYWRIGHT_HTML_OUTPUT_DIR: html-report
 
-      - name: Upload Expo Playwright report
+      - name: Upload shard blob report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-expo-report
-          path: |
-            e2e/html-report/
-            e2e/test-results/expo-results.json
+          name: expo-blob-${{ matrix.shard }}
+          path: e2e/blob-report/
           retention-days: 14
 
   # ── Maestro (Mobile — Expo) — DISABLED (dev menu issue unresolved) ──────────
@@ -343,6 +434,124 @@ jobs:
   # ── Report Failures → Linear ────────────────────────────────
   # Only on dev-context runs (schedule / manual) — never on the dev→uat PR,
   # where failures are visible in the PR check itself.
+  # ── Aggregators ─────────────────────────────────────────────────────────────
+  # These own the names the branch ruleset marks required, and they merge the shards'
+  # blob reports into the single html + json report the rest of the pipeline expects.
+  # `if: always()` so a required check is always reported: a skipped required check
+  # blocks a PR forever.
+
+  playwright:
+    name: Playwright (Web)
+    needs: playwright-shard
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download shard blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: web-blob-*
+          merge-multiple: true
+          path: e2e/blob-report
+        continue-on-error: true
+
+      - name: Merge shard reports
+        working-directory: e2e
+        run: npx playwright merge-reports --reporter json,html ./blob-report
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/web-results.json
+          PLAYWRIGHT_HTML_OUTPUT_DIR: html-report
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/web-results.json
+          retention-days: 14
+
+      # The merge step must not be what decides the check. A shard that failed its tests
+      # still uploads a blob, so the verdict comes from the shards themselves.
+      - name: Report shard outcome
+        env:
+          SHARDS: ${{ needs.playwright-shard.result }}
+        run: |
+          echo "shards=$SHARDS"
+          case "$SHARDS" in
+            success|skipped) echo "Web suite passed (or was skipped)." ;;
+            *) echo "::error title=Web E2E failed::A Playwright (Web) shard did not pass ($SHARDS)."; exit 1 ;;
+          esac
+
+  playwright-expo:
+    name: Playwright (Expo Web)
+    needs: playwright-expo-shard
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download shard blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: expo-blob-*
+          merge-multiple: true
+          path: e2e/blob-report
+        continue-on-error: true
+
+      - name: Merge shard reports
+        working-directory: e2e
+        run: npx playwright merge-reports --reporter json,html ./blob-report
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/expo-results.json
+          PLAYWRIGHT_HTML_OUTPUT_DIR: html-report
+        continue-on-error: true
+
+      - name: Upload Expo Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-expo-report
+          path: |
+            e2e/html-report/
+            e2e/test-results/expo-results.json
+          retention-days: 14
+
+      - name: Report shard outcome
+        env:
+          SHARDS: ${{ needs.playwright-expo-shard.result }}
+        run: |
+          echo "shards=$SHARDS"
+          case "$SHARDS" in
+            success|skipped) echo "Expo suite passed (or was skipped)." ;;
+            *) echo "::error title=Expo E2E failed::A Playwright (Expo Web) shard did not pass ($SHARDS)."; exit 1 ;;
+          esac
+
   report-failures:
     name: Report Failures to Linear
     needs: [playwright, playwright-expo]

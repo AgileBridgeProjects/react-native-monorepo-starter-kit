@@ -21,10 +21,14 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { resolveAffected } from '../e2e/scripts/affected-specs.mjs';
+import {
+  outstandingSpecs,
+  pruneScriptOnlyPackageJson,
+  resolveAffected,
+} from '../e2e/scripts/affected-specs.mjs';
+import { ZERO_SHA, parsePushRefs } from './lib/pre-push-refs.mjs';
 
 const RECEIPT_PATH = 'e2e/.e2e-receipt.json';
-const ZERO_SHA = '0000000000000000000000000000000000000000';
 /** A receipt older than this is treated as stale even if the digest still matches. */
 const MAX_RECEIPT_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -40,40 +44,28 @@ function git(args, { allowFailure = false } = {}) {
   return result.stdout.trim();
 }
 
+/**
+ * Set once the pushed range is known. When a branch already exists on the remote the
+ * push is a delta, so the cheap fix is a top-up run over just those commits rather
+ * than the whole branch selection.
+ */
+let suggestedRun = 'npm run e2e:affected';
+
 function blocked(reason, detail) {
   console.error(`\n${C.red}✗ E2E not run for what you are pushing${C.reset}\n`);
   console.error(`  ${reason}\n`);
   if (detail) console.error(`${detail}\n`);
   console.error('  Run the affected specs (warm containers make this quick):\n');
-  console.error('    E2E_KEEP_UP=1 npm run e2e:affected\n');
+  console.error(`    E2E_KEEP_UP=1 ${suggestedRun}\n`);
   console.error('  Genuinely not applicable? Say so explicitly:\n');
   console.error('    E2E_SKIP="reason" git push\n');
   console.error('  Contract: docs/standards/e2e-testing.md § Pre-push attestation\n');
   process.exit(1);
 }
 
-/**
- * Parse git's pre-push stdin: `<local ref> <local sha> <remote ref> <remote sha>`.
- *
- * `sawLines` distinguishes "git told us nothing" (fall back to a ref comparison)
- * from "git told us about deletions only" (genuinely nothing to test). Without it a
- * branch-deletion push would be blocked by the fallback.
- *
- * @param {string} stdin
- */
-function readPushedRefs(stdin) {
-  const refs = [];
-  let sawLines = false;
-  for (const line of stdin.split('\n').filter(Boolean)) {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 4) continue;
-    sawLines = true;
-    const [localRef, localSha, , remoteSha] = parts;
-    if (localSha === ZERO_SHA) continue; // branch deletion — no commits to test
-    refs.push({ localRef, localSha, remoteSha });
-  }
-  return { refs, sawLines };
-}
+// Ref parsing lives in scripts/lib/pre-push-refs.mjs: the hook reads git's lines once and
+// pipes the same string to this gate and to pre-push-tag-skip.mjs, so both must read them
+// identically. They each had their own parser and their own ZERO_SHA until they were unified.
 
 /** First ref that exists, used when the remote has no copy of the branch yet. */
 function defaultBase() {
@@ -81,6 +73,11 @@ function defaultBase() {
     if (git(['rev-parse', '--verify', '--quiet', ref], { allowFailure: true })) return ref;
   }
   return null;
+}
+
+/** Content of a file at a ref, or null when the ref lacks it (added, deleted, unknown ref). */
+function textAt(ref, file) {
+  return git(['show', `${ref}:${file}`], { allowFailure: true });
 }
 
 /** Files changed by the commits being pushed, across every pushed ref. */
@@ -93,7 +90,13 @@ function pushedFiles(refs) {
     const range = base ? `${base}..${localSha}` : localSha;
     const out = git(['diff', '--name-only', range], { allowFailure: true });
     if (out === null) continue;
-    for (const file of out.split('\n').filter(Boolean)) files.add(file);
+    // A package.json counts only when a dependency section moved; a scripts edit cannot
+    // reach a browser. Same rule the runner and the CI gate apply, from the same helper.
+    const pruned = pruneScriptOnlyPackageJson(out.split('\n').filter(Boolean), (file) => ({
+      base: base ? textAt(base, file) : null,
+      head: textAt(localSha, file),
+    }));
+    for (const file of pruned) files.add(file);
   }
   return [...files];
 }
@@ -110,7 +113,10 @@ function fallbackFiles() {
   const base = upstream ?? defaultBase();
   if (!base) return [];
   const out = git(['diff', '--name-only', `${base}..HEAD`], { allowFailure: true });
-  return out ? out.split('\n').filter(Boolean) : [];
+  return pruneScriptOnlyPackageJson(out ? out.split('\n').filter(Boolean) : [], (file) => ({
+    base: textAt(base, file),
+    head: textAt('HEAD', file),
+  }));
 }
 
 function readReceipt() {
@@ -136,10 +142,15 @@ try {
   stdin = '';
 }
 
-const { refs, sawLines } = readPushedRefs(stdin);
+const { refs, sawLines } = parsePushRefs(stdin);
 let files;
 if (refs.length > 0) {
   files = pushedFiles(refs);
+  // Single known-remote ref: the push is a delta, so point at the top-up run.
+  const [only] = refs;
+  if (refs.length === 1 && only.remoteSha && only.remoteSha !== ZERO_SHA) {
+    suggestedRun = `npm run e2e:affected -- --since ${only.remoteSha}`;
+  }
 } else if (sawLines) {
   files = []; // deletions only
 } else {
@@ -189,15 +200,16 @@ if (Date.now() - finishedAt > MAX_RECEIPT_AGE_MS) {
 }
 
 // The receipt must cover every spec this push selects. Running a superset is fine.
-const covered = new Set(receipt.specs ?? []);
-const missing = specs.filter(
-  (spec) => !covered.has(spec) && ![...covered].some((c) => spec.startsWith(`${c}/`)),
-);
+// `outstandingSpecs` is shared with the CI gate so the two agree about what a
+// suite-root selection stands for — `tests/web` in a receipt covers `tests/web/auth`
+// in a push, and every leaf in a receipt covers the suite root.
+const recorded = receipt.specs ?? [];
+const missing = outstandingSpecs(specs, [{ covered: recorded, invalidated: [] }]);
 if (missing.length > 0) {
   blocked(
     'The recorded run did not cover every spec this push selects.',
     `  Missing:\n${missing.map((s) => `    • ${s}`).join('\n')}\n` +
-      `  Recorded:\n${[...covered].map((s) => `    • ${s}`).join('\n')}`,
+      `  Recorded:\n${recorded.map((s) => `    • ${s}`).join('\n')}`,
   );
 }
 

@@ -1,3 +1,4 @@
+import { cpus } from 'node:os';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
@@ -23,11 +24,27 @@ const startsExpo = requestedServers === 'both' || requestedServers === 'expo';
 /** `E2E_WORKERS` overrides the worker count/percentage; a plain integer is parsed to a number
  * since Playwright's `workers` option treats a bare numeric string differently from a count. */
 const workersOverride = process.env.E2E_WORKERS;
+
+/** Live-backend specs share one WebApi and one Postgres, which do not scale with core count.
+ * A GitHub runner has 2-4 cores, so 50% was already 1-2 workers there and this cap never
+ * binds; it only clamps the developer boxes that were the problem. An expo-only run talks to
+ * a static bundle and keeps core-based sizing. */
+const LIVE_BACKEND_WORKER_CAP = 6;
+const livePhase = (process.env.E2E_SERVERS ?? 'both') !== 'expo';
+const defaultWorkers = livePhase
+  ? Math.min(Math.max(1, Math.floor(cpus().length / 2)), LIVE_BACKEND_WORKER_CAP)
+  : '50%';
 const workers = workersOverride
   ? workersOverride.endsWith('%')
     ? workersOverride
     : Number(workersOverride)
-  : '50%';
+  : defaultWorkers;
+
+/** Run the tablet and mobile projects only over specs that actually observe the viewport.
+ * Everything else asserts an identical expectation three times. Specs opt in with
+ * `test.describe('…', { tag: '@viewport' }, …)`. The scheduled sweep sets E2E_ALL_VIEWPORTS=1
+ * so the full matrix still runs somewhere. */
+const viewportGrep = process.env.E2E_ALL_VIEWPORTS === '1' ? undefined : /@viewport/;
 
 /**
  * Playwright configuration for all StarterKit E2E tests.
@@ -50,8 +67,11 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
 
-  /* No retries locally — keep feedback fast. */
-  retries: 0,
+  /* Retries are not CI-only. Without them a transient load-flake that CI would silently
+   * absorb shows up locally as a hard failure on a different random spec each run, always
+   * via timeout, never via a wrong assertion — which reads as a real bug and is not one.
+   * CI keeps 2 because a red required check costs far more than a retry. */
+  retries: process.env.CI ? 2 : 1,
 
   /* Parallel across spec FILES (fullyParallel stays off, so tests within a file
    * keep their order and `test.describe.serial` CRUD chains stay on one worker).
@@ -69,7 +89,14 @@ export default defineConfig({
   /* Generous per-test timeout — loginAsAdmin may fall back to a real GoTrue login which can take
    * up to 30s in slow environments. The default 30s leaves no headroom for the
    * test body itself, causing intermittent beforeEach timeouts. */
-  timeout: 60_000,
+  timeout: 90_000,
+
+  /* Almost every flaky failure is an assertion hitting Playwright's 5s default while waiting
+   * for a container or button that does render, just later, behind the queue. 5s was never a
+   * considered choice and is only ever sufficient serially. Do NOT add per-assertion
+   * `{ timeout: 5_000 }` overrides: they shorten the wait for exactly the loaded-machine case
+   * this value exists for. */
+  expect: { timeout: 15_000 },
 
   /* Reporter — list for local, HTML for deeper inspection. */
   reporter: [['list'], ['html', { outputFolder: './html-report', open: 'never' }]],
@@ -83,6 +110,12 @@ export default defineConfig({
 
     /* Screenshot on failure. */
     screenshot: 'only-on-failure',
+
+    /* Bound the individual operations too. A wedged wait then fails fast and NAMES what it
+     * was stuck on ("locator.click exceeded 15000ms", "page.goto exceeded 30000ms") instead
+     * of silently eating the whole test budget. */
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
 
   projects: [
@@ -112,6 +145,7 @@ export default defineConfig({
     {
       name: 'expo-web-tablet',
       testDir: './tests/expo',
+      grep: viewportGrep,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 834, height: 1112 },
@@ -122,6 +156,7 @@ export default defineConfig({
     {
       name: 'expo-web-mobile',
       testDir: './tests/expo',
+      grep: viewportGrep,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 390, height: 844 },

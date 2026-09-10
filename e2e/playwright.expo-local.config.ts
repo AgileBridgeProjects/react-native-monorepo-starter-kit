@@ -1,5 +1,9 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+
+/** Tablet and mobile run only the specs that observe the viewport — see playwright.config.ts.
+ * E2E_ALL_VIEWPORTS=1 restores the full matrix. */
+const viewportGrep = process.env.E2E_ALL_VIEWPORTS === '1' ? undefined : /@viewport/;
 import dotenv from 'dotenv';
 
 // The synthetic auth injector (playwright/utils/auth.ts) derives its localStorage key from
@@ -29,12 +33,16 @@ dotenv.config({ path: path.resolve(__dirname, '../apps/expo/.env.local') });
 export default defineConfig({
   testDir: './tests/expo',
   outputDir: './test-results',
-  retries: 0,
+  /* Retries are not CI-only — see playwright.config.ts for why. */
+  retries: 2,
   /* Parallel across spec files — every expo spec is self-contained (synthetic
    * injected auth + per-spec route mocks, no backend), so file-level parallelism
    * is safe by construction. Cuts the 3-viewport CI matrix down proportionally. */
   workers: '50%',
   timeout: 45_000,
+  /* Not Playwright's 5s default: under a full-suite load an element that does render, just
+   * later, is the single largest source of flake. See playwright.config.ts. */
+  expect: { timeout: 15_000 },
   reporter: [['list']],
   use: {
     // `e2e:affected` builds its own static export and serves it, falling back to a second
@@ -44,6 +52,8 @@ export default defineConfig({
     baseURL: process.env.E2E_EXPO_BASE_URL ?? 'http://localhost:8081',
     trace: 'off',
     screenshot: 'only-on-failure',
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
   projects: [
     {
@@ -52,10 +62,12 @@ export default defineConfig({
     },
     {
       name: 'expo-web-tablet',
+      grep: viewportGrep,
       use: { ...devices['Desktop Chrome'], viewport: { width: 834, height: 1112 } },
     },
     {
       name: 'expo-web-mobile',
+      grep: viewportGrep,
       use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
     },
   ],

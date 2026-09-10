@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "pull:env": "node scripts/pull-env.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "test": "node --test \"scripts/*.test.mjs\"",
     "playwright:install": "npx playwright install --with-deps chromium",
     "playwright": "npx playwright test",
     "playwright:web": "npx playwright test --project=web",
