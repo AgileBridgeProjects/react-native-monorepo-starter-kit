@@ -49,13 +49,13 @@ jobs:
         with:
           dotnet-version: 10.x
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('apps/backend/**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Cache dotnet tools
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.dotnet/tools
           key: ${{ runner.os }}-dotnet-tools-${{ hashFiles('apps/backend/dotnet-tools.json') }}
