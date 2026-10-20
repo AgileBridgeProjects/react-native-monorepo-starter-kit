@@ -54,7 +54,7 @@ jobs:
         working-directory: .
 
       - name: Setup Expo and EAS CLI
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -105,7 +105,7 @@ jobs:
         working-directory: .
 
       - name: Setup Expo and EAS CLI
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -162,7 +162,7 @@ jobs:
         working-directory: .
 
       - name: Setup Expo and EAS CLI
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -202,7 +202,7 @@ jobs:
         working-directory: .
 
       - name: Setup Expo and EAS CLI
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -266,7 +266,7 @@ jobs:
         working-directory: .
 
       - name: Setup Expo and EAS CLI
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
