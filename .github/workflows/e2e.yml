@@ -46,7 +46,7 @@ jobs:
       web-changed: ${{ steps.web.outputs.changed }}
       expo-changed: ${{ steps.expo.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Falls back to the repo's default branch when there is no `dev`: the
           # promotion topology in docs/standards/branching.md is opt-in, and a
@@ -101,7 +101,7 @@ jobs:
       KEYVAULT_NAME: ${{ vars.KEYVAULT_NAME }}
       PLAYWRIGHT_BASE_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Falls back to the repo's default branch when there is no `dev`: the
           # promotion topology in docs/standards/branching.md is opt-in, and a
@@ -264,7 +264,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # On the dev→uat PR, test the dev head being promoted; otherwise dev.
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
@@ -375,7 +375,7 @@ jobs:
   #     E2E_ADMIN_PASSWORD: "P@ssword01*$"
   #     E2E_REGISTER_EMAIL: e2e-ci-${{ github.run_id }}@starterkit.local
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v7
   #       with:
   #         fetch-depth: 50
   #
@@ -454,7 +454,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
           fetch-depth: 1
@@ -511,7 +511,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'dev' }}
           fetch-depth: 1
@@ -569,7 +569,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Falls back to the repo's default branch when there is no `dev`: the
           # promotion topology in docs/standards/branching.md is opt-in, and a
